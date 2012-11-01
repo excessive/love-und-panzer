@@ -6,7 +6,7 @@ function love.load()
 	
 	-- Load screen types
 	screens = {}
-	screens.gameplay = require "screens/gameplay"
+	screens.gameplay = require "screens.gameplay"
 
 	-- Initialize layers
 	layers = {
@@ -32,7 +32,7 @@ function love.focus()
 end
 
 function love.update(dt)
-	debug.fps = math.floor(1 / dt)
+	-----------------------------debug.fps = math.floor(1 / dt)
 	
 	-- Scale
 	scale			= love.graphics.getHeight() / numTiles / tileSize

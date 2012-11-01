@@ -16,10 +16,9 @@ Tank = Class {
 		x			- TileX on map
 		y			- TileY on map
 	]]--
-	function(self, map, collision, name, speed, image, w, h, x, y)
+	function(self, map, collision, image, w, h, x, y, speed)
 		self.map		= map
 		self.collision	= collision
-		self.entity		= self.map.layers["Entities"]:newObject(name, "Tank", x, y, w, h)
 		self.speed		= speed
 		
 		self.image		= love.graphics.newImage(image)
@@ -33,7 +32,6 @@ Tank = Class {
 		self:tileToPixel()
 		self:savePosition()
 		
-		self.entity.draw = function() self:draw() end
 		self:newSprite("up",		self.image, 64, 64, 0, 0, 1, 1)
 		self:newSprite("down",		self.image, 64, 64, 0, 0, 1, 1)
 		self:newSprite("left",		self.image, 64, 64, 0, 0, 1, 1)
@@ -51,7 +49,7 @@ Tank = Class {
 ]]--
 function Tank:tileToPixel()
 	self.x = self.tileX * self.map.tileWidth
-	self.y = self.tileY * self.map.tileHeight - self.map.tileHeight / 2
+	self.y = self.tileY * self.map.tileHeight
 end
 
 --[[
@@ -156,10 +154,8 @@ function Tank:update(dt, tickRate, time, lastTime)
 	)
 	
 	self.y = interpolate(tween.linear,
-		math.floor(self.prevY * self.map.tileHeight - self.map.tileHeight / 2),
-		math.floor(self.tileY * self.map.tileHeight - self.map.tileHeight / 2),
+		math.floor(self.prevY * self.map.tileHeight),
+		math.floor(self.tileY * self.map.tileHeight),
 		tickRate, time - lastTime
 	)
-	
-	self.entity:updateDrawInfo()
 end

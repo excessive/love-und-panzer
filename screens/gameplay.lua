@@ -33,14 +33,23 @@ local function load(self)
 	local loader = require "libs.ATL.Loader"
 	loader.path = "maps/"
 	self.map = loader.load("test")
-	self.map.viewW = math.huge--windowWidth
-	self.map.viewH = math.huge--windowHeight
+	self.map.viewW = windowWidth
+	self.map.viewH = windowHeight
+	
+	-- Custom Layer for Sprite Objects
+	local spriteLayer = self.map:newCustomLayer("Sprites", 3)
+	function spriteLayer:draw()
+		self.player:draw()
+	end
 	
 	-- Create Collision Map
 	self.collisionMap = createCollisionMap(self.map, "Collision")
 	
 	-- Initialize Player
-	self.player = Tank(self.map, self.collisionMap, "Player", 4, "assets/sprites/tank.png", 64, 64, 4, 4)
+	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, 4, 4, 4)
+	
+	-- Link Player to Sprites Layer
+	self.map.layers.Sprites.player = self.player
 end
 
 local function update(self, dt)
@@ -92,19 +101,13 @@ local function draw(self)
 	local tx = math.floor(-self.player.x + windowWidth / 2 - self.map.tileWidth / 2)
 	local ty = math.floor(-self.player.y + windowHeight / 2 - self.map.tileHeight / 2)
 	love.graphics.translate(tx, ty)
-	--self.map:autoDrawRange(tx, ty, self.scale, self.map.tileWidth)
+	self.map:autoDrawRange(tx, ty, self.scale, self.map.tileWidth)
 	self.map:draw()
 	love.graphics.pop()
 end
 
 local function keyreleased(self, k)
 	-- Still frames
-	--[[
-	if table.find({"up", "down", "left", "right"}, k) then
-		self.player.facing = k
-	end]]--
-	
-	-- Fix me?
 	if k == "w" or k == "up"	then self.player.facing = "up"		end
 	if k == "s" or k == "down"	then self.player.facing = "down"	end
 	if k == "a" or k == "left"	then self.player.facing = "left"	end
