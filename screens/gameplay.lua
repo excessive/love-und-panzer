@@ -46,7 +46,7 @@ local function load(self)
 	self.collisionMap = createCollisionMap(self.map, "Collision")
 	
 	-- Initialize Player
-	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, 4, 4, 4)
+	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 32, 32, 4, 4, 4)
 	
 	-- Link Player to Sprites Layer
 	self.map.layers.Sprites.player = self.player
@@ -65,33 +65,17 @@ local function update(self, dt)
 		end
 	end
 	
-	updateKeys { "up", "down", "left", "right", "w", "s", "a", "d" }
+	updateKeys { "up", "down", "left", "right" }
 	
-	if self.time - self.lastTime >= self.tickRate then
-		self.player:savePosition()
-		
-		if self.keystate.up		or self.keystate.w then
-			playerY	= -1
-		end
-		
-		if self.keystate.down	or self.keystate.s then
-			playerY	= 1
-		end
-		
-		if self.keystate.left	or self.keystate.a then
-			playerX	= -1
-		end
-		
-		if self.keystate.right	or self.keystate.d then
-			playerX	= 1
-		end
-		
-		self.lastTime = self.time
-	end
+	if self.keystate.up then playerY = -1 end
+	if self.keystate.down then playerY = 1 end
+	if self.keystate.left then playerX = -1 end
+	if self.keystate.right then playerX = 1 end
+	
+	--[[if self.time - self.lastTime >= self.tickRate then end]]-- Keep this aroudn fo rnow, we may need a ticker.
 	
 	-- Update Player
-	self.player:moveTile(playerX, playerY)
-	self.player:update(dt, self.tickRate, self.time, self.lastTime)
+	self.player:move(dt, playerX, playerY)
 	self.player.sprites[self.player.facing].image:update(dt)
 end
 
@@ -106,21 +90,12 @@ local function draw(self)
 	love.graphics.pop()
 end
 
-local function keyreleased(self, k)
-	-- Still frames
-	if k == "w" or k == "up"	then self.player.facing = "up"		end
-	if k == "s" or k == "down"	then self.player.facing = "down"	end
-	if k == "a" or k == "left"	then self.player.facing = "left"	end
-	if k == "d" or k == "right"	then self.player.facing = "right"	end
-end
-
 return function(data)
 	return Screen {
 		name		= "Gameplay",
 		load		= load,
 		update		= update,
 		draw		= draw,
-		keyreleased	= keyreleased,
 		data		= data
 	}
 end

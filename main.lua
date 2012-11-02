@@ -32,8 +32,6 @@ function love.focus()
 end
 
 function love.update(dt)
-	-----------------------------debug.fps = math.floor(1 / dt)
-	
 	-- Scale
 	scale			= love.graphics.getHeight() / numTiles / tileSize
 	windowWidth		= love.graphics.getWidth() / scale

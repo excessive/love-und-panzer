@@ -1,5 +1,4 @@
 require "libs.AnAL"
-require "utils.tween"
 Class = require "libs.hump.class"
 
 Tank = Class {
@@ -8,13 +7,12 @@ Tank = Class {
 		
 		map			- A reference of the map
 		collision	- Collision map
-		name		- Player's name
 		image		- Spritemap
-		stats		- Statistics
 		w			- Width on map
 		h			- Height on map
 		x			- TileX on map
 		y			- TileY on map
+		speed		- Tiles per second
 	]]--
 	function(self, map, collision, image, w, h, x, y, speed)
 		self.map		= map
@@ -32,15 +30,12 @@ Tank = Class {
 		self:tileToPixel()
 		self:savePosition()
 		
-		self:newSprite("up",		self.image, 64, 64, 0, 0, 1, 1)
-		self:newSprite("down",		self.image, 64, 64, 0, 0, 1, 1)
-		self:newSprite("left",		self.image, 64, 64, 0, 0, 1, 1)
-		self:newSprite("right",		self.image, 64, 64, 0, 0, 1, 1)
-		self:newSprite("upWalk",	self.image, 64, 64, 0, 0, 1, 1)
-		self:newSprite("downWalk",	self.image, 64, 64, 0, 0, 1, 1)
-		self:newSprite("leftWalk",	self.image, 64, 64, 0, 0, 1, 1)
-		self:newSprite("rightWalk",	self.image, 64, 64, 0, 0, 1, 1)
-		self.facing		= "down"
+		self:newSprite("idle",		self.image, 32, 32, 0, 0, 1, 1)
+		self:newSprite("forward",	self.image, 32, 32, 0, 0, 1, 1)
+		self:newSprite("backward",	self.image, 32, 32, 0, 0, 1, 1)
+		self:newSprite("turnLeft",	self.image, 32, 32, 0, 0, 1, 1)
+		self:newSprite("turnRight",	self.image, 32, 32, 0, 0, 1, 1)
+		self.facing		= "idle"
 	end
 }
 
@@ -108,54 +103,37 @@ function Tank:savePosition()
 end
 
 --[[
-	Move to next tile
+	Move tank
 	
+	dt		- Delta time
 	x		- Add to current x position
 	y		- Add to current y position
 ]]--
-function Tank:moveTile(x, y)
-	local newX = self.tileX + x
-	local newY = self.tileY + y
+function Tank:move(dt, x, y)
+	local newX	= self.x + (self.speed * self.map.tileWidth * x * dt)
+	local newY	= self.y + (self.speed * self.map.tileHeight * y * dt)
 	
-	local function getTile(layer_name)
-		return self.map.layers[layer_name](newX, newY)
+	local tileX, tileY = 0, 0
+	
+	if x > 0 then
+		tileX	= math.ceil(newX / self.map.tileWidth)
+	else
+		tileX	= math.floor(newX / self.map.tileWidth)
 	end
 	
-	if y < 0 then
-		self.facing = "upWalk"
-	elseif y > 0 then
-		self.facing = "downWalk"
-	elseif x < 0 then
-		self.facing = "leftWalk"
-	elseif x > 0 then
-		self.facing = "rightWalk"
+	if y > 0 then
+		tileY	= math.ceil(newY / self.map.tileHeight)
+	else
+		tileY	= math.floor(newY / self.map.tileHeight)
+	end
+	
+	local function getTile(layer_name)
+		return self.map.layers[layer_name](tileX, tileY)
 	end
 	
 	if getTile("Ground") == nil then return end
-	if self.collision[newY][newX] == 1 then return end
+	if self.collision[tileY][tileX] == 1 then return end
 	
-	self.tileX = newX
-	self.tileY = newY
-end
-
---[[
-	Update Player
-	
-	dt			- Delta time
-	tickRate	- Ticks per second
-	time		- Time elapsed
-	lastTime	- Time during last tick
-]]--
-function Tank:update(dt, tickRate, time, lastTime)
-	self.x = interpolate(tween.linear,
-		math.floor(self.prevX * self.map.tileWidth),
-		math.floor(self.tileX * self.map.tileWidth),
-		tickRate, time - lastTime
-	)
-	
-	self.y = interpolate(tween.linear,
-		math.floor(self.prevY * self.map.tileHeight),
-		math.floor(self.tileY * self.map.tileHeight),
-		tickRate, time - lastTime
-	)
+	self.x		= newX
+	self.y		= newY
 end
