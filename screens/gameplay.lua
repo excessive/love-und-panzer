@@ -24,10 +24,10 @@ local function load(self)
 	self.input = Input()
 	
 	-- Tick
-	self.time = 0
+	--[[self.time = 0
 	self.lastTime = 0
 	self.lastTick = 0
-	self.tickRate = 1/8
+	self.tickRate = 1/8]]--
 	
 	-- Initialize Tiled Map
 	local loader = require "libs.ATL.Loader"
@@ -53,8 +53,8 @@ local function load(self)
 end
 
 local function update(self, dt)
-	self.time = self.time + dt
-	--[[if self.time - self.lastTime >= self.tickRate then end]]-- Keep this aroudn fo rnow, we may need a ticker.
+	--self.time = self.time + dt
+	--if self.time - self.lastTime >= self.tickRate then end
 	
 	local move = 0
 	local turn = 0

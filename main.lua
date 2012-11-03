@@ -49,6 +49,8 @@ function love.update(dt)
 	layers:each("update", dt)
 	
 	TEsound.cleanup()
+	
+	print(love.graphics.getColor())
 end
 
 function love.draw()

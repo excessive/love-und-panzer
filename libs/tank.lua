@@ -115,12 +115,16 @@ function Tank:move(move)
 	
 	local tileX, tileY = 0, 0
 	
-	if move > 0 then
-		tileX	= math.ceil(newX / self.map.tileWidth)
-		tileY	= math.ceil(newY / self.map.tileHeight)
+	if newX < 0 then
+		tileX = math.ceil(newX / self.map.tileWidth)
 	else
-		tileX	= math.floor(newX / self.map.tileWidth)
-		tileY	= math.floor(newY / self.map.tileHeight)
+		tileX = math.floor(newX / self.map.tileWidth)
+	end
+	
+	if newY < 0 then
+		tileY = math.ceil(newY / self.map.tileHeight)
+	else
+		tileY = math.floor(newY / self.map.tileHeight)
 	end
 	
 	local function getTile(layer_name)
