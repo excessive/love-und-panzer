@@ -46,7 +46,7 @@ local function load(self)
 	self.collisionMap = createCollisionMap(self.map, "Collision")
 	
 	-- Initialize Player
-	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 32, 32, 4, 4, 4)
+	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 32, 32, 4, 4, 0, 4, 30)
 	
 	-- Link Player to Sprites Layer
 	self.map.layers.Sprites.player = self.player
@@ -54,9 +54,10 @@ end
 
 local function update(self, dt)
 	self.time = self.time + dt
+	--[[if self.time - self.lastTime >= self.tickRate then end]]-- Keep this aroudn fo rnow, we may need a ticker.
 	
-	local playerX = 0
-	local playerY = 0
+	local move = 0
+	local turn = 0
 	
 	-- lazy mode
 	local function updateKeys(t)
@@ -67,15 +68,14 @@ local function update(self, dt)
 	
 	updateKeys { "up", "down", "left", "right" }
 	
-	if self.keystate.up then playerY = -1 end
-	if self.keystate.down then playerY = 1 end
-	if self.keystate.left then playerX = -1 end
-	if self.keystate.right then playerX = 1 end
-	
-	--[[if self.time - self.lastTime >= self.tickRate then end]]-- Keep this aroudn fo rnow, we may need a ticker.
+	if self.keystate.left then turn = -1 end
+	if self.keystate.right then turn = 1 end
+	if self.keystate.up then move = 1 end
+	if self.keystate.down then move = -1 end
 	
 	-- Update Player
-	self.player:move(dt, playerX, playerY)
+	self.player:turn(turn * dt)
+	self.player:move(move * dt)
 	self.player.sprites[self.player.facing].image:update(dt)
 end
 

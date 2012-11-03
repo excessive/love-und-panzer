@@ -14,10 +14,11 @@ Tank = Class {
 		y			- TileY on map
 		speed		- Tiles per second
 	]]--
-	function(self, map, collision, image, w, h, x, y, speed)
+	function(self, map, collision, image, w, h, x, y, r, speed, turnSpeed)
 		self.map		= map
 		self.collision	= collision
 		self.speed		= speed
+		self.turnSpeed	= turnSpeed
 		
 		self.image		= love.graphics.newImage(image)
 		self.width		= self.image:getWidth()
@@ -27,6 +28,7 @@ Tank = Class {
 		
 		self.tileX		= x
 		self.tileY		= y
+		self.r			= r
 		self:tileToPixel()
 		self:savePosition()
 		
@@ -77,21 +79,21 @@ end
 	Draw entity
 ]]--
 function Tank:draw()
-	self.sprites[self.facing].image:draw(self.x, self.y)
+	self.sprites[self.facing].image:draw(self.x, self.y, math.rad(self.r), 1, 1, self.width / 2, self.height / 2)
 end
 
 --[[
 	Draw entity flipped on X axis
 ]]--
 function Tank:drawReverseX()
-	self.sprites[self.facing].image:draw(self.x, self.y, 0, -1, 1, self.sprites[self.facing].width, 0)
+	self.sprites[self.facing].image:draw(self.x, self.y, math.rad(self.r), -1, 1, self.width / 2, self.height / 2)
 end
 
 --[[
 	Draw entity flipped on Y axis
 ]]--
 function Tank:drawReverseY()
-	self.sprites[self.facing].image:draw(self.x, self.y, 0, 1, -1, 0, self.sprites[self.facing].height)
+	self.sprites[self.facing].image:draw(self.x, self.y, math.rad(self.r), 1, -1, self.width / 2, self.height / 2)
 end
 
 --[[
@@ -105,25 +107,19 @@ end
 --[[
 	Move tank
 	
-	dt		- Delta time
-	x		- Add to current x position
-	y		- Add to current y position
+	move		- Direction to move
 ]]--
-function Tank:move(dt, x, y)
-	local newX	= self.x + (self.speed * self.map.tileWidth * x * dt)
-	local newY	= self.y + (self.speed * self.map.tileHeight * y * dt)
+function Tank:move(move)
+	local newX	= self.x + self.speed * self.map.tileWidth * move * math.cos(math.rad(self.r))
+	local newY	= self.y + self.speed * self.map.tileHeight * move * math.sin(math.rad(self.r))
 	
 	local tileX, tileY = 0, 0
 	
-	if x > 0 then
+	if move > 0 then
 		tileX	= math.ceil(newX / self.map.tileWidth)
-	else
-		tileX	= math.floor(newX / self.map.tileWidth)
-	end
-	
-	if y > 0 then
 		tileY	= math.ceil(newY / self.map.tileHeight)
 	else
+		tileX	= math.floor(newX / self.map.tileWidth)
 		tileY	= math.floor(newY / self.map.tileHeight)
 	end
 	
@@ -136,4 +132,16 @@ function Tank:move(dt, x, y)
 	
 	self.x		= newX
 	self.y		= newY
+end
+
+--[[
+	Turn tank
+	
+	turn		- Direction to turn
+]]--
+function Tank:turn(turn)
+	self.r = self.r + self.turnSpeed * turn
+	
+	if self.r > 360 then self.r = self.r - 360 end
+	if self.r < 0 then self.r = self.r + 360 end
 end
