@@ -46,7 +46,7 @@ local function load(self)
 	self.collisionMap = createCollisionMap(self.map, "Collision")
 	
 	-- Initialize Player
-	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 32, 32, 4, 4, 0, 4, 30)
+	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 32, 32, 4, 4, 0, 2, 30)
 	
 	-- Link Player to Sprites Layer
 	self.map.layers.Sprites.player = self.player
@@ -87,6 +87,7 @@ local function draw(self)
 	love.graphics.translate(tx, ty)
 	self.map:autoDrawRange(tx, ty, self.scale, self.map.tileWidth)
 	self.map:draw()
+	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.pop()
 end
 
