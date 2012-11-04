@@ -32,12 +32,12 @@ local function load(self)
 	-- Initialize Tiled Map
 	local loader = require "libs.ATL.Loader"
 	loader.path = "maps/"
-	self.map = loader.load("test")
+	self.map = loader.load("test64")
 	self.map.viewW = windowWidth
 	self.map.viewH = windowHeight
 	
 	-- Custom Layer for Sprite Objects
-	local spriteLayer = self.map:newCustomLayer("Sprites", 3)
+	local spriteLayer = self.map:newCustomLayer("Sprites", 4)
 	function spriteLayer:draw()
 		self.player:draw()
 	end
@@ -46,7 +46,7 @@ local function load(self)
 	self.collisionMap = createCollisionMap(self.map, "Collision")
 	
 	-- Initialize Player
-	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 32, 32, 4, 4, 0, 2, 30)
+	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, 4, 4, 30, 2, 30, 5, 10)
 	
 	-- Link Player to Sprites Layer
 	self.map.layers.Sprites.player = self.player
@@ -74,6 +74,7 @@ local function update(self, dt)
 	if self.keystate.down then move = -1 end
 	
 	-- Update Player
+	self.player:update(dt)
 	self.player:turn(turn * dt)
 	self.player:move(move * dt)
 	self.player.sprites[self.player.facing].image:update(dt)
@@ -91,12 +92,26 @@ local function draw(self)
 	love.graphics.pop()
 end
 
+local function keypressed(self, k)
+	if k == " " then
+		self.player:shoot()
+	end
+end
+
+local function keyreleased(self, k)
+	if k == "up" or k == "down" then
+		self.player.facing = "idle"
+	end
+end
+
 return function(data)
 	return Screen {
 		name		= "Gameplay",
 		load		= load,
 		update		= update,
 		draw		= draw,
+		keypressed	= keypressed,
+		keyreleased	= keyreleased,
 		data		= data
 	}
 end

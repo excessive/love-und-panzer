@@ -1,4 +1,5 @@
 require "libs.AnAL"
+require "libs.bullet"
 Class = require "libs.hump.class"
 
 Tank = Class {
@@ -12,41 +13,57 @@ Tank = Class {
 		h			- Height on map
 		x			- TileX on map
 		y			- TileY on map
+		r			- Radial direction
 		speed		- Tiles per second
+		turnSpeed	- Radians per second
+		ammo		- Number of bullets
 	]]--
-	function(self, map, collision, image, w, h, x, y, r, speed, turnSpeed)
-		self.map		= map
-		self.collision	= collision
-		self.speed		= speed
-		self.turnSpeed	= turnSpeed
+	function(self, map, collision, image, w, h, x, y, r, speed, turnSpeed, reloadSpeed, ammo)
+		self.map			= map
+		self.collision		= collision
+		self.speed			= speed
+		self.turnSpeed		= turnSpeed
+		self.reloadSpeed	= reloadSpeed
 		
-		self.image		= love.graphics.newImage(image)
-		self.width		= self.image:getWidth()
-		self.height		= self.image:getHeight()
-		self.facing		= ""
-		self.sprites	= {}
+		self.image			= love.graphics.newImage(image)
+		self.w				= w
+		self.h				= h
 		
-		self.tileX		= x
-		self.tileY		= y
-		self.r			= r
-		self:tileToPixel()
-		self:savePosition()
+		self.x				= x * self.map.tileWidth
+		self.y				= y * self.map.tileHeight
+		self.r				= r
 		
-		self:newSprite("idle",		self.image, 32, 32, 0, 0, 1, 1)
-		self:newSprite("forward",	self.image, 32, 32, 0, 0, 1, 1)
-		self:newSprite("backward",	self.image, 32, 32, 0, 0, 1, 1)
-		self:newSprite("turnLeft",	self.image, 32, 32, 0, 0, 1, 1)
-		self:newSprite("turnRight",	self.image, 32, 32, 0, 0, 1, 1)
-		self.facing		= "idle"
+		self.sprites		= {}
+		self:newSprite("idle",		self.image, self.w, self.h, 0, 0, 1, 1)
+		self:newSprite("forward",	self.image, self.w, self.h, 0, 0, 1, 1)
+		self:newSprite("backward",	self.image, self.w, self.h, 0, 0, 1, 1)
+		self:newSprite("turnLeft",	self.image, self.w, self.h, 0, 0, 1, 1)
+		self:newSprite("turnRight",	self.image, self.w, self.h, 0, 0, 1, 1)
+		self.facing			= "idle"
+		
+		self.bullet			= Bullet(map, collision, "assets/sprites/bullet.png", 16, 16, 5)
+		self.ammo			= ammo
+		self.reload			= 0
 	end
 }
 
 --[[
-	Convert tile location to a pixel location for drawing
+	Update Tank
 ]]--
-function Tank:tileToPixel()
-	self.x = self.tileX * self.map.tileWidth
-	self.y = self.tileY * self.map.tileHeight
+function Tank:update(dt)
+	if self.reload > 0 then
+		self.reload = self.reload - dt
+	end
+	
+	self.bullet:update(dt)
+end
+
+--[[
+	Draw Tank
+]]--
+function Tank:draw()
+	self.sprites[self.facing].image:draw(self.x, self.y, math.rad(self.r), 1, 1, self.w / 2, self.h / 2)
+	self.bullet:draw()
 end
 
 --[[
@@ -71,43 +88,26 @@ function Tank:newSprite(name, img, w, h, ox, oy, f, ft)
 	
 	self.sprites[name] = {}
 	self.sprites[name].image	= a
-	self.sprites[name].width	= w
-	self.sprites[name].height	= h
+	self.sprites[name].w		= w
+	self.sprites[name].h		= h
 end
 
 --[[
-	Draw entity
-]]--
-function Tank:draw()
-	self.sprites[self.facing].image:draw(self.x, self.y, math.rad(self.r), 1, 1, self.width / 2, self.height / 2)
-end
-
---[[
-	Draw entity flipped on X axis
-]]--
-function Tank:drawReverseX()
-	self.sprites[self.facing].image:draw(self.x, self.y, math.rad(self.r), -1, 1, self.width / 2, self.height / 2)
-end
-
---[[
-	Draw entity flipped on Y axis
-]]--
-function Tank:drawReverseY()
-	self.sprites[self.facing].image:draw(self.x, self.y, math.rad(self.r), 1, -1, self.width / 2, self.height / 2)
-end
-
---[[
-	Save current position of player before moving
-]]--
-function Tank:savePosition()
-		self.prevX = self.tileX
-		self.prevY = self.tileY
-end
-
---[[
-	Move tank
+	Turn Tank
 	
-	move		- Direction to move
+	turn	- Direction to turn
+]]--
+function Tank:turn(turn)
+	self.r = self.r + self.turnSpeed * turn
+	
+	if self.r > 360 then self.r = self.r - 360 end
+	if self.r < 0 then self.r = self.r + 360 end
+end
+
+--[[
+	Move Tank
+	
+	move	- Direction to move
 ]]--
 function Tank:move(move)
 	local newX	= self.x + self.speed * self.map.tileWidth * move * math.cos(math.rad(self.r))
@@ -139,13 +139,12 @@ function Tank:move(move)
 end
 
 --[[
-	Turn tank
-	
-	turn		- Direction to turn
+	Shoot Cannon
 ]]--
-function Tank:turn(turn)
-	self.r = self.r + self.turnSpeed * turn
-	
-	if self.r > 360 then self.r = self.r - 360 end
-	if self.r < 0 then self.r = self.r + 360 end
+function Tank:shoot()
+	if self.ammo > 0 and self.reload <= 0 then
+		self.bullet:load(self.x, self.y, self.r)
+		self.reload = self.reloadSpeed
+		self.ammo = self.ammo - 1
+	end
 end
