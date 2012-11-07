@@ -23,7 +23,7 @@ function love.load()
 	layers:each("load")
 	
 	-- Scale
-	tileSize = 32
+	tileSize = 64
 	numTiles = 18.75
 end
 
@@ -34,8 +34,8 @@ end
 function love.update(dt)
 	-- Scale
 	scale			= love.graphics.getHeight() / numTiles / tileSize
-	windowWidth		= love.graphics.getWidth() / scale
-	windowHeight	= love.graphics.getHeight() / scale
+	windowWidth		= love.graphics.getWidth()
+	windowHeight	= love.graphics.getHeight()
 	
 	for k, v in ipairs(layers) do
 		if v.next.screen then
