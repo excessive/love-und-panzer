@@ -1,6 +1,4 @@
-
-<!-- saved from url=(0053)https://raw.github.com/vrld/hump/master/gamestate.lua -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body><pre style="word-wrap: break-word; white-space: pre-wrap;">--[[
+--[[
 Copyright (c) 2010-2012 Matthias Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -88,4 +86,3 @@ setmetatable(GS, {__index = function(_, func)
 end})
 
 return GS
-</pre></body><style type="text/css"></style></html>
