@@ -1,5 +1,8 @@
 require "libs.screen"
 require "libs.tank"
+require "libs.networking"
+gui = require "libs.Gspot"
+font = love.graphics.newFont(12)
 
 local function createCollisionMap(map, layer)
 	local w, h = map.width-1, map.height-1
@@ -20,6 +23,21 @@ local function createCollisionMap(map, layer)
 end
 
 local function load(self)
+	self.next.data = {}
+	self.next.data.conn = self.data.conn
+	
+	for k,v in pairs(self.next.data.conn) do
+		print(k,v)
+	end
+	
+	-- Create GUI Elements
+	self.buttonTest = gui:button("Test", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=gui.style.unit})
+	
+	-- Test Button Properties
+	self.buttonTest.click = function(this)
+		self.next.data.conn:send("Test")
+	end
+	
 	-- Input
 	self.input = Input()
 
@@ -78,6 +96,12 @@ local function update(self, dt)
 	self.player:turn(turn * dt)
 	self.player:move(move * dt)
 	self.player.sprites[self.player.facing].image:update(dt)
+	
+	gui:update(dt)
+	
+	if self.next.data then
+		self.next.data.conn:update(dt)
+	end
 end
 
 local function draw(self)
@@ -90,31 +114,50 @@ local function draw(self)
 	self.map:draw()
 	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.pop()
+	
+	gui:draw()
 end
 
-local function keypressed(self, k)
+local function keypressed(self, k, unicode)
+	if gui.focus then
+		gui:keypress(k, unicode)
+		
+		return
+	end
+	
 	if k == " " then
 		self.player:shoot()
 	end
 end
 
-local function keyreleased(self, k)
+local function keyreleased(self, k, unicode)
 	if k == "escape" then
 		self.next.screen = "title"
 	end
+	
 	if k == "up" or k == "down" then
 		self.player.facing = "idle"
 	end
 end
 
+local function mousepressed(self, x, y, button)
+	gui:mousepress(x, y, button)
+end
+
+local function mousereleased(self, x, y, button)
+	gui:mouserelease(x, y, button)
+end
+
 return function(data)
 	return Screen {
-		name		= "Gameplay",
-		load		= load,
-		update		= update,
-		draw		= draw,
-		keypressed	= keypressed,
-		keyreleased	= keyreleased,
+		name			= "Gameplay",
+		load			= load,
+		update			= update,
+		draw			= draw,
+		keypressed		= keypressed,
+		keyreleased		= keyreleased,
+		mousepressed	= mousepressed,
+		mousereleased	= mousereleased,
 		data		= data
 	}
 end

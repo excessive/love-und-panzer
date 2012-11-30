@@ -22,9 +22,10 @@ end
 function Networking:startServer(port)
 	conn = lube.tcpServer()
 	conn.handshake = "loveTanks"
-	conn:setPing(true, 30, "lePing\n")
+	conn:setPing(true, 6, "lePing\n")
 	
 	conn:listen(tonumber(port))
+	print('Server started on port: ' .. port)
 	
 	conn.callbacks.recv = function(d, id) self:serverRecv(d, id) end
 	conn.callbacks.connect = function(id) self:serverConn(id) end
@@ -42,7 +43,7 @@ end
 function Networking:startClient(host, port)
 	conn = lube.tcpClient()
 	conn.handshake = "loveTanks"
-	conn:setPing(true, 10, "lePing\n")
+	conn:setPing(true, 2, "lePing\n")
 	
 	if conn:connect(host, tonumber(port), true) then
 		print('Connect to ' .. host .. ': ' .. port)

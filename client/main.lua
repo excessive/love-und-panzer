@@ -1,5 +1,3 @@
--- vim: set noet ts=8 sw=8:
-
 require "libs.input"
 require "libs.TEsound"
 

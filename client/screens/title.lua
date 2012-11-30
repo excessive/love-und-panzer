@@ -15,7 +15,6 @@ local function load(self)
 	self.inputPort		= gui:input(nil, {x=138, y=0, w=48, h=gui.style.unit}, self.groupNetwork)
 	self.buttonConnect	= gui:button("Connect", {x=196, y=0, w=48, h=gui.style.unit}, self.groupNetwork)
 	self.buttonServer	= gui:button("Server", {x=196, y=24, w=48, h=gui.style.unit}, self.groupNetwork)
-	self.buttonTest		= gui:button("Test", {x=196, y=48, w=48, h=gui.style.unit}, self.groupNetwork)
 	
 	-- Network Group Properties
 	self.groupNetwork.style.bg = {0,0,0,0}
@@ -44,27 +43,22 @@ local function load(self)
 	
 	-- Connect Button Properties
 	self.buttonConnect.click = function(this)
-		--self.next.screen = "gameplay"
-		
 		if self.next.data == nil then
 			self.next.data = {}
+			self.next.data.conn = Networking:startClient(self.inputHost.value, self.inputPort.value)
+			
+			if self.next.data.conn.connected then
+				self.next.screen = "gameplay"
+			end
 		end
-		
-		self.next.data.conn = Networking:startClient(self.inputHost.value, self.inputPort.value)
 	end
 	
 	-- Server Button Properties
 	self.buttonServer.click = function(this)
 		if self.next.data == nil then
 			self.next.data = {}
+			self.next.data.conn = Networking:startServer(self.inputPort.value)
 		end
-		
-		self.next.data.conn = Networking:startServer(self.inputPort.value)
-	end
-	
-	-- Test Button Properties
-	self.buttonTest.click = function(this)
-		self.next.data.conn:send("Test")
 	end
 end
 
