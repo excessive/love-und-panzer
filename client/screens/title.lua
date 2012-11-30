@@ -8,23 +8,17 @@ KEY_REPEAT = 0.02
 
 local function load(self)
 	love.graphics.setFont(font)
-
-        self.network_group = gui:group("Networking", {x=10, y=10, w=128, h=gui.style.unit})
 	
-<<<<<<< HEAD
 	-- Create GUI Elements
-	self.groupConnect	= gui:group(nil, {x=100, y=100, w=244, h=gui.style.unit})
-	self.inputHost		= gui:input(nil, {x=0, y=0, w=128, h=gui.style.unit}, self.groupConnect)
-	self.inputPort		= gui:input(nil, {x=138, y=0, w=48, h=gui.style.unit}, self.groupConnect)
-	self.buttonConnect	= gui:button("Connect", {x=196, y=0, w=48, h=gui.style.unit}, self.groupConnect)
-=======
-	self.input = gui:input("Host", {x=30, y=20, w=128, h=gui.style.unit}, self.network_group)
-	self.input.keydelay = 0.2
-	self.input.keyrepeat = 0.02
->>>>>>> 8d5c50c1d5b4234aedd051be39936725a1e9f15a
+	self.groupNetwork	= gui:group(nil, {x=100, y=100, w=244, h=gui.style.unit})
+	self.inputHost		= gui:input(nil, {x=0, y=0, w=128, h=gui.style.unit}, self.groupNetwork)
+	self.inputPort		= gui:input(nil, {x=138, y=0, w=48, h=gui.style.unit}, self.groupNetwork)
+	self.buttonConnect	= gui:button("Connect", {x=196, y=0, w=48, h=gui.style.unit}, self.groupNetwork)
+	self.buttonServer	= gui:button("Server", {x=196, y=24, w=48, h=gui.style.unit}, self.groupNetwork)
+	self.buttonTest		= gui:button("Test", {x=196, y=48, w=48, h=gui.style.unit}, self.groupNetwork)
 	
-	-- Connect Group Properties
-	self.groupConnect.style.bg = {0,0,0,0}
+	-- Network Group Properties
+	self.groupNetwork.style.bg = {0,0,0,0}
 	
 	-- Host Input Properties
 	self.inputHost.keydelay = KEY_DELAY
@@ -36,12 +30,7 @@ local function load(self)
 		if this.value == "Host" then this.value = "" end
 		this:focus()
 	end
-
-        self.portInput = gui:input("Port", {x=30, y=40, w=128, h=gui.style.unit}, self.network_group)
-        self.portInput.keydelay = 0.2
-        self.portInput.keyrepeat = 0.02
 	
-<<<<<<< HEAD
 	-- Port Input Properties
 	self.inputPort.keydelay = KEY_DELAY
 	self.inputPort.keyrepeat = KEY_REPEAT
@@ -55,36 +44,28 @@ local function load(self)
 	
 	-- Connect Button Properties
 	self.buttonConnect.click = function(this)
-		self.next.screen	= "gameplay"
-		self.next.data		= {
-			host = self.inputHost.value,
-			port = self.inputPort.value,
-		}
-=======
-	self.connect_button = gui:button("Connect", {x=30, y=60, w=48, h=gui.style.unit}, self.network_group)
-        self.server_button = gui:button("Host", {x=84, y=60, w=48, h=gui.style.unit}, self.network_group)
-        self.test_button = gui:button("Test", {x=144, y=60, w=48, h=gui.style.unit}, self.network_group)
-
-        self.test_button.click = function(this)
-                self.next.data.conn:send("Test")
-        end
-	
-	self.connect_button.click = function(this)
-                if self.next.data == nil then
-                        self.next.data = {}
-                end
-                self.next.data.conn = Networking:startClient(self.input.value, self.portInput.value)
-		--this.parent:done()
->>>>>>> 8d5c50c1d5b4234aedd051be39936725a1e9f15a
+		--self.next.screen = "gameplay"
+		
+		if self.next.data == nil then
+			self.next.data = {}
+		end
+		
+		self.next.data.conn = Networking:startClient(self.inputHost.value, self.inputPort.value)
 	end
-
-        self.server_button.click = function(this)
-                if self.next.data == nil then
-                        self.next.data = {}
-                end
-                self.next.data.conn = Networking:startServer(self.portInput.value)
-        end
-                
+	
+	-- Server Button Properties
+	self.buttonServer.click = function(this)
+		if self.next.data == nil then
+			self.next.data = {}
+		end
+		
+		self.next.data.conn = Networking:startServer(self.inputPort.value)
+	end
+	
+	-- Test Button Properties
+	self.buttonTest.click = function(this)
+		self.next.data.conn:send("Test")
+	end
 end
 
 local function update(self, dt)
