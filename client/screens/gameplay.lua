@@ -20,7 +20,10 @@ local function createCollisionMap(map, layer)
 end
 
 local function load(self)
-	debug.gameplay = self.data.host
+	-- Data from Title Screen
+	debug.host = self.data.host
+	debug.port = self.data.port
+	
 	-- Input
 	self.input = Input()
 
