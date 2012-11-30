@@ -23,7 +23,7 @@ local function load(self)
 	-- Host Input Properties
 	self.inputHost.keydelay = KEY_DELAY
 	self.inputHost.keyrepeat = KEY_REPEAT
-	self.inputHost.value = "Host"
+	self.inputHost.value = "localhost"
 	self.inputHost.next = self.inputPort
 	
 	self.inputHost.click = function(this)
@@ -34,7 +34,7 @@ local function load(self)
 	-- Port Input Properties
 	self.inputPort.keydelay = KEY_DELAY
 	self.inputPort.keyrepeat = KEY_REPEAT
-	self.inputPort.value = "Port"
+	self.inputPort.value = "12345"
 	self.inputPort.next = self.buttonConnect
 	
 	self.inputPort.click = function(this)
@@ -70,6 +70,10 @@ end
 
 local function update(self, dt)
 	gui:update(dt)
+	
+	if self.next.data then
+		self.next.data.conn:update(dt)
+	end
 end
 
 local function draw(self)
