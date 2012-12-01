@@ -1,5 +1,6 @@
 require "libs.input"
 require "libs.TEsound"
+gui = require "libs.Gspot"
 
 function love.load()
 	debug = {}

@@ -1,6 +1,5 @@
 require "libs.screen"
 require "libs.networking"
-gui = require "libs.Gspot"
 font = love.graphics.newFont(12)
 
 KEY_DELAY = 0.2
@@ -8,13 +7,14 @@ KEY_REPEAT = 0.02
 
 local function load(self)
 	love.graphics.setFont(font)
+	self.gui = gui()
 	
 	-- Create GUI Elements
-	self.groupNetwork	= gui:group(nil, {x=100, y=100, w=244, h=gui.style.unit})
-	self.inputHost		= gui:input(nil, {x=0, y=0, w=128, h=gui.style.unit}, self.groupNetwork)
-	self.inputPort		= gui:input(nil, {x=138, y=0, w=48, h=gui.style.unit}, self.groupNetwork)
-	self.buttonConnect	= gui:button("Connect", {x=196, y=0, w=48, h=gui.style.unit}, self.groupNetwork)
-	self.buttonServer	= gui:button("Server", {x=196, y=24, w=48, h=gui.style.unit}, self.groupNetwork)
+	self.groupNetwork	= self.gui:group(nil, {x=100, y=100, w=244, h=self.gui.style.unit})
+	self.inputHost		= self.gui:input(nil, {x=0, y=0, w=128, h=self.gui.style.unit}, self.groupNetwork)
+	self.inputPort		= self.gui:input(nil, {x=138, y=0, w=48, h=self.gui.style.unit}, self.groupNetwork)
+	self.buttonConnect	= self.gui:button("Connect", {x=196, y=0, w=48, h=self.gui.style.unit}, self.groupNetwork)
+	self.buttonServer	= self.gui:button("Server", {x=196, y=24, w=48, h=self.gui.style.unit}, self.groupNetwork)
 	
 	-- Network Group Properties
 	self.groupNetwork.style.bg = {0,0,0,0}
@@ -63,7 +63,7 @@ local function load(self)
 end
 
 local function update(self, dt)
-	gui:update(dt)
+	self.gui:update(dt)
 	
 	if self.next.data then
 		self.next.data.conn:update(dt)
@@ -71,21 +71,21 @@ local function update(self, dt)
 end
 
 local function draw(self)
-	gui:draw()
+	self.gui:draw()
 end
 
 local function keypressed(self, k, unicode)
-	if gui.focus then
-		gui:keypress(k, unicode)
+	if self.gui.focus then
+		self.gui:keypress(k, unicode)
 	end
 end
 
 local function mousepressed(self, x, y, button)
-	gui:mousepress(x, y, button)
+	self.gui:mousepress(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	gui:mouserelease(x, y, button)
+	self.gui:mouserelease(x, y, button)
 end
 
 return function(data)

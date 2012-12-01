@@ -1,7 +1,6 @@
 require "libs.screen"
 require "libs.tank"
 require "libs.networking"
-gui = require "libs.Gspot"
 font = love.graphics.newFont(12)
 
 local function createCollisionMap(map, layer)
@@ -23,6 +22,7 @@ local function createCollisionMap(map, layer)
 end
 
 local function load(self)
+	self.gui = gui()
 	self.next.data = {}
 	self.next.data.conn = self.data.conn
 	
@@ -31,7 +31,7 @@ local function load(self)
 	end
 	
 	-- Create GUI Elements
-	self.buttonTest = gui:button("Test", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=gui.style.unit})
+	self.buttonTest = self.gui:button("Test", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=self.gui.style.unit})
 	
 	-- Test Button Properties
 	self.buttonTest.click = function(this)
@@ -97,7 +97,7 @@ local function update(self, dt)
 	self.player:move(move * dt)
 	self.player.sprites[self.player.facing].image:update(dt)
 	
-	gui:update(dt)
+	self.gui:update(dt)
 	
 	if self.next.data then
 		self.next.data.conn:update(dt)
@@ -115,12 +115,12 @@ local function draw(self)
 	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.pop()
 	
-	gui:draw()
+	self.gui:draw()
 end
 
 local function keypressed(self, k, unicode)
-	if gui.focus then
-		gui:keypress(k, unicode)
+	if self.gui.focus then
+		self.gui:keypress(k, unicode)
 		
 		return
 	end
@@ -141,11 +141,11 @@ local function keyreleased(self, k, unicode)
 end
 
 local function mousepressed(self, x, y, button)
-	gui:mousepress(x, y, button)
+	self.gui:mousepress(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	gui:mouserelease(x, y, button)
+	self.gui:mouserelease(x, y, button)
 end
 
 return function(data)
