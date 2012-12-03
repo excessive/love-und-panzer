@@ -1,7 +1,6 @@
 require "libs.screen"
 require "libs.tank"
 require "libs.networking"
-font = love.graphics.newFont(12)
 
 local function createCollisionMap(map, layer)
 	local w, h = map.width-1, map.height-1

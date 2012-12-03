@@ -1,5 +1,4 @@
 require "libs.screen"
-require "libs.networking"
 
 local function load(self)
 	love.graphics.setFont(FONT)
@@ -47,35 +46,12 @@ local function load(self)
 		h = self.theme.tiny,
 	}, self.groupTitleMenu)
 	
-	self.buttonConnect = self.gui:button("Connect", {
+	self.buttonOptions = self.gui:button("Options", {
 		x = 0,
 		y = self.inputHost.pos.y + self.inputHost.pos.h + self.theme.padding,
 		w = self.theme.xlarge,
 		h = self.theme.tiny},
 	self.groupTitleMenu)
-	
-	self.buttonOptions = self.gui:button("Options", {
-		x = 0,
-		y = self.buttonConnect.pos.y + self.buttonConnect.pos.h + self.theme.padding,
-		w = self.theme.xlarge,
-		h = self.theme.tiny},
-	self.groupTitleMenu)
-	
-	self.buttonExit = self.gui:button("Exit", {
-		x = 0,
-		y = self.buttonOptions.pos.y + self.buttonOptions.pos.h + self.theme.padding,
-		w = self.theme.xlarge,
-		h = self.theme.tiny},
-	self.groupTitleMenu)
-	
-	
-	
-	
-	
-	
-	
-	
-	self.buttonServer	= self.gui:button("Server", {x=0, y=240, w=self.theme.medium, h=self.gui.style.unit}, self.groupTitleMenu)
 	
 	-- Network Group Properties
 	--self.groupNetwork.style.bg = {0,0,0,0}
@@ -113,50 +89,9 @@ local function load(self)
 		this:focus()
 	end
 	
-	-- Connect Button Properties
-	self.buttonConnect.click = function(this)
-		if self.next.data == nil then
-			self.next.data = {}
-			self.next.data.conn = Networking:startClient(self.inputHost.value, self.inputPort.value)
-			
-			if self.next.data.conn.connected then
-				self.next.screen = "gameplay"
-			end
-		end
-	end
-	
 	-- Options Button Properties
 	self.buttonOptions.click = function(this)
-		self.next.screen = "options"
-	end
-	
-	-- Exit Button Properties
-	self.buttonExit.click = function(this)
-		love.event.quit()
-	end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	-- Server Button Properties
-	self.buttonServer.click = function(this)
-		if self.next.data == nil then
-			self.next.data = {}
-			self.next.data.conn = Networking:startServer(self.inputPort.value)
-		end
+		self.next.screen = "title"
 	end
 end
 

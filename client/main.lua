@@ -4,10 +4,25 @@ gui = require "libs.Gspot"
 
 function love.load()
 	debug = {}
-
+	
+	-- Scale
+	tileSize = 32
+	numTiles = 18.75
+	
+	-- GUI
+	FONT = love.graphics.newFont(12)
+	KEY_DELAY = 0.2
+	KEY_REPEAT = 0.02
+	
+	-- Screen
+	scale = love.graphics.getHeight() / numTiles / tileSize
+	windowWidth = love.graphics.getWidth()
+	windowHeight = love.graphics.getHeight()
+	
 	-- Load screen types
 	screens = {}
 	screens.title		= require "screens.title"
+	screens.options		= require "screens.options"
 	screens.gameplay	= require "screens.gameplay"
 
 	-- Initialize layers
@@ -23,10 +38,6 @@ function love.load()
 	}
 
 	layers:each("load")
-
-	-- Scale
-	tileSize = 32
-	numTiles = 18.75
 end
 
 function love.update(dt)
