@@ -1,6 +1,6 @@
 require "libs.screen"
-require "libs.tank"
-require "libs.networking"
+require "libs.panzer.tank"
+require "libs.panzer.client"
 
 local function createCollisionMap(map, layer)
 	local w, h = map.width-1, map.height-1
@@ -23,18 +23,14 @@ end
 local function load(self)
 	self.gui = gui()
 	self.next.data = {}
-	self.next.data.conn = self.data.conn
-	
-	for k,v in pairs(self.next.data.conn) do
-		print(k,v)
-	end
+	self.next.data.client = self.data.client
 	
 	-- Create GUI Elements
 	self.buttonTest = self.gui:button("Test", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=self.gui.style.unit})
 	
 	-- Test Button Properties
 	self.buttonTest.click = function(this)
-		self.next.data.conn:send("Test")
+		self.next.data.client:send("Test")
 	end
 	
 	-- Input
@@ -99,7 +95,7 @@ local function update(self, dt)
 	self.gui:update(dt)
 	
 	if self.next.data then
-		self.next.data.conn:update(dt)
+		self.next.data.client:update(dt)
 	end
 end
 

@@ -1,5 +1,5 @@
 require "libs.screen"
-require "libs.networking"
+require "libs.panzer.client"
 
 local function load(self)
 	love.graphics.setFont(FONT)
@@ -68,15 +68,6 @@ local function load(self)
 		h = self.theme.tiny},
 	self.groupTitleMenu)
 	
-	
-	
-	
-	
-	
-	
-	
-	self.buttonServer	= self.gui:button("Server", {x=0, y=240, w=self.theme.medium, h=self.gui.style.unit}, self.groupTitleMenu)
-	
 	-- Network Group Properties
 	--self.groupNetwork.style.bg = {0,0,0,0}
 	
@@ -117,9 +108,9 @@ local function load(self)
 	self.buttonConnect.click = function(this)
 		if self.next.data == nil then
 			self.next.data = {}
-			self.next.data.conn = Networking:startClient(self.inputHost.value, self.inputPort.value)
+			self.next.data.client = Client:start(self.inputHost.value, self.inputPort.value)
 			
-			if self.next.data.conn.connected then
+			if self.next.data.client.connected then
 				self.next.screen = "gameplay"
 			end
 		end
@@ -134,37 +125,13 @@ local function load(self)
 	self.buttonExit.click = function(this)
 		love.event.quit()
 	end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	-- Server Button Properties
-	self.buttonServer.click = function(this)
-		if self.next.data == nil then
-			self.next.data = {}
-			self.next.data.conn = Networking:startServer(self.inputPort.value)
-		end
-	end
 end
 
 local function update(self, dt)
 	self.gui:update(dt)
 	
 	if self.next.data then
-		self.next.data.conn:update(dt)
+		self.next.data.client:update(dt)
 	end
 end
 

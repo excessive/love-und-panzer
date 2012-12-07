@@ -1,5 +1,5 @@
 require "libs.AnAL"
-require "libs.bullet"
+require "libs.panzer.bullet"
 Class = require "libs.hump.class"
 
 Tank = Class {
