@@ -21,7 +21,7 @@ local function load(self)
 	-- Create GUI Elements
 	self.groupTitleMenu = self.gui:group(nil, {
 		x = windowWidth / 2 - self.theme.xlarge / 2,
-		y = 185,
+		y = 239,
 		w = self.theme.xlarge,
 		h = self.theme.xlarge,
 	})
@@ -136,7 +136,7 @@ local function update(self, dt)
 end
 
 local function draw(self)
-	love.graphics.draw(self.title, windowWidth/2 - 526/2, 50)
+	love.graphics.draw(self.title, windowWidth/2 - 303/2, 50)
 	self.gui:draw()
 end
 

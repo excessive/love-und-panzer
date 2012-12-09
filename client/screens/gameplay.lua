@@ -26,7 +26,7 @@ local function load(self)
 	self.next.data.client = self.data.client
 	
 	-- Create GUI Elements
-	self.buttonTest = self.gui:button("Test", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=self.gui.style.unit})
+	self.buttonTest = self.gui:button("Ping", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=self.gui.style.unit})
 	
 	-- Test Button Properties
 	self.buttonTest.click = function(this)
