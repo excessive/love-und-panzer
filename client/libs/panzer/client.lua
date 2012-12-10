@@ -3,7 +3,9 @@ json = require "libs.dkjson"
 require "libs.LUBE.LUBE"
 
 Client = Class {
-    function(self) end
+    function(self)
+		self.chat = {}
+	end
 }
 
 --[[
@@ -33,7 +35,9 @@ function Client:recv(data)
 	if data then
 		cmd, params = data:match("^(%S*) (.*)")
 		
-		if cmd == "GAMELIST" then
+		if cmd == "CHAT" then
+			self:postChat(params)
+		elseif cmd == "GAMELIST" then
 			self:gameList(params)
 		--[[
 		elseif cmd == "MOVE" then
@@ -58,6 +62,18 @@ end
 
 function Client:update(dt)
 	self.connection:update(dt)
+end
+
+function Client:postChat(params)
+	local chat = json.decode(params)
+	
+	if chat.scope == "GLOBAL" then
+		self.chat.global = chat.msg
+	elseif chat.scope == "GAME" then
+		self.chat.game = chat.msg
+	elseif chat.scope == "TEAM" then
+		self.chat.team = chat.msg
+	end
 end
 
 function Client:gameList(params)

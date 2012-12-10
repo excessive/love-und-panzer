@@ -35,15 +35,10 @@ end
 function Server:connect(clientId)
 	print('Client connected: ' .. tostring(clientId))
 	
-	
-	
-	local new = string.format("%s %s", "Some Game", "qwerty") --debug
+	local new = json.encode({name="somegame",pass="qwerty"}) --debug
 	self:newGame(new,clientId) --debug
 	
 	local str = json.encode(self.games)
-	
-	print(str) --debug
-	
 	local data = string.format("%s %s", "GAMELIST", str)
 	
 	self.connection:send(data, clientId)
@@ -67,7 +62,9 @@ function Server:recv(data, clientId)
 	if data then
 		cmd, params = data:match("^(%S*) (.*)")
 		
-		if cmd == "NEWGAME" then
+		if cmd == "CHAT" then
+			self:sendChat(params, clientId)
+		elseif cmd == "NEWGAME" then
 			self:newGame(params, clientId)
 		--[[
 		elseif cmd == "MOVE" then
@@ -95,13 +92,32 @@ function Server:update(dt)
 end
 
 --[[
+	Send Chat Message
+	
+	params			= Scope, Message of chat
+	clientId		= Unique client ID
+]]--
+function Server:sendChat(params, clientId)
+	local id = tostring(clientId)
+	local chat = json.decode(params)
+	local str = json.encode({
+		scope = chat.scope,
+		msg = id .. ": " .. chat.msg,
+	})
+	local data = string.format("%s %s", "CHAT", str)
+	
+	self.connection:send(data)
+end
+
+--[[
 	Create New Game
 	
 	params			= Name, Password of game
 	clientId		= Unique client ID
 ]]--
 function Server:newGame(params, clientId)
-	local name, pass = params:match("^(%S*) (%S*)")
+	local id = tostring(clientId)
+	local str = json.decode(params)
 	local count = 1
 	
 	while self.games[count] do
@@ -109,13 +125,13 @@ function Server:newGame(params, clientId)
 	end
 	
 	self.games[count] = {
-		name		= name,
-		pass		= pass,
-		host		= tostring(clientId),
+		name		= str.name,
+		pass		= str.pass,
+		host		= id,
 		players		= {
 			{
-				id		= tostring(clientId),
-				name	= tostring(clientId),
+				id		= id,
+				name	= id,
 			},
 		},
 	}

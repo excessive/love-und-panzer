@@ -16,85 +16,69 @@ local function load(self)
 		xlarge	= 256,
 	}
 	
-	-- Create GUI Elements
-	self.groupTitleMenu = self.gui:group(nil, {
-		x = windowWidth / 2 - self.theme.xlarge / 2,
-		y = 185,
-		w = self.theme.xlarge,
-		h = self.theme.xlarge,
+	--[[ Create GUI Elements ]]--
+	
+	-- Chat Group
+	self.groupChat = self.gui:group(nil, {
+		x = 0,
+		y = windowHeight - 200,
+		w = 400,
+		h = 200,
 	})
 	
-	self.inputName = self.gui:input(nil, {
+	-- Chat Text
+	self.textChat = self.gui:text("", {
 		x = 0,
 		y = 0,
-		w = self.theme.xlarge,
-		h = self.theme.tiny,
-	}, self.groupTitleMenu)
+		w = 400,
+		h = 200 - self.theme.tiny,
+	}, self.groupChat)
 	
-	self.inputHost = self.gui:input(nil, {
+	-- Chat Input
+	self.inputChat = self.gui:input(nil, {
 		x = 0,
-		y = self.inputName.pos.h + self.theme.padding,
-		w = self.theme.large + self.theme.medium + self.theme.padding,
+		y = self.groupChat.pos.h - self.theme.tiny,
+		w = 350,
 		h = self.theme.tiny,
-	}, self.groupTitleMenu)
+	}, self.groupChat)
 	
-	self.inputPort = self.gui:input(nil, {
-		x = self.inputHost.pos.w + self.theme.padding,
-		y = self.inputName.pos.h + self.theme.padding,
-		w = self.theme.small + self.theme.tiny,
+	-- Chat Button
+	self.buttonChatGlobal = self.gui:button("Send", {
+		x = 350,
+		y = self.groupChat.pos.h - self.theme.tiny,
+		w = 50,
 		h = self.theme.tiny,
-	}, self.groupTitleMenu)
+	}, self.groupChat)
 	
-	self.buttonOptions = self.gui:button("Options", {
-		x = 0,
-		y = self.inputHost.pos.y + self.inputHost.pos.h + self.theme.padding,
-		w = self.theme.xlarge,
-		h = self.theme.tiny},
-	self.groupTitleMenu)
+	--[[ Chat Group Properties ]]--
 	
-	-- Network Group Properties
+	-- Chat Input Properties
+	self.inputChat.keydelay = KEY_DELAY
+	self.inputChat.keyrepeat = KEY_REPEAT
 	
-	-- Host Input Properties
-	self.inputName.keydelay = KEY_DELAY
-	self.inputName.keyrepeat = KEY_REPEAT
-	self.inputName.value = "Karai"
-	self.inputName.next = self.inputHost
-	
-	self.inputName.click = function(this)
-		if this.value == "Username" then this.value = "" end
-		this:focus()
-	end
-	
-	-- Host Input Properties
-	self.inputHost.keydelay = KEY_DELAY
-	self.inputHost.keyrepeat = KEY_REPEAT
-	self.inputHost.value = "localhost"
-	self.inputHost.next = self.inputPort
-	
-	self.inputHost.click = function(this)
-		if this.value == "Host" then this.value = "" end
-		this:focus()
-	end
-	
-	-- Port Input Properties
-	self.inputPort.keydelay = KEY_DELAY
-	self.inputPort.keyrepeat = KEY_REPEAT
-	self.inputPort.value = "12345"
-	
-	self.inputPort.click = function(this)
-		if this.value == "Port" then this.value = "" end
-		this:focus()
-	end
-	
-	-- Options Button Properties
-	self.buttonOptions.click = function(this)
-		self.next.screen = "title"
+	-- Chat Button Properties
+	self.buttonChatGlobal.click = function(this)
+		if self.inputChat.value and self.inputChat.value ~= "" then
+			local str = json.encode({
+				scope = "GLOBAL",
+				msg = self.inputChat.value,
+			})
+			local data = string.format("%s %s", "CHAT", str)
+			
+			self.client.connection:send(data)
+			self.inputChat.value = ""
+		end
 	end
 end
 
 local function update(self, dt)
 	self.client:update(dt)
 	self.gui:update(dt)
+	
+	if self.client.chat.global then
+		self.textChat.label = self.textChat.label .. "\n" .. self.client.chat.global
+		self.client.chat.global = nil
+	end
 end
 
 local function draw(self)
