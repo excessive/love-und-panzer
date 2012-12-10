@@ -22,25 +22,25 @@ end
 
 local function load(self)
 	self.gui = gui()
-	self.next.data = {}
-	self.next.data.client = self.data.client
+	self.client = self.data.client
+	self.id = self.data.id
 	
 	-- Create GUI Elements
 	self.buttonTest = self.gui:button("Ping", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=self.gui.style.unit})
 	
 	-- Test Button Properties
 	self.buttonTest.click = function(this)
-		self.next.data.client:send("Test")
+		self.client:send("Test")
 	end
 	
 	-- Input
 	self.input = Input()
 
 	-- Tick
-	--[[self.time = 0
+	self.time = 0
 	self.lastTime = 0
 	self.lastTick = 0
-	self.tickRate = 1/8]]--
+	self.tickRate = 1/60
 
 	-- Initialize Tiled Map
 	local loader = require "libs.ATL.Loader"
@@ -66,25 +66,53 @@ local function load(self)
 end
 
 local function update(self, dt)
-	--self.time = self.time + dt
-	--if self.time - self.lastTime >= self.tickRate then end
-
 	local move = 0
 	local turn = 0
+	local data = ""
+	
+	-- Receive Data
+	self.client:update(dt)
+	
+	if self.client.data then
+		
+		self.client.data = nil
+	end
+	
+	-- Ticks
+	self.time = self.time + dt
+	if self.time - self.lastTime >= self.tickRate then
+		-- lazy mode
+		local function updateKeys(t)
+			for _, k in ipairs(t) do
+				self.keystate[k] = love.keyboard.isDown(k)
+			end
+		end
 
-	-- lazy mode
-	local function updateKeys(t)
-		for _, k in ipairs(t) do
-			self.keystate[k] = love.keyboard.isDown(k)
+		updateKeys { "up", "down", "left", "right" }
+
+		if self.keystate.left then
+			turn = -1
+			data = string.format("%s %f", 'turn', turn)
+			self.client:send(data)
+		end
+		
+		if self.keystate.right then
+			turn = 1
+			data = string.format("%s %f", 'turn', turn)
+			self.client:send(data)
+		end
+		
+		if self.keystate.up then
+			move = 1
+			data = string.format("%s %f", 'move', move)
+			self.client:send(data)
+		end
+		if self.keystate.down then
+			move = -1
+			data = string.format("%s %f", 'move', move)
+			self.client:send(data)
 		end
 	end
-
-	updateKeys { "up", "down", "left", "right" }
-
-	if self.keystate.left then turn = -1 end
-	if self.keystate.right then turn = 1 end
-	if self.keystate.up then move = 1 end
-	if self.keystate.down then move = -1 end
 
 	-- Update Player
 	self.player:update(dt)
@@ -93,10 +121,6 @@ local function update(self, dt)
 	self.player.sprites[self.player.facing].image:update(dt)
 	
 	self.gui:update(dt)
-	
-	if self.next.data then
-		self.next.data.client:update(dt)
-	end
 end
 
 local function draw(self)

@@ -2,8 +2,9 @@ require "libs.screen"
 require "libs.panzer.client"
 
 local function load(self)
-	love.graphics.setFont(FONT)
 	self.gui = gui()
+	self.client = self.data.client
+	self.id = self.data.id
 	
 	-- GUI Theme
 	self.theme = {
@@ -15,13 +16,10 @@ local function load(self)
 		xlarge	= 256,
 	}
 	
-	-- Title
-	self.title = love.graphics.newImage("assets/images/title.png")
-	
 	-- Create GUI Elements
 	self.groupTitleMenu = self.gui:group(nil, {
 		x = windowWidth / 2 - self.theme.xlarge / 2,
-		y = 239,
+		y = 185,
 		w = self.theme.xlarge,
 		h = self.theme.xlarge,
 	})
@@ -47,29 +45,14 @@ local function load(self)
 		h = self.theme.tiny,
 	}, self.groupTitleMenu)
 	
-	self.buttonConnect = self.gui:button("Connect", {
+	self.buttonOptions = self.gui:button("Options", {
 		x = 0,
 		y = self.inputHost.pos.y + self.inputHost.pos.h + self.theme.padding,
 		w = self.theme.xlarge,
 		h = self.theme.tiny},
 	self.groupTitleMenu)
 	
-	self.buttonOptions = self.gui:button("Options", {
-		x = 0,
-		y = self.buttonConnect.pos.y + self.buttonConnect.pos.h + self.theme.padding,
-		w = self.theme.xlarge,
-		h = self.theme.tiny},
-	self.groupTitleMenu)
-	
-	self.buttonExit = self.gui:button("Exit", {
-		x = 0,
-		y = self.buttonOptions.pos.y + self.buttonOptions.pos.h + self.theme.padding,
-		w = self.theme.xlarge,
-		h = self.theme.tiny},
-	self.groupTitleMenu)
-	
 	-- Network Group Properties
-	--self.groupNetwork.style.bg = {0,0,0,0}
 	
 	-- Host Input Properties
 	self.inputName.keydelay = KEY_DELAY
@@ -97,48 +80,24 @@ local function load(self)
 	self.inputPort.keydelay = KEY_DELAY
 	self.inputPort.keyrepeat = KEY_REPEAT
 	self.inputPort.value = "12345"
-	self.inputPort.next = self.buttonConnect
 	
 	self.inputPort.click = function(this)
 		if this.value == "Port" then this.value = "" end
 		this:focus()
 	end
 	
-	-- Connect Button Properties
-	self.buttonConnect.click = function(this)
-		self.client = Client()
-		self.client:connect(self.inputHost.value, self.inputPort.value)
-		
-		if self.client.connection.connected then
-			self.next.screen = "serverlist"
-			
-			self.next.data = {}
-			self.next.data.client = self.client
-			self.next.data.name = self.inputName.value
-		end
-	end
-	
 	-- Options Button Properties
 	self.buttonOptions.click = function(this)
-		self.next.screen = "options"
-	end
-	
-	-- Exit Button Properties
-	self.buttonExit.click = function(this)
-		love.event.quit()
+		self.next.screen = "title"
 	end
 end
 
 local function update(self, dt)
+	self.client:update(dt)
 	self.gui:update(dt)
-	
-	if self.next.data then
-		self.next.data.client:update(dt)
-	end
 end
 
 local function draw(self)
-	love.graphics.draw(self.title, windowWidth/2 - 303/2, 50)
 	self.gui:draw()
 end
 

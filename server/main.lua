@@ -6,7 +6,8 @@ function love.load()
 	
 	logo = love.graphics.newImage("assets/logo.png")
 	
-	server = Server:start(12345)
+	server = Server()
+	server:start(12345)
 	
 	-- Create GUI Elements
 	buttonTest = gui:button("Ping", {x=20, y=20, w=48, h=gui.style.unit})
@@ -18,8 +19,8 @@ function love.load()
 end
 
 function love.update(dt)
-	gui:update(dt)
 	server:update(dt)
+	gui:update(dt)
 end
 
 function love.draw()

@@ -23,6 +23,7 @@ function love.load()
 	screens = {}
 	screens.title		= require "screens.title"
 	screens.options		= require "screens.options"
+	screens.serverlist	= require "screens.serverlist"
 	screens.gameplay	= require "screens.gameplay"
 
 	-- Initialize layers
