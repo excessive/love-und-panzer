@@ -24,6 +24,7 @@ local function load(self)
 	self.gui = gui()
 	self.client = self.data.client
 	self.id = self.data.id
+	self.chat = self.data.chat
 	
 	-- Create GUI Elements
 	self.buttonTest = self.gui:button("Ping", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=self.gui.style.unit})
@@ -71,12 +72,24 @@ local function update(self, dt)
 	local data = ""
 	
 	-- Receive Data
-	self.client:update(dt)
+	self.client.connection:update(dt)
 	
-	if self.client.data then
-		
-		self.client.data = nil
+	if self.client.chat.global then
+		self.chat.global = self.chat.global .. "\n" .. self.client.chat.global
+		self.client.chat.global = nil
 	end
+	
+	if self.client.chat.team then
+		self.chat.team = self.chat.team .. "\n" .. self.client.chat.team
+		self.client.chat.team = nil
+	end
+	
+	if self.client.chat.team then
+		self.chat.team = self.chat.team .. "\n" .. self.client.chat.team
+		self.client.chat.team = nil
+	end
+	
+	self.chat.text.label = self.chat[self.chat.scope]
 	
 	-- Ticks
 	self.time = self.time + dt
@@ -93,24 +106,24 @@ local function update(self, dt)
 		if self.keystate.left then
 			turn = -1
 			data = string.format("%s %f", 'turn', turn)
-			self.client:send(data)
+			self.client.connection:send(data)
 		end
 		
 		if self.keystate.right then
 			turn = 1
 			data = string.format("%s %f", 'turn', turn)
-			self.client:send(data)
+			self.client.connection:send(data)
 		end
 		
 		if self.keystate.up then
 			move = 1
 			data = string.format("%s %f", 'move', move)
-			self.client:send(data)
+			self.client.connection:send(data)
 		end
 		if self.keystate.down then
 			move = -1
 			data = string.format("%s %f", 'move', move)
-			self.client:send(data)
+			self.client.connection:send(data)
 		end
 	end
 
