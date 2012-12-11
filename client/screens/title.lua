@@ -25,23 +25,37 @@ local function load(self)
 		w = self.theme.xlarge,
 		h = self.theme.xlarge,
 	})
-	
-	self.inputName = self.gui:input(nil, {
+
+	self.textName = self.gui:text("Name:", {
 		x = 0,
 		y = 0,
-		w = self.theme.xlarge,
+		w = self.theme.small,
 		h = self.theme.tiny,
 	}, self.groupTitleMenu)
 	
-	self.inputHost = self.gui:input(nil, {
+	self.inputName = self.gui:input(nil, {
+		x = self.textName.pos.w + self.theme.padding,
+		y = 0,
+		w = self.theme.xlarge - self.theme.small - self.theme.padding,
+		h = self.theme.tiny,
+	}, self.groupTitleMenu)
+	
+	self.textHost = self.gui:text("Host:", {
 		x = 0,
 		y = self.inputName.pos.h + self.theme.padding,
-		w = self.theme.large + self.theme.medium + self.theme.padding,
+		w = self.theme.small,
+		h = self.theme.tiny,
+	}, self.groupTitleMenu)
+
+	self.inputHost = self.gui:input(nil, {
+		x = self.textHost.pos.w + self.theme.padding,
+		y = self.inputName.pos.h + self.theme.padding,
+		w = self.theme.large + self.theme.small,
 		h = self.theme.tiny,
 	}, self.groupTitleMenu)
 	
 	self.inputPort = self.gui:input(nil, {
-		x = self.inputHost.pos.w + self.theme.padding,
+		x = self.textHost.pos.w + self.inputHost.pos.w + self.theme.tiny,
 		y = self.inputName.pos.h + self.theme.padding,
 		w = self.theme.small + self.theme.tiny,
 		h = self.theme.tiny,
@@ -74,7 +88,7 @@ local function load(self)
 	-- Host Input Properties
 	self.inputName.keydelay = KEY_DELAY
 	self.inputName.keyrepeat = KEY_REPEAT
-	self.inputName.value = "Karai"
+	self.inputName.value = _G.settings.name
 	self.inputName.next = self.inputHost
 	
 	self.inputName.click = function(this)
@@ -85,7 +99,7 @@ local function load(self)
 	-- Host Input Properties
 	self.inputHost.keydelay = KEY_DELAY
 	self.inputHost.keyrepeat = KEY_REPEAT
-	self.inputHost.value = "localhost"
+	self.inputHost.value = _G.settings.host
 	self.inputHost.next = self.inputPort
 	
 	self.inputHost.click = function(this)
@@ -96,7 +110,7 @@ local function load(self)
 	-- Port Input Properties
 	self.inputPort.keydelay = KEY_DELAY
 	self.inputPort.keyrepeat = KEY_REPEAT
-	self.inputPort.value = "12345"
+	self.inputPort.value = _G.settings.port
 	self.inputPort.next = self.buttonConnect
 	
 	self.inputPort.click = function(this)
@@ -115,6 +129,7 @@ local function load(self)
 			self.next.data = {}
 			self.next.data.client = self.client
 			self.next.data.name = self.inputName.value
+			_G.settings.name = self.inputName.value
 		end
 	end
 	

@@ -37,7 +37,7 @@ function Server:connect(clientId)
 	
 	local new = json.encode({name="somegame",pass="qwerty"}) --debug
 	self:newGame(new,clientId) --debug
-	
+
 	local str = json.encode(self.games)
 	local data = string.format("%s %s", "GAMELIST", str)
 	
@@ -66,6 +66,8 @@ function Server:recv(data, clientId)
 			self:sendChat(params, clientId)
 		elseif cmd == "NEWGAME" then
 			self:newGame(params, clientId)
+		elseif cmd == "SERVERLIST" then
+			self:sendServerList(clientId)
 		--[[
 		elseif cmd == "MOVE" then
 			local x, y = params:match("^(%-?[%d.e]*) (%-?[%d.e]*)$")
@@ -94,7 +96,7 @@ end
 --[[
 	Send Chat Message
 	
-	params			= Scope, Message of chat
+	params			= Scope, Message of chat , Nickname
 	clientId		= Unique client ID
 ]]--
 function Server:sendChat(params, clientId)
@@ -102,7 +104,7 @@ function Server:sendChat(params, clientId)
 	local chat = json.decode(params)
 	local str = json.encode({
 		scope = chat.scope,
-		msg = id .. ": " .. chat.msg,
+		msg = chat.nickname .. ": " .. chat.msg,
 	})
 	local data = string.format("%s %s", "CHAT", str)
 	
@@ -136,3 +138,13 @@ function Server:newGame(params, clientId)
 		},
 	}
 end
+
+--TESTING
+function Server:sendServerList(clientId)
+
+	local str = json.encode(self.games)
+	local data = string.format("%s %s", "GAMELIST", str)
+	
+	self.connection:send(data, clientId)
+end
+--//TESTING

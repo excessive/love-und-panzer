@@ -5,6 +5,7 @@ local function load(self)
 	self.gui = gui()
 	self.client = self.data.client
 	self.id = self.data.id
+
 	
 	-- GUI Theme
 	self.theme = {
@@ -80,7 +81,7 @@ local function load(self)
 		w = 50,
 		h = self.theme.tiny,
 	}, self.chat.group)
-	
+
 	--[[ Chat Group Properties ]]--
 	
 	-- Chat Input Properties
@@ -104,9 +105,15 @@ local function load(self)
 	
 	-- Send Button Properties
 	self.chat.send.click = function(this)
+		sendChat()
+	end
+
+	-- Send the actual message
+	function sendChat()
 		if self.chat.input.value and self.chat.input.value ~= "" then
 			local str = json.encode({
 				scope = string.upper(self.chat.scope),
+				nickname = _G.settings.name,
 				msg = self.chat.input.value,
 			})
 			local data = string.format("%s %s", "CHAT", str)
@@ -115,6 +122,41 @@ local function load(self)
 			self.chat.input.value = ""
 		end
 	end
+
+
+	--TESTING
+	self.serverlist = {
+		server = "",
+	}
+	-- Serverlist
+	self.serverlist.group = self.gui:group(nil, {
+		x = windowWidth - 400,
+		y = windowHeight - 200,
+		w = 400,
+		h = 200,
+	})
+
+	self.serverlist.text = self.gui:text("", {
+		x = 0,
+		y = 0,
+		w = 400,
+		h = 200 - self.theme.tiny,
+	}, self.serverlist.group)
+	
+	self.serverlist.Refresh = self.gui:button("Refresh", {
+		x = 0,
+		y = self.serverlist.group.pos.h - self.theme.tiny,
+		w = 400,
+		h = self.theme.tiny,
+	}, self.serverlist.group)
+	
+	-- request new serverlist from server
+	self.serverlist.Refresh.click = function(this)
+		local data = string.format("%s %s", "SERVERLIST", "")
+		self.client.connection:send(data)
+	end
+
+	--//TESTING
 end
 
 local function update(self, dt)
@@ -134,7 +176,14 @@ local function update(self, dt)
 		self.chat.team = self.chat.team .. "\n" .. self.client.chat.team
 		self.client.chat.team = nil
 	end
-	
+
+	if self.client.serverlist.name then
+		self.serverlist.server = self.client.serverlist.name
+		self.client.serverlist.name = nil
+	end
+
+	self.serverlist.text.label = self.serverlist.server
+
 	self.chat.text.label = self.chat[self.chat.scope]
 	
 	self.gui:update(dt)
@@ -147,6 +196,11 @@ end
 local function keypressed(self, k, unicode)
 	if self.gui.focus then
 		self.gui:keypress(k, unicode)
+
+		if k == 'return' then -- Send the message only when the input is focused when pressing enter
+			sendChat()
+		end
+
 	end
 end
 

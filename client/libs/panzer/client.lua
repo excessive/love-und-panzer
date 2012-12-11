@@ -5,6 +5,7 @@ require "libs.LUBE.LUBE"
 Client = Class {
     function(self)
 		self.chat = {}
+		self.serverlist = {}
 	end
 }
 
@@ -78,8 +79,13 @@ end
 
 function Client:gameList(params)
 	local list = json.decode(params)
-	
-	for k,v in pairs(list) do
-		print(k,v)
+	local servers = ""
+
+	--place all the servers names in a string
+	for k,server in pairs(list) do
+		print("Name is "..server.name)
+		servers = servers..server.name.."\n"
 	end
+
+	self.serverlist.name = servers
 end
