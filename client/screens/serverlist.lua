@@ -5,7 +5,6 @@ local function load(self)
 	self.gui = gui()
 	self.client = self.data.client
 	self.id = self.data.id
-
 	
 	-- GUI Theme
 	self.theme = {
@@ -20,10 +19,7 @@ local function load(self)
 	--[[ Create GUI Elements ]]--
 	
 	self.chat = {
-		scope = "global",
-		global = "",
-		game = "",
-		team = "",
+		scope = "global"
 	}
 	
 	-- Chat Group
@@ -59,7 +55,21 @@ local function load(self)
 	}, self.chat.group)
 	
 	-- Chat Text
-	self.chat.text = self.gui:text("", {
+	self.chat.global = self.gui:scrollgroup(nil, {
+		x = 0,
+		y = self.theme.tiny,
+		w = 400 - self.theme.tiny,
+		h = 200 - self.theme.tiny * 2,
+	}, self.chat.group)
+	
+	self.chat.game = self.gui:scrollgroup(nil, {
+		x = 0,
+		y = self.theme.tiny,
+		w = 400,
+		h = 200 - self.theme.tiny * 2,
+	}, self.chat.group)
+	
+	self.chat.team = self.gui:scrollgroup(nil, {
 		x = 0,
 		y = self.theme.tiny,
 		w = 400,
@@ -83,6 +93,9 @@ local function load(self)
 	}, self.chat.group)
 
 	--[[ Chat Group Properties ]]--
+	self.chat.global:show()
+	self.chat.game:hide()
+	self.chat.team:hide()
 	
 	-- Chat Input Properties
 	self.chat.input.keydelay = KEY_DELAY
@@ -91,16 +104,25 @@ local function load(self)
 	-- Global Button Properties
 	self.chat.buttonGlobal.click = function(this)
 		self.chat.scope = "global"
+		self.chat.global:show()
+		self.chat.game:hide()
+		self.chat.team:hide()
 	end
 	
 	-- Game Button Properties
 	self.chat.buttonGame.click = function(this)
 		self.chat.scope = "game"
+		self.chat.global:hide()
+		self.chat.game:show()
+		self.chat.team:hide()
 	end
 	
 	-- Team Button Properties
 	self.chat.buttonTeam.click = function(this)
 		self.chat.scope = "team"
+		self.chat.global:hide()
+		self.chat.game:hide()
+		self.chat.team:show()
 	end
 	
 	-- Send Button Properties
@@ -122,31 +144,30 @@ local function load(self)
 			self.chat.input.value = ""
 		end
 	end
-
-
+	
 	--TESTING
 	self.serverlist = {
 		server = "",
 	}
 	-- Serverlist
 	self.serverlist.group = self.gui:group(nil, {
-		x = windowWidth - 400,
+		x = windowWidth - 300,
 		y = windowHeight - 200,
-		w = 400,
+		w = 300,
 		h = 200,
 	})
 
 	self.serverlist.text = self.gui:text("", {
 		x = 0,
 		y = 0,
-		w = 400,
+		w = 300,
 		h = 200 - self.theme.tiny,
 	}, self.serverlist.group)
 	
 	self.serverlist.Refresh = self.gui:button("Refresh", {
 		x = 0,
 		y = self.serverlist.group.pos.h - self.theme.tiny,
-		w = 400,
+		w = 300,
 		h = self.theme.tiny,
 	}, self.serverlist.group)
 	
@@ -162,29 +183,37 @@ end
 local function update(self, dt)
 	self.client:update(dt)
 	
+	-- Update Global Chat
 	if self.client.chat.global then
-		self.chat.global = self.chat.global .. "\n" .. self.client.chat.global
+		self.chat.global:addchild(self.gui:text(self.client.chat.global, {w = self.chat.group.pos.w - self.theme.tiny}), "vertical")
 		self.client.chat.global = nil
+		
+		for k,v in pairs(self.chat.global.children) do
+			for k2,v2 in pairs(v) do
+				print(k2,v2)
+			end
+		end
 	end
 	
+	-- Update Game Chat
+	if self.client.chat.game then
+		self.chat.game:addchild(self.gui:text(self.client.chat.game, {w = self.chat.group.pos.w, h = self.theme.tiny}), "vertical")
+		self.client.chat.game = nil
+	end
+	
+	-- Update Team Chat
 	if self.client.chat.team then
-		self.chat.team = self.chat.team .. "\n" .. self.client.chat.team
+		self.chat.team:addchild(self.gui:text(self.client.chat.team, {w = self.chat.group.pos.w, h = self.theme.tiny}), "vertical")
 		self.client.chat.team = nil
 	end
 	
-	if self.client.chat.team then
-		self.chat.team = self.chat.team .. "\n" .. self.client.chat.team
-		self.client.chat.team = nil
-	end
-
+	
 	if self.client.serverlist.name then
 		self.serverlist.server = self.client.serverlist.name
 		self.client.serverlist.name = nil
 	end
 
 	self.serverlist.text.label = self.serverlist.server
-
-	self.chat.text.label = self.chat[self.chat.scope]
 	
 	self.gui:update(dt)
 end
@@ -197,7 +226,7 @@ local function keypressed(self, k, unicode)
 	if self.gui.focus then
 		self.gui:keypress(k, unicode)
 
-		if k == 'return' then -- Send the message only when the input is focused when pressing enter
+		if k == 'return' then
 			sendChat()
 		end
 

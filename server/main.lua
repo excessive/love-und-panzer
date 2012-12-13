@@ -1,5 +1,5 @@
 require "libs.panzer.server"
-gui = require "libs.Gspot"
+--gui = require "libs.Gspot"
 
 function love.load()
 	love.graphics.setFont(love.graphics.newFont(12))
@@ -7,32 +7,24 @@ function love.load()
 	logo = love.graphics.newImage("assets/logo.png")
 	
 	server = Server()
-	server:start(12345)
-	
-	-- Create GUI Elements
-	buttonTest = gui:button("Ping", {x=20, y=20, w=48, h=gui.style.unit})
-	
-	-- Test Button Properties
-	buttonTest.click = function(this)
-		server:send("Test")
-	end
+	server:start(8088)
 end
 
 function love.update(dt)
 	server:update(dt)
-	gui:update(dt)
+	--gui:update(dt)
 end
 
 function love.draw()
 	love.graphics.draw(logo, 0, 0)
-	gui:draw()
+	--gui:draw()
 end
 
 function love.keypressed(k, unicode)
-	if gui.focus then
+	--[[if gui.focus then
 		gui:keypress(k, unicode)
 		return
-	end
+	end]]--
 end
 
 function love.mousepressed(x, y, button)
