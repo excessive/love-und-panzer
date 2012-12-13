@@ -11,7 +11,7 @@ function love.load()
 	numTiles = 18.75
 	
 	-- GUI
-	FONT = love.graphics.newFont(12)
+	FONT = love.graphics.newFont(10)
 	KEY_DELAY = 0.2
 	KEY_REPEAT = 0.02
 	

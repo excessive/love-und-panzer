@@ -60,21 +60,21 @@ local function load(self)
 		y = self.theme.tiny,
 		w = 400 - self.theme.tiny,
 		h = 200 - self.theme.tiny * 2,
-	}, self.chat.group)
+	}, self.chat.group, "vertical")
 	
 	self.chat.game = self.gui:scrollgroup(nil, {
 		x = 0,
 		y = self.theme.tiny,
-		w = 400,
+		w = 400 - self.theme.tiny,
 		h = 200 - self.theme.tiny * 2,
-	}, self.chat.group)
+	}, self.chat.group, "vertical")
 	
 	self.chat.team = self.gui:scrollgroup(nil, {
 		x = 0,
 		y = self.theme.tiny,
-		w = 400,
+		w = 400 - self.theme.tiny,
 		h = 200 - self.theme.tiny * 2,
-	}, self.chat.group)
+	}, self.chat.group, "vertical")
 	
 	-- Chat Input
 	self.chat.input = self.gui:input(nil, {
@@ -187,12 +187,6 @@ local function update(self, dt)
 	if self.client.chat.global then
 		self.chat.global:addchild(self.gui:text(self.client.chat.global, {w = self.chat.group.pos.w - self.theme.tiny}), "vertical")
 		self.client.chat.global = nil
-		
-		for k,v in pairs(self.chat.global.children) do
-			for k2,v2 in pairs(v) do
-				print(k2,v2)
-			end
-		end
 	end
 	
 	-- Update Game Chat
