@@ -6,7 +6,7 @@ local function load(self)
 	self.client = self.data.client
 	self.id = self.data.id
 	
-	-- GUI Theme
+	-- UI Theme
 	self.theme = {
 		padding	= 8,
 		tiny	= 16,
@@ -16,7 +16,7 @@ local function load(self)
 		xlarge	= 256,
 	}
 	
-	--[[ Create GUI Elements ]]--
+	--[[ Chat UI Elements ]]--
 	
 	self.chat = {
 		scope = "global"
@@ -59,21 +59,21 @@ local function load(self)
 		x = 0,
 		y = self.theme.tiny,
 		w = 400 - self.theme.tiny,
-		h = 200 - self.theme.tiny * 2,
+		h = 200 - self.theme.small,
 	}, self.chat.group, "vertical")
 	
 	self.chat.game = self.gui:scrollgroup(nil, {
 		x = 0,
 		y = self.theme.tiny,
 		w = 400 - self.theme.tiny,
-		h = 200 - self.theme.tiny * 2,
+		h = 200 - self.theme.small,
 	}, self.chat.group, "vertical")
 	
 	self.chat.team = self.gui:scrollgroup(nil, {
 		x = 0,
 		y = self.theme.tiny,
 		w = 400 - self.theme.tiny,
-		h = 200 - self.theme.tiny * 2,
+		h = 200 - self.theme.small,
 	}, self.chat.group, "vertical")
 	
 	-- Chat Input
@@ -92,7 +92,7 @@ local function load(self)
 		h = self.theme.tiny,
 	}, self.chat.group)
 
-	--[[ Chat Group Properties ]]--
+	--[[ Chat UI Properties ]]--
 	self.chat.global:show()
 	self.chat.game:hide()
 	self.chat.team:hide()
@@ -130,7 +130,7 @@ local function load(self)
 		sendChat()
 	end
 
-	-- Send the actual message
+	-- Send Chat Message
 	function sendChat()
 		if self.chat.input.value and self.chat.input.value ~= "" then
 			local str = json.encode({
@@ -145,39 +145,39 @@ local function load(self)
 		end
 	end
 	
-	--TESTING
-	self.serverlist = {
-		server = "",
-	}
-	-- Serverlist
-	self.serverlist.group = self.gui:group(nil, {
-		x = windowWidth - 300,
+	--[[ Server List UI Elements ]]--
+	
+	-- Server Group
+	self.servergroup = self.gui:group(nil, {
+		x = windowWidth - 400,
 		y = windowHeight - 200,
-		w = 300,
+		w = 400,
 		h = 200,
 	})
-
-	self.serverlist.text = self.gui:text("", {
+	
+	-- Server List
+	self.serverlist = self.gui:scrollgroup(nil, {
 		x = 0,
 		y = 0,
-		w = 300,
+		w = 400 - self.theme.tiny,
 		h = 200 - self.theme.tiny,
-	}, self.serverlist.group)
+	}, self.servergroup, "vertical")
 	
-	self.serverlist.Refresh = self.gui:button("Refresh", {
+	-- Refresh Button
+	self.serverRefresh = self.gui:button("Refresh", {
 		x = 0,
-		y = self.serverlist.group.pos.h - self.theme.tiny,
-		w = 300,
+		y = self.servergroup.pos.h - self.theme.tiny,
+		w = 400,
 		h = self.theme.tiny,
-	}, self.serverlist.group)
+	}, self.servergroup)
 	
-	-- request new serverlist from server
-	self.serverlist.Refresh.click = function(this)
+	--[[ Server List UI Properties ]]--
+	
+	-- Refresh Server List
+	self.serverRefresh.click = function(this)
 		local data = string.format("%s %s", "SERVERLIST", "")
 		self.client.connection:send(data)
 	end
-
-	--//TESTING
 end
 
 local function update(self, dt)
@@ -201,13 +201,29 @@ local function update(self, dt)
 		self.client.chat.team = nil
 	end
 	
-	
-	if self.client.serverlist.name then
-		self.serverlist.server = self.client.serverlist.name
-		self.client.serverlist.name = nil
+	-- Update Server List
+	if self.client.serverlist then
+		for game, properties in pairs(self.client.serverlist) do
+			local group = self.gui:group(nil, {w = self.serverlist.pos.w, h = self.theme.medium})
+			local textName = self.gui:text(properties.name, {w=group.pos.w, h=self.theme.tiny}, group)
+			local textHost = self.gui:text("Hosted by: "..properties.host, {y=self.theme.tiny, w=group.pos.w, h=self.theme.tiny}, group)
+			local textState = self.gui:text(properties.state, {y=self.theme.small, w=group.pos.w/2, h=self.theme.tiny}, group)
+			local textPlayers = self.gui:text(properties.players.."/8", {x=group.pos.w/2, y=self.theme.small, w=group.pos.w/2, h=self.theme.tiny}, group)
+			local buttonConnect = self.gui:button("Connect", {x=group.pos.w-48, y=self.theme.small + self.theme.tiny, w=48, h=self.theme.tiny}, group)
+			
+			if properties.pass then
+				local inputPass = self.gui:input("Password", {y=self.theme.small + self.theme.tiny, w=group.pos.w-self.theme.medium, h=self.theme.tiny}, group)
+			end
+			
+			buttonConnect.click = function()
+				-- join game!
+			end
+			
+			self.serverlist:addchild(group, "vertical")
+		end
+		
+		self.client.serverlist = nil
 	end
-
-	self.serverlist.text.label = self.serverlist.server
 	
 	self.gui:update(dt)
 end
@@ -223,7 +239,6 @@ local function keypressed(self, k, unicode)
 		if k == 'return' then
 			sendChat()
 		end
-
 	end
 end
 

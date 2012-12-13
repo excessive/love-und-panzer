@@ -38,23 +38,8 @@ function Client:recv(data)
 		
 		if cmd == "CHAT" then
 			self:postChat(params)
-		elseif cmd == "GAMELIST" then
-			self:gameList(params)
-		--[[
-		elseif cmd == "MOVE" then
-			local x, y = params:match("^(%-?[%d.e]*) (%-?[%d.e]*)$")
-			assert(x and y)
-			x, y = tonumber(x), tonumber(y)
-
-			local ent = world[entity] or {x=0, y=0}
-			world[entity] = {x=ent.x+x, y=ent.y+y}
-		elseif cmd == "AT" then
-			local x, y = params:match("^(%-?[%d.e]*) (%-?[%d.e]*)$")
-			assert(x and y)
-			x, y = tonumber(x), tonumber(y)
-
-			world[entity] = {x=x, y=y}
-		]]--
+		elseif cmd == "SERVERLIST" then
+			self:serverList(params)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -77,15 +62,6 @@ function Client:postChat(params)
 	end
 end
 
-function Client:gameList(params)
-	local list = json.decode(params)
-	local servers = ""
-
-	--place all the servers names in a string
-	for k,server in pairs(list) do
-		print("Name is "..server.name)
-		servers = servers..server.name.."\n"
-	end
-
-	self.serverlist.name = servers
+function Client:serverList(params)
+	self.serverlist = json.decode(params)
 end

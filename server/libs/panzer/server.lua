@@ -6,6 +6,7 @@ Server = Class {
     function(self)
 		self.games		= {}
 		self.players	= {}
+		self.serverlist	= {}
 	end
 }
 
@@ -38,10 +39,7 @@ function Server:connect(clientId)
 	local new = json.encode({name="somegame",pass="qwerty"}) --debug
 	self:newGame(new,clientId) --debug
 
-	local str = json.encode(self.games)
-	local data = string.format("%s %s", "GAMELIST", str)
-	
-	self.connection:send(data, clientId)
+	self:sendServerList(clientId)
 end
 
 --[[
@@ -68,21 +66,6 @@ function Server:recv(data, clientId)
 			self:newGame(params, clientId)
 		elseif cmd == "SERVERLIST" then
 			self:sendServerList(clientId)
-		--[[
-		elseif cmd == "MOVE" then
-			local x, y = params:match("^(%-?[%d.e]*) (%-?[%d.e]*)$")
-			assert(x and y)
-			x, y = tonumber(x), tonumber(y)
-
-			local ent = world[entity] or {x=0, y=0}
-			world[entity] = {x=ent.x+x, y=ent.y+y}
-		elseif cmd == "AT" then
-			local x, y = params:match("^(%-?[%d.e]*) (%-?[%d.e]*)$")
-			assert(x and y)
-			x, y = tonumber(x), tonumber(y)
-
-			world[entity] = {x=x, y=y}
-		]]--
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -127,6 +110,7 @@ function Server:newGame(params, clientId)
 	end
 	
 	self.games[count] = {
+		state		= "lobby",
 		name		= str.name,
 		pass		= str.pass,
 		host		= id,
@@ -137,13 +121,21 @@ function Server:newGame(params, clientId)
 			},
 		},
 	}
+	
+	self.serverlist[count] = {
+		name	= str.name,
+		host	= id,
+		state	= "lobby",
+		players	= 1,
+		pass	= true,
+	}
 end
 
 --TESTING
 function Server:sendServerList(clientId)
 
-	local str = json.encode(self.games)
-	local data = string.format("%s %s", "GAMELIST", str)
+	local str = json.encode(self.serverlist)
+	local data = string.format("%s %s", "SERVERLIST", str)
 	
 	self.connection:send(data, clientId)
 end

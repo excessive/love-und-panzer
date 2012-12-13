@@ -20,11 +20,11 @@ function love.draw()
 	--gui:draw()
 end
 
-function love.keypressed(k, unicode)
-	--[[if gui.focus then
+--[[function love.keypressed(k, unicode)
+	if gui.focus then
 		gui:keypress(k, unicode)
 		return
-	end]]--
+	end
 end
 
 function love.mousepressed(x, y, button)
@@ -33,4 +33,4 @@ end
 
 function love.mousereleased(x, y, button)
 	gui:mouserelease(x, y, button)
-end
+end]]--
