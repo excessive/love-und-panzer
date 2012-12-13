@@ -321,7 +321,7 @@ Gspot.util = {
 		this.shape = shape
 		if this.shape == 'circle' and not this.pos.r then this.pos.r = this.pos.w / 2 end
 	end,
-	
+
 	drawshape = function(this, pos)
 		pos = pos or this:getpos()
 		if this.shape == 'circle' then
@@ -331,27 +331,27 @@ Gspot.util = {
 			this:rect(pos)
 		end
 	end,
-	
+
 	rect = function(this, pos, mode)
 		pos = this.Gspot:pos(pos.pos or pos or this.pos)
 		assert(pos:type() == 'Gspot.pos')
 		mode = mode or 'fill'
 		love.graphics.rectangle(mode, pos.x, pos.y, pos.w, pos.h)
 	end,
-	
+
 	setimage = function(this, img)
 		if type(img) == 'string' and love.filesystem.exists(img) then img = love.graphics.newImage(img) end
 		if pcall(function(img) return img:type() == 'Image' end, img) then this.img = img
 		else this.img = nil end
 	end,
-	
+
 	drawimg = function(this, pos)
 		love.graphics.setColor({255, 255, 255, 255})
 		love.graphics.setColorMode(this.style.imagemode)
 		love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
 		love.graphics.setColorMode('modulate')
 	end,
-	
+
 	setfont = function(this, font, size)
 		if type(font) == 'string' and love.filesystem.exists(font) then
 			font = love.graphics.newFont(font, size)
@@ -365,7 +365,7 @@ Gspot.util = {
 			this.style = this.Gspot:clone(this.style)
 		end
 	end,
-	
+
 	getpos = function(this, scissor)
 		local pos = this.Gspot:pos(this)
 		if this.parent then
@@ -379,39 +379,39 @@ Gspot.util = {
 		end
 		return pos, scissor
 	end,
-	
+
 	containspoint = function(this, point)
 		local pos = point.pos or point
 		if this.shape == 'circle' and this.withinradius(pos, this:getpos() + this.pos.r) then return true
 		elseif this.withinrect(pos, this:getpos()) then return true end
 		return false
 	end,
-	
+
 	withinrect = function(pos, rect)
 		pos = pos.pos or pos
 		rect = rect.pos or rect
 		if pos.x >= rect.x and pos.x <= (rect.x + rect.w) and pos.y >= rect.y and pos.y < (rect.y + rect.h) then return true end
 		return false
 	end,
-	
+
 	getdist = function(pos, target)
 		pos = pos.pos or pos
 		target = target.pos or target
 		return math.sqrt((pos.x-target.x) * (pos.x-target.x) + (pos.y-target.y) * (pos.y-target.y))
 	end,
-	
+
 	withinradius = function(pos, circ)
 		pos = pos.pos or pos
 		circ = circ.pos or circ
 		if math.sqrt((pos.x - circ.x) * (pos.x - circ.x) + (pos.y - circ.y) * (pos.y - circ.y)) < circ.r then return true end
 		return false
 	end,
-	
+
 	getparent = function(this)
 		if this.parent then return this.parent:getparent()
 		else return this end
 	end,
-	
+
 	getmaxw = function(this)
 		local maxw = 0
 		for i, child in ipairs(this.children) do
@@ -419,7 +419,7 @@ Gspot.util = {
 		end
 		return maxw
 	end,
-	
+
 	getmaxh = function(this)
 		local maxh = 0
 		for i, child in ipairs(this.children) do
@@ -427,7 +427,7 @@ Gspot.util = {
 		end
 		return maxh
 	end,
-	
+
 	addchild = function(this, child, autostack)
 		if autostack then
 			if type(autostack) == 'number' or autostack == 'grid' then 
@@ -446,32 +446,32 @@ Gspot.util = {
 		end
 		if this.scrollh then this.scrollh.values.max = math.max(this:getmaxw() - this.pos.w, 0) end
 		if this.scrollv then this.scrollv.values.max = math.max(this:getmaxh() - this.pos.h, 0) end
-		
+
 		table.insert(this.children, child)
 		child.parent = this
 		child.style = this.Gspot:clone(child.style)
 		setmetatable(child.style, {__index = this.style})
 		return child
 	end,
-	
+
 	remchild = function(this, child)
 		child.pos = child:getpos()
 		table.remove(this.children, this.Gspot.getindex(this.children, child))
 		child.parent = nil
 		setmetatable(child.style, {__index = this.Gspot.style})
 	end,
-	
+
 	replace = function(this, replacement)
 		this.Gspot.elements[this.Gspot.getindex(this.Gspot.elements, this)] = replacement
 		return replacement
 	end,
-	
+
 	getlevel = function(this)
 		for i, element in pairs(this.Gspot.elements) do
 			if element == this then return i end
 		end
 	end,
-	
+
 	setlevel = function(this, level)
 		if level then
 			table.insert(this.Gspot.elements, level, table.remove(this.Gspot.elements, this.Gspot.getindex(this.Gspot.elements, this)))
@@ -481,21 +481,21 @@ Gspot.util = {
 			for i, child in ipairs(this.children) do child:setlevel() end
 		end
 	end,
-	
+
 	show = function(this)
 		this.display = true
 		for i, child in pairs(this.children) do child:show() end
 	end,
-	
+
 	hide = function(this)
 		this.display = false
 		for i, child in pairs(this.children) do child:hide() end
 	end,
-	
+
 	focus = function(this)
 		this.Gspot:setfocus(this)
 	end,
-	
+
 	type = function(this)
 		return 'Gspot.element.'..this.elementtype
 	end,
@@ -517,7 +517,7 @@ Gspot.element = {
 	end,
 }
 setmetatable(Gspot.element, {__call = Gspot.element.load})
-	
+
 Gspot.scrollvalues = function(this, values)
 	local val = {}
 	val.min = values.min or values[1] or 0
@@ -834,8 +834,8 @@ Gspot.scrollgroup = {
 		local element = Gspot:element('scrollgroup', label, pos, parent)
 		element.maxh = 0
 		element = Gspot:add(element)
-		if axis ~= 'horizontal' then this.scrollv = Gspot:scroll(nil, {x = element.pos.w, y = 0, w = element.style.unit, h = element.pos.h}, element, {0, 0, 0, element.style.unit, 'vertical'}) end
-		if axis ~= 'vertical' then this.scrollh = Gspot:scroll(nil, {x = 0, y = element.pos.h, w = element.pos.w, h = element.style.unit}, element, {0, 0, 0, element.style.unit, 'horizontal'}) end
+		if axis ~= 'horizontal' then element.scrollv = Gspot:scroll(nil, {x = element.pos.w, y = 0, w = element.style.unit, h = element.pos.h}, element, {0, 0, 0, element.style.unit, 'vertical'}) end
+		if axis ~= 'vertical' then element.scrollh = Gspot:scroll(nil, {x = 0, y = element.pos.h, w = element.pos.w, h = element.style.unit}, element, {0, 0, 0, element.style.unit, 'horizontal'}) end
 		return element
 	end,
 	draw = function(this, pos)
