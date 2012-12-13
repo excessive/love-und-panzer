@@ -53,6 +53,9 @@ end
 
 --[[
 	Receive Data from Client
+	
+	data			= Data received
+	clientId		= Unique client ID
 ]]--
 function Server:recv(data, clientId)
 	print('Client data received from: ' .. tostring(clientId) .. ' containing: ' .. data)
@@ -72,6 +75,11 @@ function Server:recv(data, clientId)
 	end
 end
 
+--[[
+	Update Server
+	
+	dt				= Delta time
+]]--
 function Server:update(dt)
 	self.connection:update(dt)
 end
@@ -79,7 +87,7 @@ end
 --[[
 	Send Chat Message
 	
-	params			= Scope, Message of chat , Nickname
+	params			= Scope, Message, Nickname
 	clientId		= Unique client ID
 ]]--
 function Server:sendChat(params, clientId)
@@ -97,7 +105,7 @@ end
 --[[
 	Create New Game
 	
-	params			= Name, Password of game
+	params			= Name, Password
 	clientId		= Unique client ID
 ]]--
 function Server:newGame(params, clientId)
@@ -131,12 +139,13 @@ function Server:newGame(params, clientId)
 	}
 end
 
---TESTING
+--[[
+	Send Server List
+	clientId		= Unique client ID
+]]--
 function Server:sendServerList(clientId)
-
 	local str = json.encode(self.serverlist)
 	local data = string.format("%s %s", "SERVERLIST", str)
 	
 	self.connection:send(data, clientId)
 end
---//TESTING

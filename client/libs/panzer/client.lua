@@ -12,8 +12,8 @@ Client = Class {
 --[[
 	Connect to Server
 	
-	host		= Server host
-	port		= Server port
+	host			= Server host
+	port			= Server port
 ]]--
 function Client:connect(host, port)
 	self.connection = lube.tcpClient()
@@ -29,6 +29,8 @@ end
 
 --[[
 	Receive Data from Server
+	
+	data			= Data received
 ]]--
 function Client:recv(data)
 	print('Server data received: ' .. data)
@@ -46,10 +48,20 @@ function Client:recv(data)
 	end
 end
 
+--[[
+	Update Client
+	
+	dt				= Delta time
+]]--
 function Client:update(dt)
 	self.connection:update(dt)
 end
 
+--[[
+	Post Chat Message
+	
+	params			= Scope, Message
+]]--
 function Client:postChat(params)
 	local chat = json.decode(params)
 	
@@ -62,6 +74,11 @@ function Client:postChat(params)
 	end
 end
 
+--[[
+	Server List
+	
+	params			= Name, Host, State, Players, Password
+]]--
 function Client:serverList(params)
 	self.serverlist = json.decode(params)
 end
