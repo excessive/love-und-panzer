@@ -16,10 +16,6 @@ end
 local function update(self, dt)
 	self.client:update(dt)
 	self.gui:update(dt)
-	
-	if self.next.data then
-		self.next.data.conn:update(dt)
-	end
 end
 
 local function draw(self)

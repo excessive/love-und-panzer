@@ -149,8 +149,8 @@ end
 local function update(self, dt)
 	self.gui:update(dt)
 	
-	if self.next.data then
-		self.next.data.client:update(dt)
+	if self.client then
+		self.client:update(dt)
 	end
 end
 
