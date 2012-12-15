@@ -135,7 +135,6 @@ local function load(self)
 		if self.chat.input.value and self.chat.input.value ~= "" then
 			local str = json.encode({
 				scope = string.upper(self.chat.scope),
-				nickname = _G.settings.name,
 				msg = self.chat.input.value,
 			})
 			local data = string.format("%s %s", "CHAT", str)
@@ -150,26 +149,56 @@ local function load(self)
 	-- Server Group
 	self.servergroup = self.gui:group(nil, {
 		x = windowWidth - 400,
-		y = windowHeight - 200,
-		w = 400,
-		h = 200,
-	})
-	
-	-- Server List
-	self.serverlist = self.gui:scrollgroup(nil, {
-		x = 0,
 		y = 0,
-		w = 400 - self.theme.tiny,
-		h = 200 - self.theme.tiny,
-	}, self.servergroup, "vertical")
+		w = 400,
+		h = windowHeight,
+	})
 	
 	-- Refresh Button
 	self.serverRefresh = self.gui:button("Refresh", {
 		x = 0,
-		y = self.servergroup.pos.h - self.theme.tiny,
+		y = 0,
 		w = 400,
 		h = self.theme.tiny,
 	}, self.servergroup)
+	
+	-- New Game Group
+	self.groupNewGame = self.gui:group(nil, {
+		x = 0,
+		y = self.theme.tiny + self.theme.padding,
+		w = 400,
+		h = self.theme.medium,
+	}, self.servergroup)
+	
+	self.inputNewGameName = self.gui:input(nil, {
+		x = 0,
+		y = 0,
+		w = 400,
+		h = self.theme.tiny,
+	}, self.groupNewGame)
+	
+	self.inputNewGamePass = self.gui:input(nil, {
+		x = 0,
+		y = self.theme.tiny + self.theme.padding,
+		w = 400 - self.theme.medium - self.theme.padding,
+		h = self.theme.tiny,
+	}, self.groupNewGame)
+	
+	self.buttonNewGame = self.gui:button("New Game", {
+		x = 400 - self.theme.medium,
+		y = self.theme.tiny + self.theme.padding,
+		w = self.theme.medium,
+		h = self.theme.tiny,
+	}, self.groupNewGame)
+	
+	
+	-- Server List
+	self.serverlist = self.gui:scrollgroup(nil, {
+		x = 0,
+		y = self.theme.medium + self.theme.padding,
+		w = 400 - self.theme.tiny,
+		h = windowHeight - self.theme.medium - self.theme.padding,
+	}, self.servergroup, "vertical")
 	
 	--[[ Server List UI Properties ]]--
 	
@@ -177,6 +206,22 @@ local function load(self)
 	self.serverRefresh.click = function(this)
 		local data = string.format("%s %s", "SERVERLIST", "")
 		self.client.connection:send(data)
+	end
+	
+	self.buttonNewGame.click = function(this)
+		local str = json.encode({
+			name = self.inputNewGameName.value,
+			pass = self.inputNewGamePass.value,
+		})
+		
+		local data = string.format("%s %s", "NEWGAME", str)
+		self.client.connection:send(data)
+		
+		self.next.data = {}
+		self.next.data.client = self.client
+		self.next.data.chat = self.chat
+		
+		self.next.screen = "lobby"
 	end
 end
 

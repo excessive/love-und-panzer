@@ -125,11 +125,13 @@ local function load(self)
 		
 		if self.client.connection.connected then
 			self.next.screen = "serverlist"
-			
-			self.next.data = {}
-			self.next.data.client = self.client
-			self.next.data.name = self.inputName.value
+			self.next.data = {
+				client = self.client
+			}
 			_G.settings.name = self.inputName.value
+			
+			local data = string.format("%s %s", "CONNECT", json.encode({name = _G.settings.name}))
+			self.client.connection:send(data)
 		end
 	end
 	

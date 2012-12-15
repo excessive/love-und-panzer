@@ -36,9 +36,6 @@ end
 function Server:connect(clientId)
 	print('Client connected: ' .. tostring(clientId))
 	
-	local new = json.encode({name="somegame",pass="qwerty"}) --debug
-	self:newGame(new,clientId) --debug
-
 	self:sendServerList(clientId)
 end
 
@@ -49,6 +46,8 @@ end
 ]]--
 function Server:disconnect(clientId)
 	print('Client disconnected: ' .. tostring(clientId))
+	
+	self.players[tostring(clientId)] = nil
 end
 
 --[[
@@ -63,7 +62,9 @@ function Server:recv(data, clientId)
 	if data then
 		cmd, params = data:match("^(%S*) (.*)")
 		
-		if cmd == "CHAT" then
+		if cmd == "CONNECT" then
+			self:clientConnect(params, clientId)
+		elseif cmd == "CHAT" then
 			self:sendChat(params, clientId)
 		elseif cmd == "NEWGAME" then
 			self:newGame(params, clientId)
@@ -85,6 +86,27 @@ function Server:update(dt)
 end
 
 --[[
+	Client Connected to Server
+	
+	params			= Nickname
+	clientId		= Unique client ID
+]]--
+function Server:clientConnect(params, clientId)
+	local id = tostring(clientId)
+	local client = json.decode(params)
+	
+	self.players[id] = {
+		name = client.name
+	}
+	
+	local str = json.encode({
+		scope = "GLOBAL",
+		msg = "has connected.",
+	})
+	self:sendChat(str, clientId)
+end
+
+--[[
 	Send Chat Message
 	
 	params			= Scope, Message, Nickname
@@ -95,7 +117,7 @@ function Server:sendChat(params, clientId)
 	local chat = json.decode(params)
 	local str = json.encode({
 		scope = chat.scope,
-		msg = chat.nickname .. ": " .. chat.msg,
+		msg = self.players[id].name .. ": " .. chat.msg,
 	})
 	local data = string.format("%s %s", "CHAT", str)
 	
@@ -117,25 +139,30 @@ function Server:newGame(params, clientId)
 		count = count + 1
 	end
 	
+	local pass = false
+	
+	if str.pass == "" then
+		str.pass = nil
+	end
+	
+	if str.pass then
+		pass = true
+	end
+	
 	self.games[count] = {
 		state		= "lobby",
 		name		= str.name,
 		pass		= str.pass,
-		host		= id,
-		players		= {
-			{
-				id		= id,
-				name	= id,
-			},
-		},
+		host		= self.players[id].name,
+		players		= {},
 	}
 	
 	self.serverlist[count] = {
 		name	= str.name,
-		host	= id,
+		host	= self.players[id].name,
 		state	= "lobby",
-		players	= 1,
-		pass	= true,
+		players	= 0,
+		pass	= pass,
 	}
 end
 
