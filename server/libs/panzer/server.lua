@@ -47,6 +47,12 @@ end
 function Server:disconnect(clientId)
 	print('Client disconnected: ' .. tostring(clientId))
 	
+	local str = json.encode({
+		scope = "GLOBAL",
+		msg = "has disconnected.",
+	})
+	self:sendChat(str, clientId)
+	
 	self.players[tostring(clientId)] = nil
 end
 
@@ -66,10 +72,12 @@ function Server:recv(data, clientId)
 			self:clientConnect(params, clientId)
 		elseif cmd == "CHAT" then
 			self:sendChat(params, clientId)
-		elseif cmd == "NEWGAME" then
-			self:newGame(params, clientId)
 		elseif cmd == "SERVERLIST" then
 			self:sendServerList(clientId)
+		elseif cmd == "NEWGAME" then
+			self:newGame(params, clientId)
+		elseif cmd == "JOINGAME" then
+			self:joinGame(params, clientId)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -133,12 +141,6 @@ end
 function Server:newGame(params, clientId)
 	local id = tostring(clientId)
 	local str = json.decode(params)
-	local count = 1
-	
-	while self.games[count] do
-		count = count + 1
-	end
-	
 	local pass = false
 	
 	if str.pass == "" then
@@ -149,21 +151,51 @@ function Server:newGame(params, clientId)
 		pass = true
 	end
 	
-	self.games[count] = {
-		state		= "lobby",
-		name		= str.name,
-		pass		= str.pass,
-		host		= self.players[id].name,
-		players		= {},
-	}
+	while true do
+		local r = math.random(999999)
+		
+		if not self.games[r] then
+			self.games[r] = {
+				state		= "lobby",
+				name		= str.name,
+				pass		= str.pass,
+				host		= self.players[id].name,
+				players		= {},
+			}
+			
+			self.serverlist[r] = {
+				name	= str.name,
+				host	= self.players[id].name,
+				state	= "lobby",
+				players	= 0,
+				pass	= pass,
+			}
+			
+			local data = json.encode({id=r})
+			self:joinGame(data, clientId)
+			
+			break
+		end
+	end
+end
+
+--[[
+	Join Game
 	
-	self.serverlist[count] = {
-		name	= str.name,
-		host	= self.players[id].name,
-		state	= "lobby",
-		players	= 0,
-		pass	= pass,
-	}
+	params			= Unique game ID
+	clientId		= Unique client ID
+]]--
+function Server:joinGame(params, clientId)
+	local id = tostring(clientId)
+	local game = json.decode(params)
+	
+	self.players[id].game = game.id
+	self.games[game.id].players[id] = self.players[id]
+	self.serverlist[game.id].players = self.serverlist[game.id].players + 1
+	
+	local str = json.encode(self.games[game.id])
+	local data = string.format("%s %s", "UPDATEGAME", str)
+	self.connection:send(data, clientId)
 end
 
 --[[

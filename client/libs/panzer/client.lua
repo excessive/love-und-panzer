@@ -42,6 +42,8 @@ function Client:recv(data)
 			self:postChat(params)
 		elseif cmd == "SERVERLIST" then
 			self:serverList(params)
+		elseif cmd == "UPDATEGAME" then
+			self:updateGame(params)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -81,4 +83,8 @@ end
 ]]--
 function Client:serverList(params)
 	self.serverlist = json.decode(params)
+end
+
+function Client:updateGame(params)
+	self.updategame = json.decode(params)
 end

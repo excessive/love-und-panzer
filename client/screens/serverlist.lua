@@ -261,7 +261,15 @@ local function update(self, dt)
 			end
 			
 			buttonConnect.click = function()
-				-- join game!
+				local str = json.encode({id=tonumber(game)})
+				local data = string.format("%s %s", "JOINGAME", str)
+				self.client.connection:send(data)
+				
+				self.next.data = {}
+				self.next.data.client = self.client
+				self.next.data.chat = self.chat
+				
+				self.next.screen = "lobby"
 			end
 			
 			self.serverlist:addchild(group, "vertical")

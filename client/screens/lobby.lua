@@ -15,6 +15,15 @@ end
 
 local function update(self, dt)
 	self.client:update(dt)
+	
+	if self.client.updategame then
+		for k,v in pairs(self.client.updategame) do
+			print(k,v)
+		end
+		
+		self.client.updategame = nil
+	end
+	
 	self.gui:update(dt)
 end
 
