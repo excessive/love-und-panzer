@@ -2,15 +2,8 @@ require "libs.screen"
 require "libs.panzer.client"
 
 local function load(self)
-	self.gui = gui()
+	gui.lobby = Gspot()
 	self.client = self.data.client
-	self.chat = self.data.chat
-	
-	for k,v in pairs(self.chat) do
-		if k ~= "scope" then
-			self.gui:add(v)
-		end
-	end
 end
 
 local function update(self, dt)
@@ -24,30 +17,38 @@ local function update(self, dt)
 		self.client.updategame = nil
 	end
 	
-	self.gui:update(dt)
+	gui.chat:update(dt)
+	gui.lobby:update(dt)
 end
 
 local function draw(self)
-	self.gui:draw()
+	gui.chat:draw()
+	gui.lobby:draw()
 end
 
 local function keypressed(self, k, unicode)
-	if self.gui.focus then
-		self.gui:keypress(k, unicode)
+	if gui.chat.focus then
+		gui.chat:keypress(k, unicode)
+
+		if k == 'return' then
+			sendChat()
+		end
 	end
 end
 
 local function mousepressed(self, x, y, button)
-	self.gui:mousepress(x, y, button)
+	gui.chat:mousepress(x, y, button)
+	gui.lobby:mousepress(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	self.gui:mouserelease(x, y, button)
+	gui.chat:mouserelease(x, y, button)
+	gui.lobby:mouserelease(x, y, button)
 end
 
 return function(data)
 	return Screen {
-		name			= "Title",
+		name			= "Lobby",
 		load			= load,
 		update			= update,
 		draw			= draw,

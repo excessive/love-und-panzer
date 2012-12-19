@@ -21,13 +21,12 @@ local function createCollisionMap(map, layer)
 end
 
 local function load(self)
-	self.gui = gui()
+	gui.gameplay = Gspot()
 	self.client = self.data.client
 	self.id = self.data.id
-	self.chat = self.data.chat
 	
 	-- Create GUI Elements
-	self.buttonTest = self.gui:button("Ping", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=self.gui.style.unit})
+	self.buttonTest = gui.gameplay:button("Ping", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=gui.gameplay.style.unit})
 	
 	-- Test Button Properties
 	self.buttonTest.click = function(this)
@@ -133,7 +132,8 @@ local function update(self, dt)
 	self.player:move(move * dt)
 	self.player.sprites[self.player.facing].image:update(dt)
 	
-	self.gui:update(dt)
+	gui.chat:update(dt)
+	gui.gameplay:update(dt)
 end
 
 local function draw(self)
@@ -147,12 +147,17 @@ local function draw(self)
 	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.pop()
 	
-	self.gui:draw()
+	gui.chat:draw()
+	gui.gameplay:draw()
 end
 
 local function keypressed(self, k, unicode)
-	if self.gui.focus then
-		self.gui:keypress(k, unicode)
+	if gui.chat.focus then
+		gui.chat:keypress(k, unicode)
+		
+		if k == 'return' then
+			sendChat()
+		end
 		
 		return
 	end
@@ -163,21 +168,19 @@ local function keypressed(self, k, unicode)
 end
 
 local function keyreleased(self, k, unicode)
-	if k == "escape" then
-		self.next.screen = "title"
-	end
-	
 	if k == "up" or k == "down" then
 		self.player.facing = "idle"
 	end
 end
 
 local function mousepressed(self, x, y, button)
-	self.gui:mousepress(x, y, button)
+	gui.chat:mousepress(x, y, button)
+	gui.gameplay:mousepress(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	self.gui:mouserelease(x, y, button)
+	gui.chat:mouserelease(x, y, button)
+	gui.gameplay:mouserelease(x, y, button)
 end
 
 return function(data)
@@ -190,6 +193,6 @@ return function(data)
 		keyreleased		= keyreleased,
 		mousepressed	= mousepressed,
 		mousereleased	= mousereleased,
-		data		= data
+		data			= data
 	}
 end

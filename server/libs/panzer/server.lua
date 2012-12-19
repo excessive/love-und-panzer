@@ -72,6 +72,8 @@ function Server:recv(data, clientId)
 			self:clientConnect(params, clientId)
 		elseif cmd == "CHAT" then
 			self:sendChat(params, clientId)
+		elseif cmd == "CLIENTLIST" then
+			self:sendClientList(clientId)
 		elseif cmd == "SERVERLIST" then
 			self:sendServerList(clientId)
 		elseif cmd == "NEWGAME" then

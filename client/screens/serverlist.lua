@@ -2,19 +2,10 @@ require "libs.screen"
 require "libs.panzer.client"
 
 local function load(self)
-	self.gui = gui()
+	gui.chat = Gspot()
+	gui.serverlist = Gspot()
 	self.client = self.data.client
 	self.id = self.data.id
-	
-	-- UI Theme
-	self.theme = {
-		padding	= 8,
-		tiny	= 16,
-		small	= 32,
-		medium	= 64,
-		large	= 128,
-		xlarge	= 256,
-	}
 	
 	--[[ Chat UI Elements ]]--
 	
@@ -23,7 +14,7 @@ local function load(self)
 	}
 	
 	-- Chat Group
-	self.chat.group = self.gui:group(nil, {
+	self.chat.group = gui.chat:group(nil, {
 		x = 0,
 		y = windowHeight - 200,
 		w = 400,
@@ -31,65 +22,65 @@ local function load(self)
 	})
 	
 	-- Global Button
-	self.chat.buttonGlobal = self.gui:button("Global", {
+	self.chat.buttonGlobal = gui.chat:button("Global", {
 		x = 0,
 		y = 0,
 		w = 50,
-		h = self.theme.tiny,
+		h = gui.theme.tiny,
 	}, self.chat.group)
 	
 	-- Local Button
-	self.chat.buttonGame = self.gui:button("Game", {
+	self.chat.buttonGame = gui.chat:button("Game", {
 		x = 50,
 		y = 0,
 		w = 50,
-		h = self.theme.tiny,
+		h = gui.theme.tiny,
 	}, self.chat.group)
 	
 	-- Team Button
-	self.chat.buttonTeam = self.gui:button("Team", {
+	self.chat.buttonTeam = gui.chat:button("Team", {
 		x = 100,
 		y = 0,
 		w = 50,
-		h = self.theme.tiny,
+		h = gui.theme.tiny,
 	}, self.chat.group)
 	
 	-- Chat Text
-	self.chat.global = self.gui:scrollgroup(nil, {
+	self.chat.global = gui.chat:scrollgroup(nil, {
 		x = 0,
-		y = self.theme.tiny,
-		w = 400 - self.theme.tiny,
-		h = 200 - self.theme.small,
+		y = gui.theme.tiny,
+		w = 400 - gui.theme.tiny,
+		h = 200 - gui.theme.small,
 	}, self.chat.group, "vertical")
 	
-	self.chat.game = self.gui:scrollgroup(nil, {
+	self.chat.game = gui.chat:scrollgroup(nil, {
 		x = 0,
-		y = self.theme.tiny,
-		w = 400 - self.theme.tiny,
-		h = 200 - self.theme.small,
+		y = gui.theme.tiny,
+		w = 400 - gui.theme.tiny,
+		h = 200 - gui.theme.small,
 	}, self.chat.group, "vertical")
 	
-	self.chat.team = self.gui:scrollgroup(nil, {
+	self.chat.team = gui.chat:scrollgroup(nil, {
 		x = 0,
-		y = self.theme.tiny,
-		w = 400 - self.theme.tiny,
-		h = 200 - self.theme.small,
+		y = gui.theme.tiny,
+		w = 400 - gui.theme.tiny,
+		h = 200 - gui.theme.small,
 	}, self.chat.group, "vertical")
 	
 	-- Chat Input
-	self.chat.input = self.gui:input(nil, {
+	self.chat.input = gui.chat:input(nil, {
 		x = 0,
-		y = self.chat.group.pos.h - self.theme.tiny,
+		y = self.chat.group.pos.h - gui.theme.tiny,
 		w = 350,
-		h = self.theme.tiny,
+		h = gui.theme.tiny,
 	}, self.chat.group)
 	
 	-- Chat Button
-	self.chat.send = self.gui:button("Send", {
+	self.chat.send = gui.chat:button("Send", {
 		x = 350,
-		y = self.chat.group.pos.h - self.theme.tiny,
+		y = self.chat.group.pos.h - gui.theme.tiny,
 		w = 50,
-		h = self.theme.tiny,
+		h = gui.theme.tiny,
 	}, self.chat.group)
 
 	--[[ Chat UI Properties ]]--
@@ -147,7 +138,7 @@ local function load(self)
 	--[[ Server List UI Elements ]]--
 	
 	-- Server Group
-	self.servergroup = self.gui:group(nil, {
+	self.servergroup = gui.serverlist:group(nil, {
 		x = windowWidth - 400,
 		y = 0,
 		w = 400,
@@ -155,49 +146,49 @@ local function load(self)
 	})
 	
 	-- Refresh Button
-	self.serverRefresh = self.gui:button("Refresh", {
+	self.serverRefresh = gui.serverlist:button("Refresh", {
 		x = 0,
 		y = 0,
 		w = 400,
-		h = self.theme.tiny,
+		h = gui.theme.tiny,
 	}, self.servergroup)
 	
 	-- New Game Group
-	self.groupNewGame = self.gui:group(nil, {
+	self.groupNewGame = gui.serverlist:group(nil, {
 		x = 0,
-		y = self.theme.tiny + self.theme.padding,
+		y = gui.theme.tiny + gui.theme.padding,
 		w = 400,
-		h = self.theme.medium,
+		h = gui.theme.medium,
 	}, self.servergroup)
 	
-	self.inputNewGameName = self.gui:input(nil, {
+	self.inputNewGameName = gui.serverlist:input(nil, {
 		x = 0,
 		y = 0,
 		w = 400,
-		h = self.theme.tiny,
+		h = gui.theme.tiny,
 	}, self.groupNewGame)
 	
-	self.inputNewGamePass = self.gui:input(nil, {
+	self.inputNewGamePass = gui.serverlist:input(nil, {
 		x = 0,
-		y = self.theme.tiny + self.theme.padding,
-		w = 400 - self.theme.medium - self.theme.padding,
-		h = self.theme.tiny,
+		y = gui.theme.tiny + gui.theme.padding,
+		w = 400 - gui.theme.medium - gui.theme.padding,
+		h = gui.theme.tiny,
 	}, self.groupNewGame)
 	
-	self.buttonNewGame = self.gui:button("New Game", {
-		x = 400 - self.theme.medium,
-		y = self.theme.tiny + self.theme.padding,
-		w = self.theme.medium,
-		h = self.theme.tiny,
+	self.buttonNewGame = gui.serverlist:button("New Game", {
+		x = 400 - gui.theme.medium,
+		y = gui.theme.tiny + gui.theme.padding,
+		w = gui.theme.medium,
+		h = gui.theme.tiny,
 	}, self.groupNewGame)
 	
 	
 	-- Server List
-	self.serverlist = self.gui:scrollgroup(nil, {
+	self.serverlist = gui.serverlist:scrollgroup(nil, {
 		x = 0,
-		y = self.theme.medium + self.theme.padding,
-		w = 400 - self.theme.tiny,
-		h = windowHeight - self.theme.medium - self.theme.padding,
+		y = gui.theme.medium + gui.theme.padding,
+		w = 400 - gui.theme.tiny,
+		h = windowHeight - gui.theme.medium - gui.theme.padding,
 	}, self.servergroup, "vertical")
 	
 	--[[ Server List UI Properties ]]--
@@ -230,34 +221,34 @@ local function update(self, dt)
 	
 	-- Update Global Chat
 	if self.client.chat.global then
-		self.chat.global:addchild(self.gui:text(self.client.chat.global, {w = self.chat.group.pos.w - self.theme.tiny}), "vertical")
+		self.chat.global:addchild(gui.chat:text(self.client.chat.global, {w = self.chat.group.pos.w - gui.theme.tiny}), "vertical")
 		self.client.chat.global = nil
 	end
 	
 	-- Update Game Chat
 	if self.client.chat.game then
-		self.chat.game:addchild(self.gui:text(self.client.chat.game, {w = self.chat.group.pos.w, h = self.theme.tiny}), "vertical")
+		self.chat.game:addchild(gui.chat:text(self.client.chat.game, {w = self.chat.group.pos.w, h = gui.theme.tiny}), "vertical")
 		self.client.chat.game = nil
 	end
 	
 	-- Update Team Chat
 	if self.client.chat.team then
-		self.chat.team:addchild(self.gui:text(self.client.chat.team, {w = self.chat.group.pos.w, h = self.theme.tiny}), "vertical")
+		self.chat.team:addchild(gui.chat:text(self.client.chat.team, {w = self.chat.group.pos.w, h = gui.theme.tiny}), "vertical")
 		self.client.chat.team = nil
 	end
 	
 	-- Update Server List
 	if self.client.serverlist then
 		for game, properties in pairs(self.client.serverlist) do
-			local group = self.gui:group(nil, {w = self.serverlist.pos.w, h = self.theme.medium})
-			local textName = self.gui:text(properties.name, {w=group.pos.w, h=self.theme.tiny}, group)
-			local textHost = self.gui:text("Hosted by: "..properties.host, {y=self.theme.tiny, w=group.pos.w, h=self.theme.tiny}, group)
-			local textState = self.gui:text(properties.state, {y=self.theme.small, w=group.pos.w/2, h=self.theme.tiny}, group)
-			local textPlayers = self.gui:text(properties.players.."/8", {x=group.pos.w/2, y=self.theme.small, w=group.pos.w/2, h=self.theme.tiny}, group)
-			local buttonConnect = self.gui:button("Connect", {x=group.pos.w-48, y=self.theme.small + self.theme.tiny, w=48, h=self.theme.tiny}, group)
+			local group = gui.serverlist:group(nil, {w = self.serverlist.pos.w, h = gui.theme.medium})
+			local textName = gui.serverlist:text(properties.name, {w=group.pos.w, h=gui.theme.tiny}, group)
+			local textHost = gui.serverlist:text("Hosted by: "..properties.host, {y=gui.theme.tiny, w=group.pos.w, h=gui.theme.tiny}, group)
+			local textState = gui.serverlist:text(properties.state, {y=gui.theme.small, w=group.pos.w/2, h=gui.theme.tiny}, group)
+			local textPlayers = gui.serverlist:text(properties.players.."/8", {x=group.pos.w/2, y=gui.theme.small, w=group.pos.w/2, h=gui.theme.tiny}, group)
+			local buttonConnect = gui.serverlist:button("Connect", {x=group.pos.w-48, y=gui.theme.small + gui.theme.tiny, w=48, h=gui.theme.tiny}, group)
 			
 			if properties.pass then
-				local inputPass = self.gui:input("Password", {y=self.theme.small + self.theme.tiny, w=group.pos.w-self.theme.medium, h=self.theme.tiny}, group)
+				local inputPass = gui.serverlist:input("Password", {y=gui.theme.small + gui.theme.tiny, w=group.pos.w-gui.theme.medium, h=gui.theme.tiny}, group)
 			end
 			
 			buttonConnect.click = function()
@@ -278,16 +269,18 @@ local function update(self, dt)
 		self.client.serverlist = nil
 	end
 	
-	self.gui:update(dt)
+	gui.chat:update(dt)
+	gui.serverlist:update(dt)
 end
 
 local function draw(self)
-	self.gui:draw()
+	gui.chat:draw()
+	gui.serverlist:draw()
 end
 
 local function keypressed(self, k, unicode)
-	if self.gui.focus then
-		self.gui:keypress(k, unicode)
+	if gui.chat.focus then
+		gui.chat:keypress(k, unicode)
 
 		if k == 'return' then
 			sendChat()
@@ -296,16 +289,18 @@ local function keypressed(self, k, unicode)
 end
 
 local function mousepressed(self, x, y, button)
-	self.gui:mousepress(x, y, button)
+	gui.chat:mousepress(x, y, button)
+	gui.serverlist:mousepress(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	self.gui:mouserelease(x, y, button)
+	gui.chat:mouserelease(x, y, button)
+	gui.serverlist:mouserelease(x, y, button)
 end
 
 return function(data)
 	return Screen {
-		name			= "Title",
+		name			= "ServerList",
 		load			= load,
 		update			= update,
 		draw			= draw,

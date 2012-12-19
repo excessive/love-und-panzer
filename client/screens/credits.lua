@@ -1,31 +1,28 @@
 require "libs.screen"
-require "libs.panzer.client"
 
 local function load(self)
-	gui.results = Gspot()
-	self.client = self.data.client
+	gui.credits = Gspot()
 end
 
 local function update(self, dt)
-	self.client:update(dt)
-	gui.results:update(dt)
+	gui.credits:update(dt)
 end
 
 local function draw(self)
-	gui.results:draw()
+	gui.credits:draw()
 end
 
 local function mousepressed(self, x, y, button)
-	gui.results:mousepress(x, y, button)
+	gui.credits:mousepress(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	gui.results:mouserelease(x, y, button)
+	gui.credits:mouserelease(x, y, button)
 end
 
 return function(data)
 	return Screen {
-		name			= "Results",
+		name			= "Credits",
 		load			= load,
 		update			= update,
 		draw			= draw,

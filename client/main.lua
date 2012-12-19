@@ -1,9 +1,20 @@
 require "libs.input"
 require "libs.TEsound"
 require "libs.panzer.settings"
-gui = require "libs.Gspot"
+Gspot = require "libs.Gspot"
 
 function love.load()
+	gui = {
+		theme = {
+			padding	= 8,
+			tiny	= 16,
+			small	= 32,
+			medium	= 64,
+			large	= 128,
+			xlarge	= 256,
+		}
+	}
+	
 	debug = {}
 	
 	-- Scale
@@ -24,9 +35,11 @@ function love.load()
 	screens = {}
 	screens.title		= require "screens.title"
 	screens.options		= require "screens.options"
+	screens.credits		= require "screens.credits"
 	screens.serverlist	= require "screens.serverlist"
 	screens.lobby		= require "screens.lobby"
 	screens.gameplay	= require "screens.gameplay"
+	screens.results		= require "screens.results"
 
 	-- Initialize layers
 	layers = {

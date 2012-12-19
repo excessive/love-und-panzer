@@ -3,84 +3,95 @@ require "libs.panzer.client"
 
 local function load(self)
 	love.graphics.setFont(FONT)
-	self.gui = gui()
-	
-	-- GUI Theme
-	self.theme = {
-		padding	= 8,
-		tiny	= 16,
-		small	= 32,
-		medium	= 64,
-		large	= 128,
-		xlarge	= 256,
-	}
+	gui.title = Gspot()
 	
 	-- Title
 	self.title = love.graphics.newImage("assets/images/title.png")
 	
 	-- Create GUI Elements
-	self.groupTitleMenu = self.gui:group(nil, {
-		x = windowWidth / 2 - self.theme.xlarge / 2,
-		y = 239,
-		w = self.theme.xlarge,
-		h = self.theme.xlarge,
+	self.groupTitleMenu = gui.title:group(nil, {
+		x = windowWidth / 2 - gui.theme.xlarge / 2,
+		y = 203,
+		w = gui.theme.xlarge,
+		h = gui.theme.xlarge + gui.theme.medium,
 	})
 
-	self.textName = self.gui:text("Name:", {
-		x = 0,
-		y = 0,
-		w = self.theme.small,
-		h = self.theme.tiny,
+	self.textName = gui.title:text("Name", {
+		x = (gui.theme.xlarge - gui.theme.large - gui.theme.medium - gui.theme.small) / 2,
+		y = (gui.theme.xlarge - gui.theme.large - gui.theme.medium - gui.theme.small) / 2,
+		w = gui.theme.large + gui.theme.medium + gui.theme.small,
+		h = gui.theme.tiny,
 	}, self.groupTitleMenu)
 	
-	self.inputName = self.gui:input(nil, {
-		x = self.textName.pos.w + self.theme.padding,
-		y = 0,
-		w = self.theme.xlarge - self.theme.small - self.theme.padding,
-		h = self.theme.tiny,
+	self.inputName = gui.title:input(nil, {
+		x = self.textName.pos.x,
+		y = self.textName.pos.h + self.textName.pos.y,
+		w = self.textName.pos.w,
+		h = gui.theme.tiny,
 	}, self.groupTitleMenu)
 	
-	self.textHost = self.gui:text("Host:", {
-		x = 0,
-		y = self.inputName.pos.h + self.theme.padding,
-		w = self.theme.small,
-		h = self.theme.tiny,
+	self.textHost = gui.title:text("Host", {
+		x = self.textName.pos.x,
+		y = self.inputName.pos.h + self.inputName.pos.y + gui.theme.padding,
+		w = self.textName.pos.w,
+		h = gui.theme.tiny,
 	}, self.groupTitleMenu)
 
-	self.inputHost = self.gui:input(nil, {
-		x = self.textHost.pos.w + self.theme.padding,
-		y = self.inputName.pos.h + self.theme.padding,
-		w = self.theme.large + self.theme.small,
-		h = self.theme.tiny,
+	self.inputHost = gui.title:input(nil, {
+		x = self.textName.pos.x,
+		y = self.textHost.pos.h + self.textHost.pos.y,
+		w = self.textName.pos.w,
+		h = gui.theme.tiny,
 	}, self.groupTitleMenu)
 	
-	self.inputPort = self.gui:input(nil, {
-		x = self.textHost.pos.w + self.inputHost.pos.w + self.theme.tiny,
-		y = self.inputName.pos.h + self.theme.padding,
-		w = self.theme.small + self.theme.tiny,
-		h = self.theme.tiny,
+	self.textPort = gui.title:text("Port", {
+		x = self.textName.pos.x,
+		y = self.inputHost.pos.h + self.inputHost.pos.y + gui.theme.padding,
+		w = self.textName.pos.w,
+		h = gui.theme.tiny,
 	}, self.groupTitleMenu)
 	
-	self.buttonConnect = self.gui:button("Connect", {
-		x = 0,
-		y = self.inputHost.pos.y + self.inputHost.pos.h + self.theme.padding,
-		w = self.theme.xlarge,
-		h = self.theme.tiny},
-	self.groupTitleMenu)
+	self.inputPort = gui.title:input(nil, {
+		x = self.textName.pos.x,
+		y = self.textPort.pos.h + self.textPort.pos.y,
+		w = self.textName.pos.w,
+		h = gui.theme.tiny,
+	}, self.groupTitleMenu)
 	
-	self.buttonOptions = self.gui:button("Options", {
-		x = 0,
-		y = self.buttonConnect.pos.y + self.buttonConnect.pos.h + self.theme.padding,
-		w = self.theme.xlarge,
-		h = self.theme.tiny},
-	self.groupTitleMenu)
+	self.buttonConnect = gui.title:button("Connect", {
+		x = self.textName.pos.x,
+		y = self.inputPort.pos.h + self.inputPort.pos.y + gui.theme.padding,
+		w = self.textName.pos.w,
+		h = gui.theme.small,
+	}, self.groupTitleMenu)
 	
-	self.buttonExit = self.gui:button("Exit", {
-		x = 0,
-		y = self.buttonOptions.pos.y + self.buttonOptions.pos.h + self.theme.padding,
-		w = self.theme.xlarge,
-		h = self.theme.tiny},
-	self.groupTitleMenu)
+	self.buttonOptions = gui.title:button("Options", {
+		x = self.textName.pos.x,
+		y = self.buttonConnect.pos.h + self.buttonConnect.pos.y + gui.theme.padding,
+		w = self.textName.pos.w,
+		h = gui.theme.small,
+	}, self.groupTitleMenu)
+	
+	self.buttonCredits = gui.title:button("Credits", {
+		x = self.textName.pos.x,
+		y = self.buttonOptions.pos.h + self.buttonOptions.pos.y + gui.theme.padding,
+		w = self.textName.pos.w,
+		h = gui.theme.small,
+	}, self.groupTitleMenu)
+	
+	self.buttonExit = gui.title:button("Exit", {
+		x = self.textName.pos.x,
+		y = self.buttonCredits.pos.h + self.buttonCredits.pos.y + gui.theme.padding,
+		w = self.textName.pos.w,
+		h = gui.theme.small,
+	}, self.groupTitleMenu)
+	
+	self.textCopyright = gui.title:text("© 2012 HEUHAEUAEHAUEHAUHUE Productions", {
+		x = (windowWidth - gui.theme.xlarge) / 2,
+		y = windowHeight - gui.theme.small,
+		w = gui.theme.xlarge,
+		h = gui.theme.tiny,
+	})
 	
 	-- Network Group Properties
 	--self.groupNetwork.style.bg = {0,0,0,0}
@@ -140,6 +151,11 @@ local function load(self)
 		self.next.screen = "options"
 	end
 	
+	-- Credits Button Properties
+	self.buttonCredits.click = function(this)
+		self.next.screen = "credits"
+	end
+	
 	-- Exit Button Properties
 	self.buttonExit.click = function(this)
 		love.event.quit()
@@ -147,7 +163,7 @@ local function load(self)
 end
 
 local function update(self, dt)
-	self.gui:update(dt)
+	gui.title:update(dt)
 	
 	if self.client then
 		self.client:update(dt)
@@ -155,22 +171,22 @@ local function update(self, dt)
 end
 
 local function draw(self)
-	love.graphics.draw(self.title, windowWidth/2 - 303/2, 50)
-	self.gui:draw()
+	love.graphics.draw(self.title, windowWidth/2 - 303/2, gui.theme.small)
+	gui.title:draw()
 end
 
 local function keypressed(self, k, unicode)
-	if self.gui.focus then
-		self.gui:keypress(k, unicode)
+	if gui.title.focus then
+		gui.title:keypress(k, unicode)
 	end
 end
 
 local function mousepressed(self, x, y, button)
-	self.gui:mousepress(x, y, button)
+	gui.title:mousepress(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	self.gui:mouserelease(x, y, button)
+	gui.title:mouserelease(x, y, button)
 end
 
 return function(data)
