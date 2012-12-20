@@ -1,6 +1,5 @@
 require "libs.screen"
 require "libs.panzer.tank"
-require "libs.panzer.client"
 
 local function createCollisionMap(map, layer)
 	local w, h = map.width-1, map.height-1
@@ -22,7 +21,6 @@ end
 
 local function load(self)
 	gui.gameplay = Gspot()
-	self.client = self.data.client
 	self.id = self.data.id
 	
 	-- Create GUI Elements
@@ -30,7 +28,7 @@ local function load(self)
 	
 	-- Test Button Properties
 	self.buttonTest.click = function(this)
-		self.client:send("Test")
+		client:send("Test")
 	end
 	
 	-- Input
@@ -71,24 +69,7 @@ local function update(self, dt)
 	local data = ""
 	
 	-- Receive Data
-	self.client.connection:update(dt)
-	
-	if self.client.chat.global then
-		self.chat.global = self.chat.global .. "\n" .. self.client.chat.global
-		self.client.chat.global = nil
-	end
-	
-	if self.client.chat.team then
-		self.chat.team = self.chat.team .. "\n" .. self.client.chat.team
-		self.client.chat.team = nil
-	end
-	
-	if self.client.chat.team then
-		self.chat.team = self.chat.team .. "\n" .. self.client.chat.team
-		self.client.chat.team = nil
-	end
-	
-	self.chat.text.label = self.chat[self.chat.scope]
+	client:update(dt)
 	
 	-- Ticks
 	self.time = self.time + dt
@@ -105,24 +86,24 @@ local function update(self, dt)
 		if self.keystate.left then
 			turn = -1
 			data = string.format("%s %f", 'turn', turn)
-			self.client.connection:send(data)
+			client:send(data)
 		end
 		
 		if self.keystate.right then
 			turn = 1
 			data = string.format("%s %f", 'turn', turn)
-			self.client.connection:send(data)
+			client:send(data)
 		end
 		
 		if self.keystate.up then
 			move = 1
 			data = string.format("%s %f", 'move', move)
-			self.client.connection:send(data)
+			client:send(data)
 		end
 		if self.keystate.down then
 			move = -1
 			data = string.format("%s %f", 'move', move)
-			self.client.connection:send(data)
+			client:send(data)
 		end
 	end
 

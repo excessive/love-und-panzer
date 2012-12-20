@@ -60,6 +60,13 @@ function Client:update(dt)
 end
 
 --[[
+	Send Data to Server
+]]--
+function Client:send(data)
+	self.connection:send(data)
+end
+
+--[[
 	Post Chat Message
 	
 	params			= Scope, Message

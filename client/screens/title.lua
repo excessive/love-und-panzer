@@ -1,5 +1,4 @@
 require "libs.screen"
-require "libs.panzer.client"
 
 local function load(self)
 	love.graphics.setFont(FONT)
@@ -131,18 +130,15 @@ local function load(self)
 	
 	-- Connect Button Properties
 	self.buttonConnect.click = function(this)
-		self.client = Client()
-		self.client:connect(self.inputHost.value, self.inputPort.value)
+		client = Client()
+		client:connect(self.inputHost.value, self.inputPort.value)
 		
-		if self.client.connection.connected then
+		if client.connection.connected then
 			self.next.screen = "serverlist"
-			self.next.data = {
-				client = self.client
-			}
 			_G.settings.name = self.inputName.value
 			
 			local data = string.format("%s %s", "CONNECT", json.encode({name = _G.settings.name}))
-			self.client.connection:send(data)
+			client:send(data)
 		end
 	end
 	
@@ -165,8 +161,8 @@ end
 local function update(self, dt)
 	gui.title:update(dt)
 	
-	if self.client then
-		self.client:update(dt)
+	if client then
+		client:update(dt)
 	end
 end
 

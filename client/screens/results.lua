@@ -1,13 +1,11 @@
 require "libs.screen"
-require "libs.panzer.client"
 
 local function load(self)
 	gui.results = Gspot()
-	self.client = self.data.client
 end
 
 local function update(self, dt)
-	self.client:update(dt)
+	client:update(dt)
 	gui.results:update(dt)
 end
 

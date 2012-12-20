@@ -1,20 +1,18 @@
 require "libs.screen"
-require "libs.panzer.client"
 
 local function load(self)
 	gui.lobby = Gspot()
-	self.client = self.data.client
 end
 
 local function update(self, dt)
-	self.client:update(dt)
+	client:update(dt)
 	
-	if self.client.updategame then
-		for k,v in pairs(self.client.updategame) do
+	if client.updategame then
+		for k,v in pairs(client.updategame) do
 			print(k,v)
 		end
 		
-		self.client.updategame = nil
+		client.updategame = nil
 	end
 	
 	gui.chat:update(dt)

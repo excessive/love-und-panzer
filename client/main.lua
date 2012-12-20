@@ -1,6 +1,7 @@
 require "libs.input"
 require "libs.TEsound"
 require "libs.panzer.settings"
+require "libs.panzer.client"
 Gspot = require "libs.Gspot"
 
 function love.load()

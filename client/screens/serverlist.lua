@@ -1,11 +1,8 @@
 require "libs.screen"
-require "libs.panzer.client"
 
 local function load(self)
 	gui.chat = Gspot()
 	gui.serverlist = Gspot()
-	self.client = self.data.client
-	self.id = self.data.id
 	
 	--[[ Chat UI Elements ]]--
 	
@@ -130,7 +127,7 @@ local function load(self)
 			})
 			local data = string.format("%s %s", "CHAT", str)
 			
-			self.client.connection:send(data)
+			client:send(data)
 			self.chat.input.value = ""
 		end
 	end
@@ -196,7 +193,7 @@ local function load(self)
 	-- Refresh Server List
 	self.serverRefresh.click = function(this)
 		local data = string.format("%s %s", "SERVERLIST", "")
-		self.client.connection:send(data)
+		client:send(data)
 	end
 	
 	self.buttonNewGame.click = function(this)
@@ -206,40 +203,37 @@ local function load(self)
 		})
 		
 		local data = string.format("%s %s", "NEWGAME", str)
-		self.client.connection:send(data)
+		client:send(data)
 		
 		self.next.data = {}
-		self.next.data.client = self.client
-		self.next.data.chat = self.chat
-		
 		self.next.screen = "lobby"
 	end
 end
 
 local function update(self, dt)
-	self.client:update(dt)
+	client:update(dt)
 	
 	-- Update Global Chat
-	if self.client.chat.global then
-		self.chat.global:addchild(gui.chat:text(self.client.chat.global, {w = self.chat.group.pos.w - gui.theme.tiny}), "vertical")
-		self.client.chat.global = nil
+	if client.chat.global then
+		self.chat.global:addchild(gui.chat:text(client.chat.global, {w = self.chat.group.pos.w - gui.theme.tiny}), "vertical")
+		client.chat.global = nil
 	end
 	
 	-- Update Game Chat
-	if self.client.chat.game then
-		self.chat.game:addchild(gui.chat:text(self.client.chat.game, {w = self.chat.group.pos.w, h = gui.theme.tiny}), "vertical")
-		self.client.chat.game = nil
+	if client.chat.game then
+		self.chat.game:addchild(gui.chat:text(client.chat.game, {w = self.chat.group.pos.w, h = gui.theme.tiny}), "vertical")
+		client.chat.game = nil
 	end
 	
 	-- Update Team Chat
-	if self.client.chat.team then
-		self.chat.team:addchild(gui.chat:text(self.client.chat.team, {w = self.chat.group.pos.w, h = gui.theme.tiny}), "vertical")
-		self.client.chat.team = nil
+	if client.chat.team then
+		self.chat.team:addchild(gui.chat:text(client.chat.team, {w = self.chat.group.pos.w, h = gui.theme.tiny}), "vertical")
+		client.chat.team = nil
 	end
 	
 	-- Update Server List
-	if self.client.serverlist then
-		for game, properties in pairs(self.client.serverlist) do
+	if client.serverlist then
+		for game, properties in pairs(client.serverlist) do
 			local group = gui.serverlist:group(nil, {w = self.serverlist.pos.w, h = gui.theme.medium})
 			local textName = gui.serverlist:text(properties.name, {w=group.pos.w, h=gui.theme.tiny}, group)
 			local textHost = gui.serverlist:text("Hosted by: "..properties.host, {y=gui.theme.tiny, w=group.pos.w, h=gui.theme.tiny}, group)
@@ -254,19 +248,16 @@ local function update(self, dt)
 			buttonConnect.click = function()
 				local str = json.encode({id=tonumber(game)})
 				local data = string.format("%s %s", "JOINGAME", str)
-				self.client.connection:send(data)
+				client:send(data)
 				
 				self.next.data = {}
-				self.next.data.client = self.client
-				self.next.data.chat = self.chat
-				
 				self.next.screen = "lobby"
 			end
 			
 			self.serverlist:addchild(group, "vertical")
 		end
 		
-		self.client.serverlist = nil
+		client.serverlist = nil
 	end
 	
 	gui.chat:update(dt)
