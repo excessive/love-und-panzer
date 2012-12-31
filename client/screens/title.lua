@@ -1,188 +1,130 @@
 require "libs.screen"
+require "libs.loveframes"
 
 local function load(self)
-	love.graphics.setFont(FONT)
-	gui.title = Gspot()
-	
-	-- Title
+	-- Title Image
 	self.title = love.graphics.newImage("assets/images/title.png")
 	
-	-- Create GUI Elements
-	self.groupTitleMenu = gui.title:group(nil, {
-		x = windowWidth / 2 - gui.theme.xlarge / 2,
-		y = 203,
-		w = gui.theme.xlarge,
-		h = gui.theme.xlarge + gui.theme.medium,
-	})
-
-	self.textName = gui.title:text("Name", {
-		x = (gui.theme.xlarge - gui.theme.large - gui.theme.medium - gui.theme.small) / 2,
-		y = (gui.theme.xlarge - gui.theme.large - gui.theme.medium - gui.theme.small) / 2,
-		w = gui.theme.large + gui.theme.medium + gui.theme.small,
-		h = gui.theme.tiny,
-	}, self.groupTitleMenu)
+	-- UI Element Properties
+	local groupTitleMenu = loveframes.Create("panel")
+	groupTitleMenu:SetSize(256, 320)
+	groupTitleMenu:CenterX()
+	groupTitleMenu:SetY(203)
 	
-	self.inputName = gui.title:input(nil, {
-		x = self.textName.pos.x,
-		y = self.textName.pos.h + self.textName.pos.y,
-		w = self.textName.pos.w,
-		h = gui.theme.tiny,
-	}, self.groupTitleMenu)
+	local textName = loveframes.Create("text", groupTitleMenu)
+	textName:SetSize(216, 14)
+	textName:CenterX()
+	textName:SetY(20)
+	textName:SetText("Name:")
 	
-	self.textHost = gui.title:text("Host", {
-		x = self.textName.pos.x,
-		y = self.inputName.pos.h + self.inputName.pos.y + gui.theme.padding,
-		w = self.textName.pos.w,
-		h = gui.theme.tiny,
-	}, self.groupTitleMenu)
-
-	self.inputHost = gui.title:input(nil, {
-		x = self.textName.pos.x,
-		y = self.textHost.pos.h + self.textHost.pos.y,
-		w = self.textName.pos.w,
-		h = gui.theme.tiny,
-	}, self.groupTitleMenu)
+	local inputName = loveframes.Create("textinput", groupTitleMenu)
+	inputName:SetSize(216, 20)
+	inputName:CenterX()
+	inputName:SetY(34)
 	
-	self.textPort = gui.title:text("Port", {
-		x = self.textName.pos.x,
-		y = self.inputHost.pos.h + self.inputHost.pos.y + gui.theme.padding,
-		w = self.textName.pos.w,
-		h = gui.theme.tiny,
-	}, self.groupTitleMenu)
+	local textHost = loveframes.Create("text", groupTitleMenu)
+	textHost:SetSize(216, 14)
+	textHost:CenterX()
+	textHost:SetY(64)
+	textHost:SetText("Host:")
 	
-	self.inputPort = gui.title:input(nil, {
-		x = self.textName.pos.x,
-		y = self.textPort.pos.h + self.textPort.pos.y,
-		w = self.textName.pos.w,
-		h = gui.theme.tiny,
-	}, self.groupTitleMenu)
+	local inputHost = loveframes.Create("textinput", groupTitleMenu)
+	inputHost:SetSize(216, 20)
+	inputHost:CenterX()
+	inputHost:SetY(78)
 	
-	self.buttonConnect = gui.title:button("Connect", {
-		x = self.textName.pos.x,
-		y = self.inputPort.pos.h + self.inputPort.pos.y + gui.theme.padding,
-		w = self.textName.pos.w,
-		h = gui.theme.small,
-	}, self.groupTitleMenu)
+	local textPort = loveframes.Create("text", groupTitleMenu)
+	textPort:SetSize(216, 14)
+	textPort:CenterX()
+	textPort:SetY(108)
+	textPort:SetText("Port:")
 	
-	self.buttonOptions = gui.title:button("Options", {
-		x = self.textName.pos.x,
-		y = self.buttonConnect.pos.h + self.buttonConnect.pos.y + gui.theme.padding,
-		w = self.textName.pos.w,
-		h = gui.theme.small,
-	}, self.groupTitleMenu)
+	local inputPort = loveframes.Create("textinput", groupTitleMenu)
+	inputPort:SetSize(216, 20)
+	inputPort:CenterX()
+	inputPort:SetY(122)
 	
-	self.buttonCredits = gui.title:button("Credits", {
-		x = self.textName.pos.x,
-		y = self.buttonOptions.pos.h + self.buttonOptions.pos.y + gui.theme.padding,
-		w = self.textName.pos.w,
-		h = gui.theme.small,
-	}, self.groupTitleMenu)
-	
-	self.buttonExit = gui.title:button("Exit", {
-		x = self.textName.pos.x,
-		y = self.buttonCredits.pos.h + self.buttonCredits.pos.y + gui.theme.padding,
-		w = self.textName.pos.w,
-		h = gui.theme.small,
-	}, self.groupTitleMenu)
-	
-	self.textCopyright = gui.title:text("© 2012 HEUHAEUAEHAUEHAUHUE Productions", {
-		x = (windowWidth - gui.theme.xlarge) / 2,
-		y = windowHeight - gui.theme.small,
-		w = gui.theme.xlarge,
-		h = gui.theme.tiny,
-	})
-	
-	-- Network Group Properties
-	--self.groupNetwork.style.bg = {0,0,0,0}
-	
-	-- Host Input Properties
-	self.inputName.keydelay = KEY_DELAY
-	self.inputName.keyrepeat = KEY_REPEAT
-	self.inputName.value = _G.settings.name
-	self.inputName.next = self.inputHost
-	
-	self.inputName.click = function(this)
-		if this.value == "Username" then this.value = "" end
-		this:focus()
-	end
-	
-	-- Host Input Properties
-	self.inputHost.keydelay = KEY_DELAY
-	self.inputHost.keyrepeat = KEY_REPEAT
-	self.inputHost.value = _G.settings.host
-	self.inputHost.next = self.inputPort
-	
-	self.inputHost.click = function(this)
-		if this.value == "Host" then this.value = "" end
-		this:focus()
-	end
-	
-	-- Port Input Properties
-	self.inputPort.keydelay = KEY_DELAY
-	self.inputPort.keyrepeat = KEY_REPEAT
-	self.inputPort.value = _G.settings.port
-	self.inputPort.next = self.buttonConnect
-	
-	self.inputPort.click = function(this)
-		if this.value == "Port" then this.value = "" end
-		this:focus()
-	end
-	
-	-- Connect Button Properties
-	self.buttonConnect.click = function(this)
+	local buttonConnect = loveframes.Create("button", groupTitleMenu)
+	buttonConnect:SetSize(216, 20)
+	buttonConnect:CenterX()
+	buttonConnect:SetY(152)
+	buttonConnect:SetText("Connect")
+	buttonConnect.OnClick = function(this)
 		client = Client()
-		client:connect(self.inputHost.value, self.inputPort.value)
+		client:connect(inputHost:GetText(), inputPort:GetText())
 		
 		if client.connection.connected then
 			self.next.screen = "serverlist"
-			_G.settings.name = self.inputName.value
+			_G.settings.name = inputName:GetText()
 			
 			local data = string.format("%s %s", "CONNECT", json.encode({name = _G.settings.name}))
 			client:send(data)
 		end
 	end
 	
-	-- Options Button Properties
-	self.buttonOptions.click = function(this)
+	local buttonOptions = loveframes.Create("button", groupTitleMenu)
+	buttonOptions:SetSize(216, 20)
+	buttonOptions:CenterX()
+	buttonOptions:SetY(182)
+	buttonOptions:SetText("Options")
+	buttonOptions.OnClick = function(this)
 		self.next.screen = "options"
 	end
 	
-	-- Credits Button Properties
-	self.buttonCredits.click = function(this)
+	local buttonCredits = loveframes.Create("button", groupTitleMenu)
+	buttonCredits:SetSize(216, 20)
+	buttonCredits:CenterX()
+	buttonCredits:SetY(212)
+	buttonCredits:SetText("Credits")
+	buttonCredits.OnClick = function(this)
 		self.next.screen = "credits"
 	end
 	
-	-- Exit Button Properties
-	self.buttonExit.click = function(this)
+	local buttonExit = loveframes.Create("button", groupTitleMenu)
+	buttonExit:SetSize(216, 20)
+	buttonExit:CenterX()
+	buttonExit:SetY(242)
+	buttonExit:SetText("Exit")
+	buttonExit.OnClick = function(this)
 		love.event.quit()
 	end
+	
+	local textCopyright = loveframes.Create("text")
+	textCopyright:SetSize(256, 14)
+	textCopyright:CenterX()
+	textCopyright:SetY(564)
+	textCopyright:SetText({{255,255,255,255}, "© 2012 HEUHAEUAEHUE Productions"})
+	
+	-- Debug
+	inputName:SetText("Karai")
+	inputHost:SetText("k17.me")
+	inputPort:SetText("8088")
 end
 
 local function update(self, dt)
-	gui.title:update(dt)
-	
-	if client then
-		client:update(dt)
-	end
+	if client then client:update(dt) end
+	loveframes.update(dt)
 end
 
 local function draw(self)
 	love.graphics.draw(self.title, windowWidth/2 - 303/2, gui.theme.small)
-	gui.title:draw()
+	loveframes.draw()
 end
 
 local function keypressed(self, k, unicode)
-	if gui.title.focus then
-		gui.title:keypress(k, unicode)
-	end
+	loveframes.keypressed(k, unicode)
+end
+
+local function keyreleased(self, k, unicode)
+	loveframes.keyreleased(k, unicode)
 end
 
 local function mousepressed(self, x, y, button)
-	gui.title:mousepress(x, y, button)
+	loveframes.mousepressed(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	gui.title:mouserelease(x, y, button)
+	loveframes.mousereleased(x, y, button)
 end
 
 return function(data)
@@ -192,6 +134,7 @@ return function(data)
 		update			= update,
 		draw			= draw,
 		keypressed		= keypressed,
+		keyreleased		= keyreleased,
 		mousepressed	= mousepressed,
 		mousereleased	= mousereleased,
 		data			= data

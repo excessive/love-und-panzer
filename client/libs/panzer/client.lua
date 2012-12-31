@@ -61,6 +61,8 @@ end
 
 --[[
 	Send Data to Server
+	
+	data			= Data to send
 ]]--
 function Client:send(data)
 	self.connection:send(data)
