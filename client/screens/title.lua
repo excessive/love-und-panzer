@@ -1,104 +1,104 @@
 require "libs.screen"
-require "libs.loveframes"
 
 local function load(self)
 	-- Title Image
 	self.title = love.graphics.newImage("assets/images/title.png")
+	gui.title = {}
 	
 	-- UI Element Properties
-	local groupTitleMenu = loveframes.Create("panel")
-	groupTitleMenu:SetSize(256, 320)
-	groupTitleMenu:CenterX()
-	groupTitleMenu:SetY(203)
+	gui.title.groupTitleMenu = loveframes.Create("panel")
+	gui.title.groupTitleMenu:SetSize(256, 320)
+	gui.title.groupTitleMenu:CenterX()
+	gui.title.groupTitleMenu:SetY(203)
 	
-	local textName = loveframes.Create("text", groupTitleMenu)
-	textName:SetSize(216, 14)
-	textName:CenterX()
-	textName:SetY(20)
-	textName:SetText("Name:")
+	gui.title.textName = loveframes.Create("text", gui.title.groupTitleMenu)
+	gui.title.textName:SetSize(216, 14)
+	gui.title.textName:CenterX()
+	gui.title.textName:SetY(20)
+	gui.title.textName:SetText("Name:")
 	
-	local inputName = loveframes.Create("textinput", groupTitleMenu)
-	inputName:SetSize(216, 20)
-	inputName:CenterX()
-	inputName:SetY(34)
+	gui.title.inputName = loveframes.Create("textinput", gui.title.groupTitleMenu)
+	gui.title.inputName:SetSize(216, 20)
+	gui.title.inputName:CenterX()
+	gui.title.inputName:SetY(34)
 	
-	local textHost = loveframes.Create("text", groupTitleMenu)
-	textHost:SetSize(216, 14)
-	textHost:CenterX()
-	textHost:SetY(64)
-	textHost:SetText("Host:")
+	gui.title.textHost = loveframes.Create("text", gui.title.groupTitleMenu)
+	gui.title.textHost:SetSize(216, 14)
+	gui.title.textHost:CenterX()
+	gui.title.textHost:SetY(64)
+	gui.title.textHost:SetText("Host:")
 	
-	local inputHost = loveframes.Create("textinput", groupTitleMenu)
-	inputHost:SetSize(216, 20)
-	inputHost:CenterX()
-	inputHost:SetY(78)
+	gui.title.inputHost = loveframes.Create("textinput", gui.title.groupTitleMenu)
+	gui.title.inputHost:SetSize(216, 20)
+	gui.title.inputHost:CenterX()
+	gui.title.inputHost:SetY(78)
 	
-	local textPort = loveframes.Create("text", groupTitleMenu)
-	textPort:SetSize(216, 14)
-	textPort:CenterX()
-	textPort:SetY(108)
-	textPort:SetText("Port:")
+	gui.title.textPort = loveframes.Create("text", gui.title.groupTitleMenu)
+	gui.title.textPort:SetSize(216, 14)
+	gui.title.textPort:CenterX()
+	gui.title.textPort:SetY(108)
+	gui.title.textPort:SetText("Port:")
 	
-	local inputPort = loveframes.Create("textinput", groupTitleMenu)
-	inputPort:SetSize(216, 20)
-	inputPort:CenterX()
-	inputPort:SetY(122)
+	gui.title.inputPort = loveframes.Create("textinput", gui.title.groupTitleMenu)
+	gui.title.inputPort:SetSize(216, 20)
+	gui.title.inputPort:CenterX()
+	gui.title.inputPort:SetY(122)
 	
-	local buttonConnect = loveframes.Create("button", groupTitleMenu)
-	buttonConnect:SetSize(216, 20)
-	buttonConnect:CenterX()
-	buttonConnect:SetY(152)
-	buttonConnect:SetText("Connect")
-	buttonConnect.OnClick = function(this)
+	gui.title.buttonConnect = loveframes.Create("button", gui.title.groupTitleMenu)
+	gui.title.buttonConnect:SetSize(216, 20)
+	gui.title.buttonConnect:CenterX()
+	gui.title.buttonConnect:SetY(152)
+	gui.title.buttonConnect:SetText("Connect")
+	gui.title.buttonConnect.OnClick = function(this)
 		client = Client()
-		client:connect(inputHost:GetText(), inputPort:GetText())
+		client:connect(gui.title.inputHost:GetText(), gui.title.inputPort:GetText())
 		
 		if client.connection.connected then
 			self.next.screen = "serverlist"
-			_G.settings.name = inputName:GetText()
+			_G.settings.name = gui.title.inputName:GetText()
 			
 			local data = string.format("%s %s", "CONNECT", json.encode({name = _G.settings.name}))
 			client:send(data)
 		end
 	end
 	
-	local buttonOptions = loveframes.Create("button", groupTitleMenu)
-	buttonOptions:SetSize(216, 20)
-	buttonOptions:CenterX()
-	buttonOptions:SetY(182)
-	buttonOptions:SetText("Options")
-	buttonOptions.OnClick = function(this)
+	gui.title.buttonOptions = loveframes.Create("button", gui.title.groupTitleMenu)
+	gui.title.buttonOptions:SetSize(216, 20)
+	gui.title.buttonOptions:CenterX()
+	gui.title.buttonOptions:SetY(182)
+	gui.title.buttonOptions:SetText("Options")
+	gui.title.buttonOptions.OnClick = function(this)
 		self.next.screen = "options"
 	end
 	
-	local buttonCredits = loveframes.Create("button", groupTitleMenu)
-	buttonCredits:SetSize(216, 20)
-	buttonCredits:CenterX()
-	buttonCredits:SetY(212)
-	buttonCredits:SetText("Credits")
-	buttonCredits.OnClick = function(this)
+	gui.title.buttonCredits = loveframes.Create("button", gui.title.groupTitleMenu)
+	gui.title.buttonCredits:SetSize(216, 20)
+	gui.title.buttonCredits:CenterX()
+	gui.title.buttonCredits:SetY(212)
+	gui.title.buttonCredits:SetText("Credits")
+	gui.title.buttonCredits.OnClick = function(this)
 		self.next.screen = "credits"
 	end
 	
-	local buttonExit = loveframes.Create("button", groupTitleMenu)
-	buttonExit:SetSize(216, 20)
-	buttonExit:CenterX()
-	buttonExit:SetY(242)
-	buttonExit:SetText("Exit")
-	buttonExit.OnClick = function(this)
+	gui.title.buttonExit = loveframes.Create("button", gui.title.groupTitleMenu)
+	gui.title.buttonExit:SetSize(216, 20)
+	gui.title.buttonExit:CenterX()
+	gui.title.buttonExit:SetY(242)
+	gui.title.buttonExit:SetText("Exit")
+	gui.title.buttonExit.OnClick = function(this)
 		love.event.quit()
 	end
 	
-	local textCopyright = loveframes.Create("text")
-	textCopyright:SetSize(256, 14)
-	textCopyright:CenterX()
-	textCopyright:SetY(564)
-	textCopyright:SetText({{255,255,255,255}, "© 2012 HEUHAEUAEHUE Productions"})
+	gui.title.textCopyright = loveframes.Create("text")
+	gui.title.textCopyright:SetSize(256, 14)
+	gui.title.textCopyright:CenterX()
+	gui.title.textCopyright:SetY(564)
+	gui.title.textCopyright:SetText({{255,255,255,255}, "© 2012 HEUHAEUAEHUE Productions"})
 	
 	-- Debug
-	inputName:SetText("Karai")
-	inputHost:SetText("k17.me")
-	inputPort:SetText("8088")
+	gui.title.inputName:SetText("Karai")
+	gui.title.inputHost:SetText("k17.me")
+	gui.title.inputPort:SetText("8088")
 end
 
 local function update(self, dt)
@@ -107,7 +107,7 @@ local function update(self, dt)
 end
 
 local function draw(self)
-	love.graphics.draw(self.title, windowWidth/2 - 303/2, gui.theme.small)
+	love.graphics.draw(self.title, windowWidth/2 - 303/2, 32)
 	loveframes.draw()
 end
 

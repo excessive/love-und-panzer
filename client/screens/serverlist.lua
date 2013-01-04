@@ -1,139 +1,69 @@
 require "libs.screen"
 
 local function load(self)
-	gui.chat = Gspot()
-	gui.serverlist = Gspot()
+	gui.chat = {scope="global"}
+	gui.serverlist = {}
 	
 	--[[ Chat UI Elements ]]--
 	
-	self.chat = {
-		scope = "global"
-	}
-	
 	-- Chat Group
-	self.chat.group = gui.chat:group(nil, {
-		x = 0,
-		y = windowHeight - 200,
-		w = 400,
-		h = 200,
-	})
-	
-	-- Global Button
-	self.chat.buttonGlobal = gui.chat:button("Global", {
-		x = 0,
-		y = 0,
-		w = 50,
-		h = gui.theme.tiny,
-	}, self.chat.group)
-	
-	-- Local Button
-	self.chat.buttonGame = gui.chat:button("Game", {
-		x = 50,
-		y = 0,
-		w = 50,
-		h = gui.theme.tiny,
-	}, self.chat.group)
-	
-	-- Team Button
-	self.chat.buttonTeam = gui.chat:button("Team", {
-		x = 100,
-		y = 0,
-		w = 50,
-		h = gui.theme.tiny,
-	}, self.chat.group)
+	gui.chat.group = loveframes.Create("panel")
+	gui.chat.group:SetSize(400, 200)
+	gui.chat.group:SetPos(0, windowHeight - 200)
 	
 	-- Chat Text
-	self.chat.global = gui.chat:scrollgroup(nil, {
-		x = 0,
-		y = gui.theme.tiny,
-		w = 400 - gui.theme.tiny,
-		h = 200 - gui.theme.small,
-	}, self.chat.group, "vertical")
+	gui.chat.global = loveframes.Create("list")
+	gui.chat.global:SetSize(400, 160)
+	gui.chat.global:SetAutoScroll(true)
 	
-	self.chat.game = gui.chat:scrollgroup(nil, {
-		x = 0,
-		y = gui.theme.tiny,
-		w = 400 - gui.theme.tiny,
-		h = 200 - gui.theme.small,
-	}, self.chat.group, "vertical")
+	gui.chat.game = loveframes.Create("list")
+	gui.chat.game:SetSize(400, 160)
+	gui.chat.game:SetAutoScroll(true)
 	
-	self.chat.team = gui.chat:scrollgroup(nil, {
-		x = 0,
-		y = gui.theme.tiny,
-		w = 400 - gui.theme.tiny,
-		h = 200 - gui.theme.small,
-	}, self.chat.group, "vertical")
+	gui.chat.team = loveframes.Create("list")
+	gui.chat.team:SetSize(400, 160)
+	gui.chat.team:SetAutoScroll(true)
+	
+	-- Chat Tabs
+	gui.chat.tabs = loveframes.Create("tabs", gui.chat.group)
+	gui.chat.tabs:SetSize(400, 180)
+	gui.chat.tabs:SetPos(0, 0)
+	gui.chat.tabs:AddTab("Global", gui.chat.global)
+	gui.chat.tabs:AddTab("Local", gui.chat.game)
+	gui.chat.tabs:AddTab("Team", gui.chat.team)
 	
 	-- Chat Input
-	self.chat.input = gui.chat:input(nil, {
-		x = 0,
-		y = self.chat.group.pos.h - gui.theme.tiny,
-		w = 350,
-		h = gui.theme.tiny,
-	}, self.chat.group)
+	gui.chat.input = loveframes.Create("textinput", gui.chat.group)
+	gui.chat.input:SetSize(350, 20)
+	gui.chat.input:SetPos(0, 180)
 	
 	-- Chat Button
-	self.chat.send = gui.chat:button("Send", {
-		x = 350,
-		y = self.chat.group.pos.h - gui.theme.tiny,
-		w = 50,
-		h = gui.theme.tiny,
-	}, self.chat.group)
-
-	--[[ Chat UI Properties ]]--
-	self.chat.global:show()
-	self.chat.game:hide()
-	self.chat.team:hide()
-	
-	-- Chat Input Properties
-	self.chat.input.keydelay = KEY_DELAY
-	self.chat.input.keyrepeat = KEY_REPEAT
-	
-	-- Global Button Properties
-	self.chat.buttonGlobal.click = function(this)
-		self.chat.scope = "global"
-		self.chat.global:show()
-		self.chat.game:hide()
-		self.chat.team:hide()
-	end
-	
-	-- Game Button Properties
-	self.chat.buttonGame.click = function(this)
-		self.chat.scope = "game"
-		self.chat.global:hide()
-		self.chat.game:show()
-		self.chat.team:hide()
-	end
-	
-	-- Team Button Properties
-	self.chat.buttonTeam.click = function(this)
-		self.chat.scope = "team"
-		self.chat.global:hide()
-		self.chat.game:hide()
-		self.chat.team:show()
-	end
+	gui.chat.send = loveframes.Create("button", gui.chat.group)
+	gui.chat.send:SetSize(50, 20)
+	gui.chat.send:SetPos(350, 180)
+	gui.chat.send:SetText("Send")
 	
 	-- Send Button Properties
-	self.chat.send.click = function(this)
+	gui.chat.send.OnClick = function(this)
 		sendChat()
 	end
 
 	-- Send Chat Message
 	function sendChat()
-		if self.chat.input.value and self.chat.input.value ~= "" then
+		if gui.chat.input:GetText() ~= "" then
 			local str = json.encode({
-				scope = string.upper(self.chat.scope),
-				msg = self.chat.input.value,
+				scope = string.upper(gui.chat.scope),
+				msg = gui.chat.input:GetText(),
 			})
 			local data = string.format("%s %s", "CHAT", str)
 			
 			client:send(data)
-			self.chat.input.value = ""
+			gui.chat.input:SetText("")
 		end
 	end
 	
 	--[[ Server List UI Elements ]]--
-	
+	--[[
 	-- Server Group
 	self.servergroup = gui.serverlist:group(nil, {
 		x = windowWidth - 400,
@@ -179,7 +109,6 @@ local function load(self)
 		h = gui.theme.tiny,
 	}, self.groupNewGame)
 	
-	
 	-- Server List
 	self.serverlist = gui.serverlist:scrollgroup(nil, {
 		x = 0,
@@ -187,9 +116,9 @@ local function load(self)
 		w = 400 - gui.theme.tiny,
 		h = windowHeight - gui.theme.medium - gui.theme.padding,
 	}, self.servergroup, "vertical")
-	
+	]]--
 	--[[ Server List UI Properties ]]--
-	
+	--[[
 	-- Refresh Server List
 	self.serverRefresh.click = function(this)
 		local data = string.format("%s %s", "SERVERLIST", "")
@@ -207,7 +136,7 @@ local function load(self)
 		
 		self.next.data = {}
 		self.next.screen = "lobby"
-	end
+	end]]--
 end
 
 local function update(self, dt)
@@ -215,22 +144,31 @@ local function update(self, dt)
 	
 	-- Update Global Chat
 	if client.chat.global then
-		self.chat.global:addchild(gui.chat:text(client.chat.global, {w = self.chat.group.pos.w - gui.theme.tiny}), "vertical")
+		local text = loveframes.Create("text")
+		text:SetMaxWidth(400)
+		text:SetText(client.chat.global)
+		gui.chat.global:AddItem(text)
 		client.chat.global = nil
 	end
 	
 	-- Update Game Chat
 	if client.chat.game then
-		self.chat.game:addchild(gui.chat:text(client.chat.game, {w = self.chat.group.pos.w, h = gui.theme.tiny}), "vertical")
+		local text = loveframes.Create("text")
+		text:SetMaxWidth(400)
+		text:SetText(client.chat.game)
+		gui.chat.game:AddItem(text)
 		client.chat.game = nil
 	end
 	
 	-- Update Team Chat
 	if client.chat.team then
-		self.chat.team:addchild(gui.chat:text(client.chat.team, {w = self.chat.group.pos.w, h = gui.theme.tiny}), "vertical")
+		local text = loveframes.Create("text")
+		text:SetMaxWidth(400)
+		text:SetText(client.chat.team)
+		gui.chat.team:AddItem(text)
 		client.chat.team = nil
 	end
-	
+	--[[
 	-- Update Server List
 	if client.serverlist then
 		for game, properties in pairs(client.serverlist) do
@@ -259,34 +197,28 @@ local function update(self, dt)
 		
 		client.serverlist = nil
 	end
-	
-	gui.chat:update(dt)
-	gui.serverlist:update(dt)
+	]]--
+	loveframes.update(dt)
 end
 
 local function draw(self)
-	gui.chat:draw()
-	gui.serverlist:draw()
+	loveframes.draw()
 end
 
 local function keypressed(self, k, unicode)
-	if gui.chat.focus then
-		gui.chat:keypress(k, unicode)
+	loveframes.keypressed(k, unicode)
+end
 
-		if k == 'return' then
-			sendChat()
-		end
-	end
+local function keyreleased(self, k, unicode)
+	loveframes.keyreleased(k, unicode)
 end
 
 local function mousepressed(self, x, y, button)
-	gui.chat:mousepress(x, y, button)
-	gui.serverlist:mousepress(x, y, button)
+	loveframes.mousepressed(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	gui.chat:mouserelease(x, y, button)
-	gui.serverlist:mouserelease(x, y, button)
+	loveframes.mousereleased(x, y, button)
 end
 
 return function(data)
@@ -296,6 +228,7 @@ return function(data)
 		update			= update,
 		draw			= draw,
 		keypressed		= keypressed,
+		keyreleased		= keyreleased,
 		mousepressed	= mousepressed,
 		mousereleased	= mousereleased,
 		data			= data

@@ -1,7 +1,7 @@
 require "libs.screen"
 
 local function load(self)
-	gui.lobby = Gspot()
+	gui.lobby = {}
 end
 
 local function update(self, dt)
@@ -15,33 +15,27 @@ local function update(self, dt)
 		client.updategame = nil
 	end
 	
-	gui.chat:update(dt)
-	gui.lobby:update(dt)
+	loveframes.update(dt)
 end
 
 local function draw(self)
-	gui.chat:draw()
-	gui.lobby:draw()
+	loveframes.draw()
 end
 
 local function keypressed(self, k, unicode)
-	if gui.chat.focus then
-		gui.chat:keypress(k, unicode)
+	loveframes.keypressed(k, unicode)
+end
 
-		if k == 'return' then
-			sendChat()
-		end
-	end
+local function keyreleased(self, k, unicode)
+	loveframes.keyreleased(k, unicode)
 end
 
 local function mousepressed(self, x, y, button)
-	gui.chat:mousepress(x, y, button)
-	gui.lobby:mousepress(x, y, button)
+	loveframes.mousepressed(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	gui.chat:mouserelease(x, y, button)
-	gui.lobby:mouserelease(x, y, button)
+	loveframes.mousereleased(x, y, button)
 end
 
 return function(data)
@@ -51,6 +45,7 @@ return function(data)
 		update			= update,
 		draw			= draw,
 		keypressed		= keypressed,
+		keyreleased		= keyreleased,
 		mousepressed	= mousepressed,
 		mousereleased	= mousereleased,
 		data			= data

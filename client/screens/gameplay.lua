@@ -20,19 +20,8 @@ local function createCollisionMap(map, layer)
 end
 
 local function load(self)
-	gui.gameplay = Gspot()
+	gui.gameplay = {}
 	self.id = self.data.id
-	
-	-- Create GUI Elements
-	self.buttonTest = gui.gameplay:button("Ping", {x=windowWidth / 2 - 24, y=windowHeight-32, w=48, h=gui.gameplay.style.unit})
-	
-	-- Test Button Properties
-	self.buttonTest.click = function(this)
-		client:send("Test")
-	end
-	
-	-- Input
-	self.input = Input()
 
 	-- Tick
 	self.time = 0
@@ -113,8 +102,7 @@ local function update(self, dt)
 	self.player:move(move * dt)
 	self.player.sprites[self.player.facing].image:update(dt)
 	
-	gui.chat:update(dt)
-	gui.gameplay:update(dt)
+	loveframes.update(dt)
 end
 
 local function draw(self)
@@ -128,40 +116,27 @@ local function draw(self)
 	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.pop()
 	
-	gui.chat:draw()
-	gui.gameplay:draw()
+	loveframes.draw()
 end
 
 local function keypressed(self, k, unicode)
-	if gui.chat.focus then
-		gui.chat:keypress(k, unicode)
-		
-		if k == 'return' then
-			sendChat()
-		end
-		
-		return
-	end
-	
 	if k == " " then
 		self.player:shoot()
 	end
+	
+	loveframes.keypressed(k, unicode)
 end
 
 local function keyreleased(self, k, unicode)
-	if k == "up" or k == "down" then
-		self.player.facing = "idle"
-	end
+	loveframes.keyreleased(k, unicode)
 end
 
 local function mousepressed(self, x, y, button)
-	gui.chat:mousepress(x, y, button)
-	gui.gameplay:mousepress(x, y, button)
+	loveframes.mousepressed(x, y, button)
 end
 
 local function mousereleased(self, x, y, button)
-	gui.chat:mouserelease(x, y, button)
-	gui.gameplay:mouserelease(x, y, button)
+	loveframes.mousereleased(x, y, button)
 end
 
 return function(data)

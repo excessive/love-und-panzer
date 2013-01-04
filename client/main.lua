@@ -1,8 +1,7 @@
-require "libs.input"
 require "libs.TEsound"
 require "libs.panzer.settings"
 require "libs.panzer.client"
-Gspot = require "libs.Gspot"
+require "libs.loveframes"
 
 function love.load()
 	gui = {
@@ -21,11 +20,6 @@ function love.load()
 	-- Scale
 	tileSize = 32
 	numTiles = 18.75
-	
-	-- GUI
-	FONT = love.graphics.newFont(10)
-	KEY_DELAY = 0.2
-	KEY_REPEAT = 0.02
 	
 	-- Screen
 	scale = love.graphics.getHeight() / numTiles / tileSize

@@ -1,8 +1,6 @@
 require "libs.panzer.server"
 
 function love.load()
-	love.graphics.setFont(love.graphics.newFont(12))
-	
 	logo = love.graphics.newImage("assets/logo.png")
 	
 	server = Server()
