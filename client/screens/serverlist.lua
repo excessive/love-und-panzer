@@ -1,10 +1,8 @@
 require "libs.screen"
 
 local function load(self)
-	gui.chat = {scope="global"}
-	gui.serverlist = {}
-	
 	--[[ Chat UI Elements ]]--
+	gui.chat = {scope="global"}
 	
 	-- Chat Group
 	gui.chat.group = loveframes.Create("panel")
@@ -63,72 +61,44 @@ local function load(self)
 	end
 	
 	--[[ Server List UI Elements ]]--
-	--[[
+	gui.serverlist = {}
+	
 	-- Server Group
-	self.servergroup = gui.serverlist:group(nil, {
-		x = windowWidth - 400,
-		y = 0,
-		w = 400,
-		h = windowHeight,
-	})
+	gui.serverlist.group = loveframes.Create("panel")
+	gui.serverlist.group:SetSize(400, 600)
+	gui.serverlist.group:SetPos(400, 0)
 	
 	-- Refresh Button
-	self.serverRefresh = gui.serverlist:button("Refresh", {
-		x = 0,
-		y = 0,
-		w = 400,
-		h = gui.theme.tiny,
-	}, self.servergroup)
-	
-	-- New Game Group
-	self.groupNewGame = gui.serverlist:group(nil, {
-		x = 0,
-		y = gui.theme.tiny + gui.theme.padding,
-		w = 400,
-		h = gui.theme.medium,
-	}, self.servergroup)
-	
-	self.inputNewGameName = gui.serverlist:input(nil, {
-		x = 0,
-		y = 0,
-		w = 400,
-		h = gui.theme.tiny,
-	}, self.groupNewGame)
-	
-	self.inputNewGamePass = gui.serverlist:input(nil, {
-		x = 0,
-		y = gui.theme.tiny + gui.theme.padding,
-		w = 400 - gui.theme.medium - gui.theme.padding,
-		h = gui.theme.tiny,
-	}, self.groupNewGame)
-	
-	self.buttonNewGame = gui.serverlist:button("New Game", {
-		x = 400 - gui.theme.medium,
-		y = gui.theme.tiny + gui.theme.padding,
-		w = gui.theme.medium,
-		h = gui.theme.tiny,
-	}, self.groupNewGame)
-	
-	-- Server List
-	self.serverlist = gui.serverlist:scrollgroup(nil, {
-		x = 0,
-		y = gui.theme.medium + gui.theme.padding,
-		w = 400 - gui.theme.tiny,
-		h = windowHeight - gui.theme.medium - gui.theme.padding,
-	}, self.servergroup, "vertical")
-	]]--
-	--[[ Server List UI Properties ]]--
-	--[[
-	-- Refresh Server List
-	self.serverRefresh.click = function(this)
+	gui.serverlist.refresh = loveframes.Create("button", gui.serverlist.group)
+	gui.serverlist.refresh:SetSize(400, 20)
+	gui.serverlist.refresh:SetText("Refresh")
+	gui.serverlist.refresh.OnClick = function(this)
 		local data = string.format("%s %s", "SERVERLIST", "")
 		client:send(data)
 	end
 	
-	self.buttonNewGame.click = function(this)
+	-- New Game Group
+	gui.serverlist.newgame = {}
+	gui.serverlist.newgame.group = loveframes.Create("panel", gui.serverlist.group)
+	gui.serverlist.newgame.group:SetSize(400, 60)
+	gui.serverlist.newgame.group:SetPos(0, 30)
+	
+	gui.serverlist.newgame.name = loveframes.Create("textinput", gui.serverlist.newgame.group)
+	gui.serverlist.newgame.name:SetSize(400, 20)
+	gui.serverlist.newgame.name:SetPos(0, 0)
+	
+	gui.serverlist.newgame.pass = loveframes.Create("textinput", gui.serverlist.newgame.group)
+	gui.serverlist.newgame.pass:SetSize(340, 20)
+	gui.serverlist.newgame.pass:SetPos(0, 30)
+	
+	gui.serverlist.newgame.create = loveframes.Create("button", gui.serverlist.newgame.group)
+	gui.serverlist.newgame.create:SetSize(50, 20)
+	gui.serverlist.newgame.create:SetPos(350, 30)
+	gui.serverlist.newgame.create:SetText("Create")
+	gui.serverlist.newgame.create.OnClick = function(this)
 		local str = json.encode({
-			name = self.inputNewGameName.value,
-			pass = self.inputNewGamePass.value,
+			name = gui.serverlist.newgame.name:GetText(),
+			pass = gui.serverlist.newgame.pass:GetText(),
 		})
 		
 		local data = string.format("%s %s", "NEWGAME", str)
@@ -136,7 +106,13 @@ local function load(self)
 		
 		self.next.data = {}
 		self.next.screen = "lobby"
-	end]]--
+	end
+	
+	-- Server List
+	gui.serverlist.games = {}
+	gui.serverlist.games.group = loveframes.Create("list", gui.serverlist.group)
+	gui.serverlist.games.group:SetSize(400, 500)
+	gui.serverlist.games.group:SetPos(0, 100)
 end
 
 local function update(self, dt)
@@ -168,22 +144,37 @@ local function update(self, dt)
 		gui.chat.team:AddItem(text)
 		client.chat.team = nil
 	end
-	--[[
+	
 	-- Update Server List
 	if client.serverlist then
 		for game, properties in pairs(client.serverlist) do
-			local group = gui.serverlist:group(nil, {w = self.serverlist.pos.w, h = gui.theme.medium})
-			local textName = gui.serverlist:text(properties.name, {w=group.pos.w, h=gui.theme.tiny}, group)
-			local textHost = gui.serverlist:text("Hosted by: "..properties.host, {y=gui.theme.tiny, w=group.pos.w, h=gui.theme.tiny}, group)
-			local textState = gui.serverlist:text(properties.state, {y=gui.theme.small, w=group.pos.w/2, h=gui.theme.tiny}, group)
-			local textPlayers = gui.serverlist:text(properties.players.."/8", {x=group.pos.w/2, y=gui.theme.small, w=group.pos.w/2, h=gui.theme.tiny}, group)
-			local buttonConnect = gui.serverlist:button("Connect", {x=group.pos.w-48, y=gui.theme.small + gui.theme.tiny, w=48, h=gui.theme.tiny}, group)
+			local group = loveframes.Create("panel")
+			group:SetSize(400, 80)
 			
-			if properties.pass then
-				local inputPass = gui.serverlist:input("Password", {y=gui.theme.small + gui.theme.tiny, w=group.pos.w-gui.theme.medium, h=gui.theme.tiny}, group)
-			end
+			local textName = loveframes.Create("text", group)
+			textName:SetSize(400, 20)
+			textName:SetText(properties.name)
 			
-			buttonConnect.click = function()
+			local textHost = loveframes.Create("text", group)
+			textHost:SetSize(400, 20)
+			textHost:SetPos(0, 20)
+			textHost:SetText("Hosted by: " .. properties.host)
+			
+			local textState = loveframes.Create("text", group)
+			textState:SetSize(200, 20)
+			textState:SetPos(0, 40)
+			textState:SetText(properties.state)
+			
+			local textPlayers = loveframes.Create("text", group)
+			textPlayers:SetSize(200, 20)
+			textPlayers:SetPos(200, 40)
+			textPlayers:SetText(properties.players .. "/8")
+			
+			local buttonConnect = loveframes.Create("button", group)
+			buttonConnect:SetSize(70, 20)
+			buttonConnect:SetPos(330, 60)
+			buttonConnect:SetText("Connect")
+			buttonConnect.OnClick = function()
 				local str = json.encode({id=tonumber(game)})
 				local data = string.format("%s %s", "JOINGAME", str)
 				client:send(data)
@@ -192,12 +183,18 @@ local function update(self, dt)
 				self.next.screen = "lobby"
 			end
 			
-			self.serverlist:addchild(group, "vertical")
+			if properties.pass then
+				local inputPass = loveframes.Create("textinput", group)
+				inputPass:SetSize(320, 20)
+				inputPass:SetPos(0, 60)
+			end
+			
+			gui.serverlist.games.group:AddItem(group)
 		end
 		
 		client.serverlist = nil
 	end
-	]]--
+	
 	loveframes.update(dt)
 end
 
