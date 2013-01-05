@@ -1,6 +1,17 @@
 require "libs.screen"
 
 local function load(self)
+	gui.serverlist.group:SetVisible(false)
+	gui.serverlist.refresh:SetVisible(false)
+	
+	for k, obj in pairs(gui.serverlist.newgame) do
+		obj:SetVisible(false)
+	end
+	
+	for k, obj in pairs(gui.serverlist.games) do
+		obj:SetVisible(false)
+	end
+	
 	gui.lobby = {}
 end
 

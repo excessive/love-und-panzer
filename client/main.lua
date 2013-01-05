@@ -4,17 +4,7 @@ require "libs.panzer.client"
 require "libs.loveframes"
 
 function love.load()
-	gui = {
-		theme = {
-			padding	= 8,
-			tiny	= 16,
-			small	= 32,
-			medium	= 64,
-			large	= 128,
-			xlarge	= 256,
-		}
-	}
-	
+	gui = {}
 	debug = {}
 	
 	-- Scale

@@ -1,6 +1,10 @@
 require "libs.screen"
 
 local function load(self)
+	for _, obj in pairs(gui.title) do
+		obj:SetVisible(false)
+	end
+	
 	--[[ Chat UI Elements ]]--
 	gui.chat = {scope="global"}
 	
