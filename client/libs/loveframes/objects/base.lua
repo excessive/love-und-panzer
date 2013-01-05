@@ -523,8 +523,6 @@ function newobject:Remove()
 		end
 	end
 	
-	self.removed = true
-	
 end
 
 --[[---------------------------------------------------------
@@ -1046,5 +1044,23 @@ end
 function newobject:GetProperty(name)
 
 	return self[name]
+	
+end
+
+--[[---------------------------------------------------------
+	- func: IsInList()
+	- desc: checks to see if an object is in a list
+--]]---------------------------------------------------------
+function newobject:IsInList()
+	
+	local parents = self:GetParents()
+	
+	for k, v in ipairs(parents) do
+		if v.type == "list" then
+			return true, v
+		end
+	end
+	
+	return false, false
 	
 end

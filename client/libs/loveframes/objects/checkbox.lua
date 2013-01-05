@@ -193,8 +193,8 @@ end
 --]]---------------------------------------------------------
 function newobject:keypressed(key, unicode)
 
-	local checked        = self.checked
-	local onchanged      = self.OnChanged
+	local checked = self.checked
+	local onchanged = self.OnChanged
 	local selectedobject = loveframes.selectedobject
 	
 	if key == "return" and selectedobject == self then

@@ -26,7 +26,6 @@ function newobject:initialize()
 	self.autosize = true
 	self.internal = false
 	self.tooltipfont = loveframes.basicfontsmall
-	self.tabs = {}
 	self.internals = {}
 	self.children = {}
 	
@@ -239,7 +238,7 @@ end
 	- func: AddTab(name, object, tip, image)
 	- desc: adds a new tab to the tab panel
 --]]---------------------------------------------------------
-function newobject:AddTab(name, object, tip, image)
+function newobject:AddTab(name, object, tip, image, onopened, onclosed)
 
 	local padding = self.padding
 	local autosize = self.autosize
@@ -253,7 +252,7 @@ function newobject:AddTab(name, object, tip, image)
 	object.staticy = 0
 	
 	table.insert(self.children, object)
-	internals[tabnumber] = loveframes.objects["tabbutton"]:new(self, name, tabnumber, tip, image)
+	internals[tabnumber] = loveframes.objects["tabbutton"]:new(self, name, tabnumber, tip, image, onopened, onclosed)
 	self.tabnumber = tabnumber + 1
 	
 	for k, v in ipairs(internals) do

@@ -19,25 +19,20 @@ loveframes.templates.objects = {}
 --]]---------------------------------------------------------
 function loveframes.templates.AddProperty(templatename, object, property, value)
 
-	-- display and error if name is nil or false
+	-- display an error if name is nil or false
 	if not templatename then
 		loveframes.util.Error("Could not create property: No template name given.")
 	end
 	
-	-- display and error if property is nil or false
+	-- display an error if property is nil or false
 	if not property then
 		loveframes.util.Error("Could not create property: No property name given.")
 	end
 	
-	-- display and error if value is nil or false
-	if not value then
-		loveframes.util.Error("Could not create property: No property value given.")
-	end
-	
 	local templatename = tostring(templatename)
-	local property     = tostring(property)
-	local templates    = loveframes.templates.available
-	local template     = templates[templatename]
+	local property = tostring(property)
+	local templates = loveframes.templates.available
+	local template = templates[templatename]
 	
 	-- display an error message if the property is not a string
 	if type(property) ~= "string" then
@@ -82,14 +77,14 @@ function loveframes.templates.Register(template)
 		loveframes.util.Error("Could not register template: Template argument must be a table.")
 	end
 	
-	local templates         = loveframes.templates.available
+	local templates = loveframes.templates.available
 	local registeredobjects = loveframes.templates.objects
-	local name              = template.name
-	local properties        = template.properties
-	local objects           = loveframes.objects
-	local base              = objects["base"]
-	local found             = false
-	local foundall          = false
+	local name = template.name
+	local properties = template.properties
+	local objects = loveframes.objects
+	local base = objects["base"]
+	local found = false
+	local foundall = false
 	
 	-- display an error message if a template name was not given
 	if not name then
@@ -116,9 +111,9 @@ function loveframes.templates.Get(name)
 		loveframes.util.Error("Could not create property: No template name given.")
 	end
 	
-	local name      = tostring(name)
+	local name = tostring(name)
 	local templates = loveframes.templates.available
-	local template  = templates[name]
+	local template = templates[name]
 	
 	-- display an error message if the template is invalid
 	if not template then
@@ -156,35 +151,25 @@ function loveframes.templates.ApplyToObject(object)
 	
 	-- loop through all available templates
 	for k, v in pairs(templates) do
-	
 		-- make sure the base template doesn't get applied more than once
 		if k ~= "Base" then
-		
 			local properties = v.properties
-			local hasall     = loveframes.util.TableHasKey(properties, "*")
-			local hasobject  = false
-			
+			local hasall = loveframes.util.TableHasKey(properties, "*")
+			local hasobject = false
 			if not hasall then
 				hasobject = loveframes.util.TableHasKey(properties, type)
 			end
-			
 			if hasall then
-			
 				for k, v in pairs(properties["*"]) do
 					object[k] = v
 				end
-				
 			elseif hasobject then
-			
 				-- apply the template properties to the object
 				for k, v in pairs(properties[type]) do
 					object[k] = v
 				end
-				
 			end
-			
 		end
-		
 	end
 	
 end

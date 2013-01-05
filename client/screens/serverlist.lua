@@ -30,9 +30,9 @@ local function load(self)
 	gui.chat.tabs = loveframes.Create("tabs", gui.chat.group)
 	gui.chat.tabs:SetSize(400, 180)
 	gui.chat.tabs:SetPos(0, 0)
-	gui.chat.tabs:AddTab("Global", gui.chat.global)
-	gui.chat.tabs:AddTab("Local", gui.chat.game)
-	gui.chat.tabs:AddTab("Team", gui.chat.team)
+	gui.chat.tabs:AddTab("Global", gui.chat.global, nil, nil, function() gui.chat.scope="global" end)
+	gui.chat.tabs:AddTab("Local", gui.chat.game, nil, nil, function() gui.chat.scope="game" end)
+	gui.chat.tabs:AddTab("Team", gui.chat.team, nil, nil, function() gui.chat.scope="team" end)
 	
 	-- Chat Input
 	gui.chat.input = loveframes.Create("textinput", gui.chat.group)

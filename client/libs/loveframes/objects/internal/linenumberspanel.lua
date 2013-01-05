@@ -141,7 +141,7 @@ end
 --]]---------------------------------------------------------
 function newobject:mousereleased(x, y, button)
 
-	local visible  = self.visible
+	local visible = self.visible
 	
 	if not visible then
 		return

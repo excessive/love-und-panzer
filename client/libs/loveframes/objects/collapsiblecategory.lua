@@ -75,7 +75,7 @@ function newobject:draw()
 	
 	local visible = self.visible
 	
-	if visible == false then
+	if not visible then
 		return
 	end
 	

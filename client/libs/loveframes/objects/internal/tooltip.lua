@@ -27,6 +27,7 @@ function newobject:initialize(object, text, width)
 	self.followcursor = true
 	self.alwaysupdate = true
 	
+	-- create the object's text
 	self.text = loveframes.Create("text")
 	self.text:Remove()
 	self.text.parent = self

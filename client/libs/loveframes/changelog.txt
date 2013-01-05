@@ -1,4 +1,29 @@
 ================================================
+Version 0.9.4.14 - Alpha (January 4 - 2013)
+================================================
+[ADDED] a new util library function: loveframes.util.CheckForUpdates() (note: this function is meant to be used by the developer and is never called internally by Love Frames)
+[ADDED] a new callback for the tabbutton object: OnOpened(object)
+[ADDED] a new callback for the tabbutton object: OnClosed(object)
+
+[CHANGED] tabs:AddTab(name, object, tip, image) now accepts two new optional arguments for tabbutton callbacks (ex: tabs:AddTab(name, object, tip, image, onopened, onclosed))
+
+================================================
+Version 0.9.4.13 - Alpha (January 4 - 2013)
+================================================
+[ADDED] a new base method: IsInList()
+
+[FIXED] not being able to add the boolean "false" to a template as a property with loveframes.templates.AddProperty(templatename, object, property, value)
+
+[CHANGED] small code cleanup
+[CHANGED] improved performance of the text object while parented within a list object
+
+================================================
+Version 0.9.4.12 - Alpha (December 30 - 2012)
+================================================
+[CHANGED] newlines created on the text object with \n now display properly
+[CHANGED] Love Frames now resets the current drawing color to the last color used before calling loveframes.draw() after it has finished all drawing operations
+
+================================================
 Version 0.9.4.11 - Alpha (December 28 - 2012)
 ================================================
 [ADDED] a new textinput method: SetAutoScroll(bool)

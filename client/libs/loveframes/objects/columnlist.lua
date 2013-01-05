@@ -132,13 +132,10 @@ function newobject:mousepressed(x, y, button)
 	local internals = self.internals
 	
 	if hover == true and button == "l" then
-	
 		local baseparent = self:GetBaseParent()
-	
 		if baseparent and baseparent.type == "frame" then
 			baseparent:MakeTop()
 		end
-		
 	end
 		
 	for k, v in ipairs(internals) do

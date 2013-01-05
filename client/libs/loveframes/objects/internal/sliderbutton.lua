@@ -195,12 +195,12 @@ function newobject:mousepressed(x, y, button)
 		if baseparent and baseparent.type == "frame" then
 			baseparent:MakeTop()
 		end
-		self.down              = true
-		self.dragging          = true
-		self.startx            = self.staticx
-		self.clickx            = x
-		self.starty            = self.staticy
-		self.clicky            = y
+		self.down = true
+		self.dragging = true
+		self.startx = self.staticx
+		self.clickx = x
+		self.starty = self.staticy
+		self.clicky = y
 		loveframes.hoverobject = self
 	end
 	

@@ -158,8 +158,9 @@ function newobject:SetText(t)
 		elseif dtype == "number" then
 			table.insert(self.formattedtext, {color = prevcolor, text = tostring(v)})
 		elseif dtype == "string" then
-			if self.ignorenewlines == false then
-				v = v:gsub(string.char(92) .. string.char(110), string.char(10))
+			if self.ignorenewlines then
+				v = v:gsub(" \n ", " ")
+				v = v:gsub("\n", "")
 			end
 			v = v:gsub(string.char(9), "    ")
 			local parts = loveframes.util.SplitString(v, " ")
@@ -171,11 +172,11 @@ function newobject:SetText(t)
 	
 	if maxw > 0 then
 		for k, v in ipairs(self.formattedtext) do
-			local data  = v.text
+			local data = v.text
 			local width = font:getWidth(data)
-			local curw  = 0
-			local new   = ""
-			local key   = k
+			local curw = 0
+			local new = ""
+			local key = k
 			if width > maxw then
 				table.remove(self.formattedtext, k)
 				for n=1, #data do	
@@ -212,6 +213,8 @@ function newobject:SetText(t)
 	local drawx = 0
 	local drawy = 0
 	local lines = 0
+	local textwidth = 0
+	local lastwidth = 0
 	local totalwidth = 0
 	local x = self.x
 	local y = self.y
@@ -240,7 +243,6 @@ function newobject:SetText(t)
 						twidth = twidth + width
 						drawx = drawx + prevtextwidth
 					end
-					
 				else
 					twidth = twidth + width
 				end
@@ -249,7 +251,20 @@ function newobject:SetText(t)
 				v.y = drawy
 			else
 				if k ~= 1 then
-					drawx = drawx + prevtextwidth
+					if string.byte(text) == 10 then
+						twidth = 0
+						drawx = 0
+						width = 0
+						drawy = drawy + height
+						text = ""
+						if lastwidth < textwidth then
+							lastwidth = textwidth
+						end
+						textwidth = 0
+					else
+						drawx = drawx + prevtextwidth
+						textwidth = textwidth + width
+					end
 				end
 				prevtextwidth = width
 				v.x = drawx
@@ -258,10 +273,14 @@ function newobject:SetText(t)
 		end
 	end
 	
+	if lastwidth == 0 then
+		textwidth = totalwidth
+	end
+	
 	if maxw > 0 then
 		self.width = maxw
 	else
-		self.width = totalwidth
+		self.width = textwidth
 	end
 	
 	self.height = drawy + height
@@ -296,19 +315,20 @@ function newobject:DrawText()
 
 	local textdata = self.formattedtext
 	local font = self.font
-	local theight  = font:getHeight("a")
+	local theight = font:getHeight("a")
 	local x = self.x
 	local y = self.y
 	local shadow = self.shadow
 	local shadowxoffset = self.shadowxoffset
 	local shadowyoffset = self.shadowyoffset
 	local shadowcolor = self.shadowcolor
+	local inlist, list = self:IsInList()
 	
 	for k, v in ipairs(textdata) do
-		local text  = v.text
+		local text = v.text
 		local color = v.color
-		if self.parent.type == "list" then
-			if (y + v.y) <= (self.parent.y + self.parent.height) and self.y + ((v.y + theight)) >= self.parent.y then
+		if inlist then
+			if (y + v.y) <= (list.y + list.height) and self.y + ((v.y + theight)) >= list.y then
 				love.graphics.setFont(font)
 				if shadow then
 					love.graphics.setColor(unpack(shadowcolor))

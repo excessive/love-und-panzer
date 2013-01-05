@@ -10,7 +10,7 @@ local newobject = loveframes.NewObject("tabbutton", "loveframes_object_tabbutton
 	- func: initialize()
 	- desc: initializes the object
 --]]---------------------------------------------------------
-function newobject:initialize(parent, text, tabnumber, tip, image)
+function newobject:initialize(parent, text, tabnumber, tip, image, onopened, onclosed)
 
 	self.type = "tabbutton"
 	self.font = loveframes.smallfont
@@ -24,6 +24,8 @@ function newobject:initialize(parent, text, tabnumber, tip, image)
 	self.internal = true
 	self.down = false
 	self.image = nil
+	self.OnOpened = nil
+	self.OnClosed = nil
 	
 	if tip then
 		self.tooltip = loveframes.objects["tooltip"]:new(self, tip)
@@ -33,6 +35,14 @@ function newobject:initialize(parent, text, tabnumber, tip, image)
 	
 	if image then
 		self:SetImage(image)
+	end
+	
+	if onopened then
+		self.OnOpened = onopened
+	end
+	
+	if onclosed then
+		self.OnClosed = onclosed
 	end
 	
 	-- apply template properties to the object
@@ -148,7 +158,18 @@ function newobject:mousereleased(x, y, button)
 	
 	if hover and button == "l" then
 		if button == "l" then
+			local tab = self.parent.tab
+			local internals = parent.internals
+			local onopened = self.OnOpened
+			local prevtab = internals[tab]
+			local onclosed = prevtab.OnClosed
 			parent:SwitchToTab(tabnumber)
+			if onopened then
+				onopened(self)
+			end
+			if onclosed then
+				onclosed(prevtab)
+			end
 		end
 	end
 	

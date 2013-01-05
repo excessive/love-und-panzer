@@ -28,19 +28,23 @@ function newobject:initialize(name, parent)
 		
 	local key = 0
 	
-	for k, v in ipairs(self.parent.children) do
+	for k, v in ipairs(parent.children) do
 		if v == self then
 			key = k
 		end
 	end
 	
-	self.OnClick = function()
-		if self.descending == true then
-			self.descending = false
+	self.OnClick = function(object)
+		local descending = object.descending
+		local parent = object.parent
+		local pinternals = parent.internals
+		local list = pinternals[1]
+		if descending then
+			object.descending = false
 		else
-			self.descending = true
+			object.descending = true
 		end
-		self.parent.internals[1]:Sort(key, self.descending)
+		list:Sort(key, object.descending)
 	end
 	
 	-- apply template properties to the object

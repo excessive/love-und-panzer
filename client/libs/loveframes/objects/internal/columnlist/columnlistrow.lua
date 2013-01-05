@@ -123,15 +123,12 @@ function newobject:mousereleased(x, y, button)
 	end
 	
 	if self.hover and button == "l" then
-	
 		local parent1 = self:GetParent()
 		local parent2 = parent1:GetParent()
 		local onrowclicked = parent2.OnRowClicked
-		
 		if onrowclicked then
 			onrowclicked(parent2, self, self.columndata)
 		end
-		
 	end
 	
 end

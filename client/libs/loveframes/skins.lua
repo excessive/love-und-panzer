@@ -15,13 +15,13 @@ loveframes.skins.available = {}
 --]]---------------------------------------------------------
 function loveframes.skins.Register(skin)
 	
-	local name        = skin.name
-	local author      = skin.author
-	local version     = skin.version
-	local namecheck   = loveframes.skins.available[name]
-	local dir         = loveframes.config["DIRECTORY"] .. "/skins/" ..name
-	local dircheck    = love.filesystem.isDirectory(dir)
-	local images      = loveframes.util.GetDirectoryContents(dir .. "/images")
+	local name = skin.name
+	local author = skin.author
+	local version = skin.version
+	local namecheck = loveframes.skins.available[name]
+	local dir = loveframes.config["DIRECTORY"] .. "/skins/" ..name
+	local dircheck = love.filesystem.isDirectory(dir)
+	local images = loveframes.util.GetDirectoryContents(dir .. "/images")
 	local indeximages = loveframes.config["INDEXSKINIMAGES"]
 	
 	if name == "" or not name then

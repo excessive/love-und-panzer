@@ -56,9 +56,7 @@ function loveframes.util.GetCollisions(object, t)
 	
 	-- add the current object if colliding
 	if object.visible == true then
-	
 		local col = loveframes.util.BoundingBox(x, object.x, y, object.y, 1, object.width, 1, object.height)
-		
 		if col == true and object.collide ~= false then
 			if object.clickbounds then
 				local clickcol = loveframes.util.BoundingBox(x, object.clickbounds.x, y, object.clickbounds.y, 1, object.clickbounds.width, 1, object.clickbounds.height)
@@ -69,29 +67,24 @@ function loveframes.util.GetCollisions(object, t)
 				table.insert(t, object)
 			end
 		end
-		
 	end
 	
 	-- check for children
 	if object.children then
-	
 		for k, v in ipairs(object.children) do
 			if v.visible then
 				loveframes.util.GetCollisions(v, t)
 			end
 		end
-		
 	end
 	
 	-- check for internals
 	if object.internals then
-	
 		for k, v in ipairs(object.internals) do
 			if v.visible and v.type ~= "tooltip" then
 				loveframes.util.GetCollisions(v, t)
 			end
 		end
-		
 	end
 	
 	return t
@@ -132,25 +125,22 @@ end
 --]]---------------------------------------------------------
 function loveframes.util.GetDirectoryContents(dir, t)
 
-	local dir   = dir
-	local t     = t or {}
+	local dir = dir
+	local t = t or {}
 	local files = love.filesystem.enumerate(dir)
-	local dirs  = {}
+	local dirs = {}
 	
 	for k, v in ipairs(files) do
-	
 		local isdir = love.filesystem.isDirectory(dir.. "/" ..v)
-		
 		if isdir == true then
 			table.insert(dirs, dir.. "/" ..v)
 		else
-			local parts     = loveframes.util.SplitString(v, "([.])")
+			local parts = loveframes.util.SplitString(v, "([.])")
 			local extension = parts[#parts]
-			parts[#parts]   = nil
-			local name      = table.concat(parts)
+			parts[#parts] = nil
+			local name = table.concat(parts)
 			table.insert(t, {path = dir, fullpath = dir.. "/" ..v, requirepath = dir .. "." ..name, name = name, extension = extension})
 		end
-		
 	end
 	
 	if #dirs > 0 then
@@ -172,8 +162,12 @@ end
 function loveframes.util.Round(num, idp)
 
 	local mult = 10^(idp or 0)
-    if num >= 0 then return math.floor(num * mult + 0.5) / mult
-    else return math.ceil(num * mult - 0.5) / mult end
+	
+    if num >= 0 then 
+		return math.floor(num * mult + 0.5) / mult
+    else 
+		return math.ceil(num * mult - 0.5) / mult 
+	end
 	
 end
 
@@ -187,7 +181,6 @@ function loveframes.util.SplitString(str, pat)
 	local t = {}  -- NOTE: use {n = 0} in Lua-5.0
 	
 	if pat == " " then
-	
 		local fpat = "(.-)" .. pat
 		local last_end = 1
 		local s, e, cap = str:find(fpat, 1)
@@ -205,9 +198,7 @@ function loveframes.util.SplitString(str, pat)
 			cap = str:sub(last_end)
 			table.insert(t, cap)
 		end
-		
 	else
-	
 		local fpat = "(.-)" .. pat
 		local last_end = 1
 		local s, e, cap = str:find(fpat, 1)
@@ -222,7 +213,6 @@ function loveframes.util.SplitString(str, pat)
 			cap = str:sub(last_end)
 			table.insert(t, cap)
 		end
-		
 	end
 	
 	return t
@@ -267,4 +257,24 @@ function loveframes.util.Error(message)
 
 	error("[Love Frames] " ..message)
 	
+end
+
+--[[---------------------------------------------------------
+	- func: loveframes.util.CheckForUpdates()
+	- desc: checks for more recent versions of Love Frames
+--]]---------------------------------------------------------
+function loveframes.util.CheckForUpdates()
+
+	local info = loveframes.info
+	local version = info.version
+	local stage = info.stage
+	local socket = require("socket.http")
+	local b, c, h = socket.request("http://update.nikolairesokav.com/?id=loveframes&version=" ..version.. "&stage=" ..stage)
+	
+	if c == 200 then
+		return b
+	else
+		return "An error occurred while checking for updates. Please try again later."
+	end
+
 end
