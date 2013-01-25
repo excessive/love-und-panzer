@@ -156,6 +156,7 @@ end
 local function draw(self)
 	-- Draw World + Entities
 	love.graphics.push()
+	love.graphics.setColor(255, 255, 255, 255)
 	local tx = math.floor(-self.player.x + windowWidth / 2 - self.map.tileWidth / 2)
 	local ty = math.floor(-self.player.y + windowHeight / 2 - self.map.tileHeight / 2)
 	love.graphics.translate(tx, ty)
