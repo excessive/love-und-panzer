@@ -1,5 +1,19 @@
 require "libs.screen"
 
+-- Send Chat Message
+function sendChat()
+	if gui.chat.input:GetText() ~= "" then
+		local str = json.encode({
+			scope = string.upper(gui.chat.scope),
+			msg = gui.chat.input:GetText(),
+		})
+		local data = string.format("%s %s", "CHAT", str)
+		
+		client:send(data)
+		gui.chat.input:SetText("")
+	end
+end
+
 local function load(self)
 	---------------------------------
 	for _, obj in pairs(gui.title) do
@@ -47,19 +61,7 @@ local function load(self)
 		sendChat()
 	end
 
-	-- Send Chat Message
-	function sendChat()
-		if gui.chat.input:GetText() ~= "" then
-			local str = json.encode({
-				scope = string.upper(gui.chat.scope),
-				msg = gui.chat.input:GetText(),
-			})
-			local data = string.format("%s %s", "CHAT", str)
-			
-			client:send(data)
-			gui.chat.input:SetText("")
-		end
-	end
+
 	
 	--[[ Lobby UI Elements ]]--
 	

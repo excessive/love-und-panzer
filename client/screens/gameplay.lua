@@ -89,8 +89,10 @@ local function update(self, dt)
 				self.keystate[k] = love.keyboard.isDown(k)
 			end
 		end
-
-		updateKeys { "up", "down", "left", "right", "lctrl", "lalt" }
+		
+		if not gui.chat.input:GetFocus() then
+			updateKeys { "up", "down", "left", "right", "lctrl", "lalt" }
+		end
 
 		if self.keystate.left then
 			turn = turn - 1
@@ -169,8 +171,19 @@ local function draw(self)
 end
 
 local function keypressed(self, k, unicode)
-	if k == " " then
-		self.player:shoot()
+	if not gui.chat.input:GetFocus() then
+		if k == " " then
+			self.player:shoot()
+		end
+		
+		if k == "return" then
+			gui.chat.input:SetFocus(true)
+		end
+	else
+		if k == "return" then
+			sendChat()
+			gui.chat.input:SetFocus(false)
+		end
 	end
 	
 	loveframes.keypressed(k, unicode)
