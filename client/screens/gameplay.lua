@@ -21,13 +21,11 @@ end
 
 local function load(self)
 	gui.gameplay = {}
-	self.id = self.data.id
 
 	-- Tick
-	self.time = 0
-	self.lastTime = 0
-	self.lastTick = 0
-	self.tickRate = 1/60
+	self.t = 0
+	self.lt = 0
+	self.tick = 1/60
 
 	-- Initialize Tiled Map
 	local loader = require "libs.ATL.Loader"
@@ -46,23 +44,45 @@ local function load(self)
 	self.collisionMap = createCollisionMap(self.map, "Collision")
 
 	-- Initialize Player
-	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, 4, 4, 30, 2, 30, 5, 10)
-
+	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, 4, 4, 0, 0, 2, 30, 5, 10)
+	
+	-- Initialize Players
+	-------------------------------------self.players[id] = Tank()
+	
 	-- Link Player to Sprites Layer
 	self.map.layers.Sprites.player = self.player
 end
 
 local function update(self, dt)
-	local move = 0
-	local turn = 0
-	local data = ""
+	local move		= 0
+	local turn		= 0
+	local turret	= 0
+	local data		= ""
 	
 	-- Receive Data
 	client:update(dt)
 	
+	-- Update Global Chat
+	if client.chat.global then
+		local text = loveframes.Create("text")
+		text:SetMaxWidth(400)
+		text:SetText(client.chat.global)
+		gui.chat.global:AddItem(text)
+		client.chat.global = nil
+	end
+	
+	-- Update Team Chat
+	if client.chat.team then
+		local text = loveframes.Create("text")
+		text:SetMaxWidth(400)
+		text:SetText(client.chat.team)
+		gui.chat.team:AddItem(text)
+		client.chat.team = nil
+	end
+	
 	-- Ticks
-	self.time = self.time + dt
-	if self.time - self.lastTime >= self.tickRate then
+	self.t = self.t + dt
+	if self.t - self.lt >= self.tick then
 		-- lazy mode
 		local function updateKeys(t)
 			for _, k in ipairs(t) do
@@ -70,37 +90,65 @@ local function update(self, dt)
 			end
 		end
 
-		updateKeys { "up", "down", "left", "right" }
+		updateKeys { "up", "down", "left", "right", "lctrl", "lalt" }
 
 		if self.keystate.left then
-			turn = -1
-			data = string.format("%s %f", 'turn', turn)
-			client:send(data)
+			turn = turn - 1
 		end
 		
 		if self.keystate.right then
-			turn = 1
-			data = string.format("%s %f", 'turn', turn)
-			client:send(data)
+			turn = turn + 1
 		end
 		
 		if self.keystate.up then
-			move = 1
-			data = string.format("%s %f", 'move', move)
-			client:send(data)
+			move = move + 1
 		end
+		
 		if self.keystate.down then
-			move = -1
-			data = string.format("%s %f", 'move', move)
+			move = move - 1
+		end
+		
+		if self.keystate.lctrl then
+			turret = turret - 1
+		end
+		
+		if self.keystate.lalt then
+			turret = turret + 1
+		end
+		
+		if turn ~= 0 or move ~= 0 then
+			local str = json.encode({
+				x	= self.player.x,
+				y	= self.player.y,
+				r	= self.player.r,
+				tr	= self.player.tr,
+			})
+			local data = string.format("%s %s", "UPDATESTATE", str)
 			client:send(data)
 		end
+		
+		-- Update Player
+		self.player:update(dt)
+		self.player:turn(turn * dt)
+		self.player:move(move * dt)
+		self.player:rotateTurret(turret * dt)
+		
+		self.lt = self.t
 	end
-
-	-- Update Player
-	self.player:update(dt)
-	self.player:turn(turn * dt)
-	self.player:move(move * dt)
-	self.player.sprites[self.player.facing].image:update(dt)
+	
+	-- Update State
+	if client.updatestate then
+		local state = client.updatestate
+		
+		if not game[state.id] then
+			game[state.id] = {}
+		end
+		
+		game[state.id].x	= state.x
+		game[state.id].y	= state.y
+		game[state.id].r	= state.r
+		game[state.id].tr	= state.tr
+	end
 	
 	loveframes.update(dt)
 end

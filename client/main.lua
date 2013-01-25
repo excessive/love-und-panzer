@@ -6,6 +6,7 @@ require "libs.loveframes"
 function love.load()
 	gui = {}
 	debug = {}
+	game = {}
 	
 	-- Scale
 	tileSize = 32
@@ -21,7 +22,6 @@ function love.load()
 	screens.title		= require "screens.title"
 	screens.options		= require "screens.options"
 	screens.credits		= require "screens.credits"
-	screens.serverlist	= require "screens.serverlist"
 	screens.lobby		= require "screens.lobby"
 	screens.gameplay	= require "screens.gameplay"
 	screens.results		= require "screens.results"

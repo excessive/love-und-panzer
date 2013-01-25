@@ -14,11 +14,20 @@ Tank = Class {
 		x			- TileX on map
 		y			- TileY on map
 		r			- Radial direction
+		tr			- Turret Radial direction
 		speed		- Tiles per second
 		turnSpeed	- Radians per second
 		ammo		- Number of bullets
 	]]--
-	function(self, map, collision, image, w, h, x, y, r, speed, turnSpeed, reloadSpeed, ammo)
+	function(self, map, collision, image, w, h, x, y, r, tr, speed, turnSpeed, reloadSpeed, ammo)
+		self.colour = {
+			red		= 0,
+			green	= 1,
+			yellow	= 2,
+			cyan	= 3,
+			magenta	= 4,
+		}
+		
 		self.map			= map
 		self.collision		= collision
 		self.speed			= speed
@@ -32,14 +41,17 @@ Tank = Class {
 		self.x				= x * self.map.tileWidth
 		self.y				= y * self.map.tileHeight
 		self.r				= r
+		self.tr				= tr 
 		
 		self.sprites		= {}
-		self:newSprite("idle",		self.image, self.w, self.h, 0, 0, 1, 1)
-		self:newSprite("forward",	self.image, self.w, self.h, 0, 0, 1, 1)
-		self:newSprite("backward",	self.image, self.w, self.h, 0, 0, 1, 1)
-		self:newSprite("turnLeft",	self.image, self.w, self.h, 0, 0, 1, 1)
-		self:newSprite("turnRight",	self.image, self.w, self.h, 0, 0, 1, 1)
+		self:newSprite("idle",		self.image, self.w, self.h, 0, self.colour.red, 1, 0.1)
+		self:newSprite("forward",	self.image, self.w, self.h, 0, self.colour.red, 4, 0.1)
+		self:newSprite("backward",	self.image, self.w, self.h, 0, self.colour.red, 4, 0.1)
+		self:newSprite("turnLeft",	self.image, self.w, self.h, 4, self.colour.red, 4, 0.1)
+		self:newSprite("turnRight",	self.image, self.w, self.h, 4, self.colour.red, 4, 0.1)
 		self.facing			= "idle"
+		
+		self.turret		= love.graphics.newQuad(self.colour.red * 24, 320, 24, 77, 512, 512)
 		
 		self.bullet			= Bullet(map, collision, "assets/sprites/bullet.png", 16, 16, 5)
 		self.ammo			= ammo
@@ -55,6 +67,7 @@ function Tank:update(dt)
 		self.reload = self.reload - dt
 	end
 	
+	self.sprites[self.facing].image:update(dt)
 	self.bullet:update(dt)
 end
 
@@ -62,8 +75,9 @@ end
 	Draw Tank
 ]]--
 function Tank:draw()
-	self.sprites[self.facing].image:draw(self.x, self.y, math.rad(self.r), 1, 1, self.w / 2, self.h / 2)
+	self.sprites[self.facing].image:draw(math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.r + 90)), 1, 1, self.w / 2, self.h / 2)
 	self.bullet:draw()
+	love.graphics.drawq(self.image, self.turret, math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.tr + 90)), 1, 1, 12, 65)
 end
 
 --[[
@@ -98,6 +112,14 @@ end
 	turn	- Direction to turn
 ]]--
 function Tank:turn(turn)
+	if turn > 0 then
+		self.facing = "turnLeft"
+	elseif turn < 0 then
+		self.facing = "turnRight"
+	else
+		self.facing = "idle"
+	end
+	
 	self.r = self.r + self.turnSpeed * turn
 	
 	if self.r > 360 then self.r = self.r - 360 end
@@ -110,6 +132,14 @@ end
 	move	- Direction to move
 ]]--
 function Tank:move(move)
+	if move > 0 then
+		self.facing = "forward"
+	elseif move < 0 then
+		self.facing = "backward"
+	else
+		self.facing = "idle"
+	end
+	
 	local newX	= self.x + self.speed * self.map.tileWidth * move * math.cos(math.rad(self.r))
 	local newY	= self.y + self.speed * self.map.tileHeight * move * math.sin(math.rad(self.r))
 	
@@ -139,11 +169,23 @@ function Tank:move(move)
 end
 
 --[[
+	Rotate Turret
+	
+	turret		- Direction to rotate
+]]--
+function Tank:rotateTurret(turret)
+	self.tr = self.tr + self.turnSpeed * turret
+	
+	if self.tr > 360 then self.tr = self.tr - 360 end
+	if self.tr < 0 then self.tr = self.tr + 360 end
+end
+
+--[[
 	Shoot Cannon
 ]]--
 function Tank:shoot()
 	if self.ammo > 0 and self.reload <= 0 then
-		self.bullet:load(self.x, self.y, self.r)
+		self.bullet:load(self.x, self.y, self.tr)
 		self.reload = self.reloadSpeed
 		self.ammo = self.ammo - 1
 	end

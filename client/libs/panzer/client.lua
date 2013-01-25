@@ -1,11 +1,10 @@
 Class = require "libs.hump.class"
 json = require "libs.dkjson"
-require "libs.LUBE.LUBE"
+require "libs.LUBE"
 
 Client = Class {
     function(self)
 		self.chat = {}
-		self.serverlist = {}
 	end
 }
 
@@ -40,10 +39,8 @@ function Client:recv(data)
 		
 		if cmd == "CHAT" then
 			self:postChat(params)
-		elseif cmd == "SERVERLIST" then
-			self:serverList(params)
-		elseif cmd == "UPDATEGAME" then
-			self:updateGame(params)
+		elseif cmd == "UPDATESTATE" then
+			self:updateState(params)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -86,14 +83,10 @@ function Client:postChat(params)
 end
 
 --[[
-	Server List
+	Update Game State
 	
-	params			= Name, Host, State, Players, Password
+	params			= TBA
 ]]--
-function Client:serverList(params)
-	self.serverlist = json.decode(params)
-end
-
-function Client:updateGame(params)
-	self.updategame = json.decode(params)
+function Client:updateState(params)
+	self.updatestate = json.decode(params)
 end

@@ -1,12 +1,14 @@
 Class = require "libs.hump.class"
 json = require "libs.dkjson"
-require "libs.LUBE.LUBE"
+require "libs.LUBE"
 
 Server = Class {
     function(self)
-		self.games		= {}
 		self.players	= {}
-		self.serverlist	= {}
+		
+		self.t			= 0
+		self.lt			= 0
+		self.tick		= 1/40
 	end
 }
 
@@ -35,8 +37,6 @@ end
 ]]--
 function Server:connect(clientId)
 	print('Client connected: ' .. tostring(clientId))
-	
-	self:sendServerList(clientId)
 end
 
 --[[
@@ -72,14 +72,8 @@ function Server:recv(data, clientId)
 			self:clientConnect(params, clientId)
 		elseif cmd == "CHAT" then
 			self:sendChat(params, clientId)
-		elseif cmd == "CLIENTLIST" then
-			self:sendClientList(clientId)
-		elseif cmd == "SERVERLIST" then
-			self:sendServerList(clientId)
-		elseif cmd == "NEWGAME" then
-			self:newGame(params, clientId)
-		elseif cmd == "JOINGAME" then
-			self:joinGame(params, clientId)
+		elseif cmd == "UPDATESTATE" then
+			self:updateState(params, clientId)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -93,6 +87,12 @@ end
 ]]--
 function Server:update(dt)
 	self.connection:update(dt)
+	
+	self.t = self.t + dt
+	if self.t - self.lt >= self.tick then
+		
+		self.lt = self.t
+	end
 end
 
 --[[
@@ -106,13 +106,15 @@ function Server:clientConnect(params, clientId)
 	local client = json.decode(params)
 	
 	self.players[id] = {
-		name = client.name
+		name	= client.name,
+		team	= 0,
 	}
 	
 	local str = json.encode({
 		scope = "GLOBAL",
 		msg = "has connected.",
 	})
+	
 	self:sendChat(str, clientId)
 end
 
@@ -134,79 +136,17 @@ function Server:sendChat(params, clientId)
 	self.connection:send(data)
 end
 
---[[
-	Create New Game
-	
-	params			= Name, Password
-	clientId		= Unique client ID
-]]--
-function Server:newGame(params, clientId)
+function Server:updateState(params, clientId)
 	local id = tostring(clientId)
-	local str = json.decode(params)
-	local pass = false
+	local state = json.decode(params)
+	local str = json.encode({
+		id		= id,
+		x		= state.x,
+		y		= state.y,
+		r		= state.r,
+		tr		= state.tr,
+	})
+	local data = string.format("%s %s", "UPDATESTATE", str)
 	
-	if str.pass == "" then
-		str.pass = nil
-	end
-	
-	if str.pass then
-		pass = true
-	end
-	
-	while true do
-		local r = math.random(999999)
-		
-		if not self.games[r] then
-			self.games[r] = {
-				state		= "lobby",
-				name		= str.name,
-				pass		= str.pass,
-				host		= self.players[id].name,
-				players		= {},
-			}
-			
-			self.serverlist[r] = {
-				name	= str.name,
-				host	= self.players[id].name,
-				state	= "lobby",
-				players	= 0,
-				pass	= pass,
-			}
-			
-			local data = json.encode({id=r})
-			self:joinGame(data, clientId)
-			
-			break
-		end
-	end
-end
-
---[[
-	Join Game
-	
-	params			= Unique game ID
-	clientId		= Unique client ID
-]]--
-function Server:joinGame(params, clientId)
-	local id = tostring(clientId)
-	local game = json.decode(params)
-	
-	self.players[id].game = game.id
-	self.games[game.id].players[id] = self.players[id]
-	self.serverlist[game.id].players = self.serverlist[game.id].players + 1
-	
-	local str = json.encode(self.games[game.id])
-	local data = string.format("%s %s", "UPDATEGAME", str)
-	self.connection:send(data, clientId)
-end
-
---[[
-	Send Server List
-	clientId		= Unique client ID
-]]--
-function Server:sendServerList(clientId)
-	local str = json.encode(self.serverlist)
-	local data = string.format("%s %s", "SERVERLIST", str)
-	
-	self.connection:send(data, clientId)
+	self.connection:send(data)
 end

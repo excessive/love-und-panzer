@@ -109,7 +109,8 @@ local function load(self)
 		client:send(data)
 		
 		self.next.data = {}
-		self.next.screen = "lobby"
+		--self.next.screen = "lobby"
+		self.next.screen = "gameplay"
 	end
 	
 	-- Server List
@@ -184,7 +185,8 @@ local function update(self, dt)
 				client:send(data)
 				
 				self.next.data = {}
-				self.next.screen = "lobby"
+				--self.next.screen = "lobby"
+				self.next.screen = "gameplay"
 			end
 			
 			if properties.pass then
