@@ -21,11 +21,8 @@ Tank = Class {
 	]]--
 	function(self, map, collision, image, w, h, x, y, r, tr, speed, turnSpeed, reloadSpeed, ammo)
 		self.colour = {
-			red		= 0,
-			green	= 1,
-			yellow	= 2,
-			cyan	= 3,
-			magenta	= 4,
+			pink = 0,
+			blue = 1,
 		}
 		
 		self.map			= map
@@ -44,14 +41,14 @@ Tank = Class {
 		self.tr				= tr 
 		
 		self.sprites		= {}
-		self:newSprite("idle",		self.image, self.w, self.h, 0, self.colour.red, 1, 0.1)
-		self:newSprite("forward",	self.image, self.w, self.h, 0, self.colour.red, 4, 0.1)
-		self:newSprite("backward",	self.image, self.w, self.h, 0, self.colour.red, 4, 0.1)
-		self:newSprite("turnLeft",	self.image, self.w, self.h, 4, self.colour.red, 4, 0.1)
-		self:newSprite("turnRight",	self.image, self.w, self.h, 4, self.colour.red, 4, 0.1)
+		self:newSprite("idle",		self.image, self.w, self.h, 0, self.colour.pink, 1, 0.03)
+		self:newSprite("forward",	self.image, self.w, self.h, 0, self.colour.pink, 4, 0.03)
+		self:newSprite("backward",	self.image, self.w, self.h, 0, self.colour.pink, 4, 0.03)
+		self:newSprite("turnLeft",	self.image, self.w, self.h, 4, self.colour.pink, 4, 0.03)
+		self:newSprite("turnRight",	self.image, self.w, self.h, 4, self.colour.pink, 4, 0.03)
 		self.facing			= "idle"
 		
-		self.turret		= love.graphics.newQuad(self.colour.red * 24, 320, 24, 77, 512, 512)
+		self.turret		= love.graphics.newQuad(self.colour.pink * 24, 128, 24, 77, 512, 256)
 		
 		self.bullet			= Bullet(map, collision, "assets/sprites/bullet.png", 16, 16, 5)
 		self.ammo			= ammo
