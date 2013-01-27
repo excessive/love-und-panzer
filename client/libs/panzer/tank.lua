@@ -41,16 +41,16 @@ Tank = Class {
 		self.tr				= tr 
 		
 		self.sprites		= {}
-		self:newSprite("idle",		self.image, self.w, self.h, 0, self.colour.pink, 1, 0.03)
-		self:newSprite("forward",	self.image, self.w, self.h, 0, self.colour.pink, 4, 0.03)
-		self:newSprite("backward",	self.image, self.w, self.h, 0, self.colour.pink, 4, 0.03)
-		self:newSprite("turnLeft",	self.image, self.w, self.h, 4, self.colour.pink, 4, 0.03)
-		self:newSprite("turnRight",	self.image, self.w, self.h, 4, self.colour.pink, 4, 0.03)
+		self:newSprite("idle",		self.image, self.w, self.h, 0, self.colour.pink, 1, self.colour.pink, 0.03)
+		self:newSprite("forward",	self.image, self.w, self.h, 3, self.colour.pink, -1, self.colour.pink, 0.03)
+		self:newSprite("backward",	self.image, self.w, self.h, 0, self.colour.pink, 4, self.colour.pink, 0.03)
+		self:newSprite("turnLeft",	self.image, self.w, self.h, 4, self.colour.pink, 8, self.colour.pink, 0.03)
+		self:newSprite("turnRight",	self.image, self.w, self.h, 7, self.colour.pink, 3, self.colour.pink, 0.03)
 		self.facing			= "idle"
 		
-		self.turret		= love.graphics.newQuad(self.colour.pink * 24, 128, 24, 77, 512, 256)
+		self.turret		= love.graphics.newQuad(self.colour.pink * 32, 128, 32, 64, 512, 256)
 		
-		self.bullet			= Bullet(map, collision, "assets/sprites/bullet.png", 16, 16, 5)
+		self.bullet			= Bullet(map, collision, "assets/sprites/bullet.png", 4, 4, 5)
 		self.ammo			= ammo
 		self.reload			= 0
 	end
@@ -74,7 +74,7 @@ end
 function Tank:draw()
 	self.bullet:draw()
 	self.sprites[self.facing].image:draw(math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.r + 90)), 1, 1, self.w / 2, self.h / 2)
-	love.graphics.drawq(self.image, self.turret, math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.tr + 90)), 1, 1, 12, 65)
+	love.graphics.drawq(self.image, self.turret, math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.tr + 90)), 1, 1, 16, 48)
 end
 
 --[[
@@ -83,18 +83,25 @@ end
 	name	- Name of sprite
 	img		- Spritemap
 	w		- Sprite width
-	h		- Spright height
-	ox		- Frame Offset: X
-	oy		- Frame Offset: Y
-	f		- Number of frames
+	h		- Sprite height
+	sx		- Staert Frame: X
+	sy		- Start Frame: Y
+	ex		- End Frame: X
+	ey		- End Frame: Y
 	ft		- Time to display each frame (in seconds)
 ]]--
-function Tank:newSprite(name, img, w, h, ox, oy, f, ft)
+function Tank:newSprite(name, img, w, h, sx, sy, ex, ey, ft)
 	local a = newAnimation(img, w, h, ft, 1)
 	a.frames = {}
 	
-	for i = 0, f - 1 do
-		a:addFrame(i * w + ox * w, oy * h, w, h, ft)
+	while sx ~= ex do
+		a:addFrame(sx * w, sy * h, w, h, ft)
+		
+		if sx < ex then
+			sx = sx + 1
+		else
+			sx = sx - 1
+		end
 	end
 	
 	self.sprites[name] = {}
