@@ -38,19 +38,22 @@ local function load(self)
 	local spriteLayer = self.map:newCustomLayer("Sprites", 4)
 	function spriteLayer:draw()
 		self.player:draw()
+		
+		for id, state in pairs(self.players) do
+			self.players[id]:draw()
+		end
 	end
 
 	-- Create Collision Map
 	self.collisionMap = createCollisionMap(self.map, "Collision")
 
 	-- Initialize Player
-	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, 4, 4, 0, 0, 2, 30, 5, 10)
+	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, 64, 64, 0, 0, 2, 30, 5, 10)
+	self.players = {}
 	
-	-- Initialize Players
-	-------------------------------------self.players[id] = Tank()
-	
-	-- Link Player to Sprites Layer
+	-- Link Players to Sprites Layer
 	self.map.layers.Sprites.player = self.player
+	self.map.layers.Sprites.players = self.players
 end
 
 local function update(self, dt)
@@ -61,6 +64,11 @@ local function update(self, dt)
 	
 	-- Receive Data
 	client:update(dt)
+	
+	-- Initialize Players
+	for id, state in pairs(client.state.players) do
+		self.players[id] = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, state.x, state.y, state.r, state.tr, 2, 30, 5, 10)
+	end
 	
 	-- Update Global Chat
 	if client.chat.global then
@@ -125,7 +133,7 @@ local function update(self, dt)
 				r	= self.player.r,
 				tr	= self.player.tr,
 			})
-			local data = string.format("%s %s", "UPDATESTATE", str)
+			local data = string.format("%s %s", "UPDATEPLAYERSTATE", str)
 			client:send(data)
 		end
 		

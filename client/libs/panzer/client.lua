@@ -5,6 +5,7 @@ require "libs.LUBE"
 Client = Class {
     function(self)
 		self.chat = {}
+		self.state = {}
 	end
 }
 
@@ -39,8 +40,10 @@ function Client:recv(data)
 		
 		if cmd == "CHAT" then
 			self:postChat(params)
-		elseif cmd == "UPDATESTATE" then
-			self:updateState(params)
+		elseif cmd == "SETSTATE" then
+			self:setState(params)
+		elseif cmd == "UPDATEPLAYERSTATE" then
+			self:updatePlayerState(params)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -87,6 +90,14 @@ end
 	
 	params			= TBA
 ]]--
-function Client:updateState(params)
-	self.updatestate = json.decode(params)
+function Client:updatePlayerState(params)
+	local state = json.decode(params)
+	self.state.players[state.id].x = state.x
+	self.state.players[state.id].y = state.y
+	self.state.players[state.id].r = state.r
+	self.state.players[state.id].tr = state.tr
+end
+
+function Client:setState(params)
+	self.state = json.decode(params)
 end

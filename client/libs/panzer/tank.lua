@@ -35,8 +35,8 @@ Tank = Class {
 		self.w				= w
 		self.h				= h
 		
-		self.x				= x * self.map.tileWidth
-		self.y				= y * self.map.tileHeight
+		self.x				= x
+		self.y				= y
 		self.r				= r
 		self.tr				= tr 
 		
@@ -72,8 +72,8 @@ end
 	Draw Tank
 ]]--
 function Tank:draw()
-	self.sprites[self.facing].image:draw(math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.r + 90)), 1, 1, self.w / 2, self.h / 2)
 	self.bullet:draw()
+	self.sprites[self.facing].image:draw(math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.r + 90)), 1, 1, self.w / 2, self.h / 2)
 	love.graphics.drawq(self.image, self.turret, math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.tr + 90)), 1, 1, 12, 65)
 end
 

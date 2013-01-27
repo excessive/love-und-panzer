@@ -4,7 +4,43 @@ require "libs.LUBE"
 
 Server = Class {
     function(self)
-		self.players	= {}
+		self.state = {
+			screen = "lobby",
+			players = {
+				--[[
+					id = {,		-- Client ID
+						-- GENERAL INFO
+						name,	-- Player Name
+						team,	-- Player Team
+						host,	-- Host?
+						
+						-- LOBBY INFO
+						ready,	-- Ready?
+						
+						-- GAME INFO
+						x,		-- X Position
+						y,		-- Y Position
+						r,		-- Hull Rotation
+						tr,		-- Turret Rotation
+						hp,		-- Hit Points
+						cd,		-- Cool Down
+					},
+				]]--
+			},
+			options = {
+				--[[
+					tk,		-- Team Kill
+					fow,	-- Fog of War
+					type,	-- Game Type
+				]]--
+			},
+			map = {
+				--[[
+					name,	-- Map Name
+					col,	-- Collision Map
+				]]--
+			},
+		}
 		
 		self.t			= 0
 		self.lt			= 0
@@ -53,7 +89,7 @@ function Server:disconnect(clientId)
 	})
 	self:sendChat(str, clientId)
 	
-	self.players[tostring(clientId)] = nil
+	self.state.players[tostring(clientId)] = nil
 end
 
 --[[
@@ -72,8 +108,8 @@ function Server:recv(data, clientId)
 			self:clientConnect(params, clientId)
 		elseif cmd == "CHAT" then
 			self:sendChat(params, clientId)
-		elseif cmd == "UPDATESTATE" then
-			self:updateState(params, clientId)
+		elseif cmd == "UPDATEPLAYERSTATE" then
+			self:updatePlayerState(params, clientId)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -105,9 +141,17 @@ function Server:clientConnect(params, clientId)
 	local id = tostring(clientId)
 	local client = json.decode(params)
 	
-	self.players[id] = {
+	self.state.players[id] = {
 		name	= client.name,
 		team	= 0,
+		host	= false,
+		ready	= false,
+		
+		-- debug
+		x = 128,
+		y = 128,
+		r = 30,
+		tr = 45,
 	}
 	
 	local str = json.encode({
@@ -115,6 +159,7 @@ function Server:clientConnect(params, clientId)
 		msg = "has connected.",
 	})
 	
+	self:sendState(clientId)
 	self:sendChat(str, clientId)
 end
 
@@ -129,14 +174,14 @@ function Server:sendChat(params, clientId)
 	local chat = json.decode(params)
 	local str = json.encode({
 		scope = chat.scope,
-		msg = self.players[id].name .. ": " .. chat.msg,
+		msg = self.state.players[id].name .. ": " .. chat.msg,
 	})
 	local data = string.format("%s %s", "CHAT", str)
 	
 	self.connection:send(data)
 end
 
-function Server:updateState(params, clientId)
+function Server:updatePlayerState(params, clientId)
 	local id = tostring(clientId)
 	local state = json.decode(params)
 	local str = json.encode({
@@ -146,7 +191,13 @@ function Server:updateState(params, clientId)
 		r		= state.r,
 		tr		= state.tr,
 	})
-	local data = string.format("%s %s", "UPDATESTATE", str)
+	local data = string.format("%s %s", "UPDATEPLAYERSTATE", str)
 	
+	self.connection:send(data)
+end
+
+function Server:sendState(clientId)
+	local str = json.encode(self.state)
+	local data = string.format("%s %s", "SETSTATE", str)
 	self.connection:send(data)
 end
