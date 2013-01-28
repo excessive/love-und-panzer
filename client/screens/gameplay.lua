@@ -197,8 +197,8 @@ local function keypressed(self, k, unicode)
 	loveframes.keypressed(k, unicode)
 end
 
-local function keyreleased(self, k, unicode)
-	loveframes.keyreleased(k, unicode)
+local function keyreleased(self, k)
+	loveframes.keyreleased(k)
 end
 
 local function mousepressed(self, x, y, button)

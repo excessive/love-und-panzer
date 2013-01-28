@@ -84,8 +84,8 @@ function love.keypressed(k, unicode)
 	layers:each("keypressed", k, unicode)
 end
 
-function love.keyreleased(k, unicode)
-	layers:each("keyreleased", k, unicode)
+function love.keyreleased(k)
+	layers:each("keyreleased", k)
 end
 
 function love.mousepressed(x, y, button)
