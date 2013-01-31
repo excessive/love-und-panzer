@@ -20,6 +20,11 @@ local function createCollisionMap(map, layer)
 end
 
 local function load(self)
+	---------------------------------
+	gui.lobby.players.group:SetVisible(false)
+	gui.lobby.ready.button:SetVisible(false)
+	---------------------------------
+	
 	gui.gameplay = {}
 
 	-- Tick
@@ -47,9 +52,14 @@ local function load(self)
 	-- Create Collision Map
 	self.collisionMap = createCollisionMap(self.map, "Collision")
 
-	-- Initialize Player
-	self.player = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, 64, 64, 0, 0, 2, 30, 5, 10)
-	self.players = {}
+	-- Initialize Players
+	for id, state in pairs(client.state.players) do
+		if id ~= client.id then
+			self.players[id]	= Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, state.x, state.y, state.r, state.tr, 2, 30, 5, 10)
+		else
+			self.player			= Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, state.x, state.y, state.r, state.tr, 2, 30, 5, 10)
+		end
+	end
 	
 	-- Link Players to Sprites Layer
 	self.map.layers.Sprites.player = self.player
@@ -64,11 +74,6 @@ local function update(self, dt)
 	
 	-- Receive Data
 	client:update(dt)
-	
-	-- Initialize Players
-	for id, state in pairs(client.state.players) do
-		self.players[id] = Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, state.x, state.y, state.r, state.tr, 2, 30, 5, 10)
-	end
 	
 	-- Update Global Chat
 	if client.chat.global then

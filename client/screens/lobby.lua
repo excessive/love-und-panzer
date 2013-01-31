@@ -64,12 +64,94 @@ local function load(self)
 
 	
 	--[[ Lobby UI Elements ]]--
+	gui.lobby = {
+		players = {slots = {}},
+		options = {},
+		ready = {},
+	}
 	
-	gui.lobby = {}
+	gui.lobby.players.group = loveframes.Create("panel")
+	gui.lobby.players.group:SetSize(300, 400)
+	gui.lobby.players.group:SetPos(0, 0)
+	
+	gui.lobby.ready.button = loveframes.Create("button")
+	gui.lobby.ready.button:SetSize(100, 40)
+	gui.lobby.ready.button:SetPos(500, 500)
+	gui.lobby.ready.button:SetText("Ready")
+	gui.lobby.ready.button.OnClick = function()
+		local str = nil
+		
+		if client.state.players[client.id].ready then
+			str = json.encode({ready = false})
+		else
+			str = json.encode({ready = true})
+		end
+		
+		local data = string.format("%s %s", "READY", str)
+		client.connection:send(data)
+	end
+	
 end
 
 local function update(self, dt)
 	client:update(dt)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	local count = 1
+	for id, property in pairs(client.state.players) do
+		gui.lobby.players.slots[id] = {}
+		gui.lobby.players.slots[id].group = loveframes.Create("panel", gui.lobby.players.group)
+		gui.lobby.players.slots[id].group:SetSize(300, 40)
+		gui.lobby.players.slots[id].group:SetPos(0, 40*count)
+		
+		gui.lobby.players.slots[id].ready = loveframes.Create("image", gui.lobby.players.slots[id].group)
+		gui.lobby.players.slots[id].ready:SetPos(0, 0)
+		
+		if property.host then
+			gui.lobby.players.slots[id].ready:SetImage("assets/images/host.png")
+		elseif property.ready then
+			if property.team == 1 then
+				gui.lobby.players.slots[id].ready:SetImage("assets/images/check-pink.png")
+			else
+				gui.lobby.players.slots[id].ready:SetImage("assets/images/check-blue.png")
+			end
+		else
+			gui.lobby.players.slots[id].ready:SetImage("assets/images/block-blue.png")
+		end
+		
+		gui.lobby.players.slots[id].name = loveframes.Create("text", gui.lobby.players.slots[id].group)
+		gui.lobby.players.slots[id].name:SetSize(100, 20)
+		gui.lobby.players.slots[id].name:SetPos(32, 0)
+		gui.lobby.players.slots[id].name:SetText(property.name)
+		
+		gui.lobby.players.slots[id].team = loveframes.Create("text", gui.lobby.players.slots[id].group)
+		gui.lobby.players.slots[id].team:SetSize(20, 20)
+		gui.lobby.players.slots[id].team:SetPos(200, 0)
+		gui.lobby.players.slots[id].team:SetText(property.team)
+		
+		count = count + 1
+	end
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	-- Update Global Chat
 	if client.chat.global then
@@ -97,14 +179,15 @@ local function update(self, dt)
 		client.updategame = nil
 	end
 	
+	if client.state.players[client.id].x then
+		--self.next.screen = "gameplay"
+	end
+	
 	loveframes.update(dt)
 end
 
 local function draw(self)
 	loveframes.draw()
-	
-	-- Debug
-	self.next.screen = "gameplay"
 end
 
 local function keypressed(self, k, unicode)

@@ -54,7 +54,6 @@ local function load(self)
 		client:connect(gui.title.inputHost:GetText(), gui.title.inputPort:GetText())
 		
 		if client.connection.connected then
-			self.next.screen = "lobby"
 			_G.settings.name = gui.title.inputName:GetText()
 			
 			local data = string.format("%s %s", "CONNECT", json.encode({name = _G.settings.name}))
@@ -102,7 +101,14 @@ local function load(self)
 end
 
 local function update(self, dt)
-	if client then client:update(dt) end
+	if client then
+		client:update(dt)
+		
+		if client.state.players then
+			self.next.screen = "lobby"
+		end
+	end
+	
 	loveframes.update(dt)
 end
 

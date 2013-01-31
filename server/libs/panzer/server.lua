@@ -32,6 +32,7 @@ Server = Class {
 					tk,		-- Team Kill
 					fow,	-- Fog of War
 					type,	-- Game Type
+					max,	-- Max Players
 				]]--
 			},
 			map = {
@@ -110,6 +111,8 @@ function Server:recv(data, clientId)
 			self:sendChat(params, clientId)
 		elseif cmd == "UPDATEPLAYERSTATE" then
 			self:updatePlayerState(params, clientId)
+		elseif cmd == "READY" then
+			self:updatePlayerReady(params, clientId)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -143,7 +146,7 @@ function Server:clientConnect(params, clientId)
 	
 	self.state.players[id] = {
 		name	= client.name,
-		team	= 0,
+		team	= 1,
 		host	= false,
 		ready	= false,
 		
@@ -159,6 +162,7 @@ function Server:clientConnect(params, clientId)
 		msg = "has connected.",
 	})
 	
+	self:sendClientId(clientId)
 	self:sendState(clientId)
 	self:sendChat(str, clientId)
 end
@@ -184,6 +188,12 @@ end
 function Server:updatePlayerState(params, clientId)
 	local id = tostring(clientId)
 	local state = json.decode(params)
+	
+	self.state.players[id].x = state.x
+	self.state.players[id].y = state.y
+	self.state.players[id].r = state.r
+	self.state.players[id].tr = state.tr
+	
 	local str = json.encode({
 		id		= id,
 		x		= state.x,
@@ -199,5 +209,23 @@ end
 function Server:sendState(clientId)
 	local str = json.encode(self.state)
 	local data = string.format("%s %s", "SETSTATE", str)
+	self.connection:send(data)
+end
+
+function Server:sendClientId(clientId)
+	local id = tostring(clientId)
+	local str = json.encode({id=id})
+	local data = string.format("%s %s", "WHOAMI", str)
+	self.connection:send(data, clientId)
+end
+
+function Server:updatePlayerReady(params, clientId)
+	local id = tostring(clientId)
+	local ready = json.decode(params)
+	local str = json.encode({
+		id = id,
+		ready = ready.ready,
+	})
+	local data = string.format("%s %s", "READY", str)
 	self.connection:send(data)
 end

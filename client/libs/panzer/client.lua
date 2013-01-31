@@ -44,6 +44,10 @@ function Client:recv(data)
 			self:setState(params)
 		elseif cmd == "UPDATEPLAYERSTATE" then
 			self:updatePlayerState(params)
+		elseif cmd == "WHOAMI" then
+			self:setClientId(params)
+		elseif cmd == "READY" then
+			self:setPlayerReady(params)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -100,4 +104,14 @@ end
 
 function Client:setState(params)
 	self.state = json.decode(params)
+end
+
+function Client:setClientId(params)
+	local str = json.decode(params)
+	self.id = str.id
+end
+
+function Client:setPlayerReady(params)
+	local state = json.decode(params)
+	client.state.players[state.id].ready = state.ready
 end
