@@ -138,7 +138,7 @@ local function update(self, dt)
 				r	= self.player.r,
 				tr	= self.player.tr,
 			})
-			local data = string.format("%s %s", "UPDATEPLAYERSTATE", str)
+			local data = string.format("%s %s", "UPDATE_PLAYER", str)
 			client:send(data)
 		end
 		

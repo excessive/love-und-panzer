@@ -22,12 +22,13 @@ end
 
 if hate then
 	love.load()
-	t2 = os.clock()
+	t2 = socket.gettime()
 	
 	while true do
-		t1 = os.clock()
+		t1 = socket.gettime()
 		server:update(t1-t2)
 		t2 = t1
+		socket.sleep(0.001)
 		
 		if _G.quit then return end
 	end

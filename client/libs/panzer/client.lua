@@ -38,16 +38,8 @@ function Client:recv(data)
 	if data then
 		cmd, params = data:match("^(%S*) (.*)")
 		
-		if cmd == "CHAT" then
-			self:postChat(params)
-		elseif cmd == "SETSTATE" then
-			self:setState(params)
-		elseif cmd == "UPDATEPLAYERSTATE" then
-			self:updatePlayerState(params)
-		elseif cmd == "WHOAMI" then
-			self:setClientId(params)
-		elseif cmd == "READY" then
-			self:setPlayerReady(params)
+		if self.recvcommands[cmd] then
+			self.recvcommands[cmd](self, params)
 		else
 			print("Unrecognized command: ", cmd)
 		end
@@ -56,8 +48,6 @@ end
 
 --[[
 	Update Client
-	
-	dt				= Delta time
 ]]--
 function Client:update(dt)
 	self.connection:update(dt)
@@ -65,53 +55,52 @@ end
 
 --[[
 	Send Data to Server
-	
-	data			= Data to send
 ]]--
 function Client:send(data)
 	self.connection:send(data)
 end
 
 --[[
-	Post Chat Message
-	
-	params			= Scope, Message
+	Client Commands
 ]]--
-function Client:postChat(params)
-	local chat = json.decode(params)
+Client.recvcommands = {
 	
-	if chat.scope == "GLOBAL" then
-		self.chat.global = chat.msg
-	elseif chat.scope == "GAME" then
-		self.chat.game = chat.msg
-	elseif chat.scope == "TEAM" then
-		self.chat.team = chat.msg
-	end
-end
-
---[[
-	Update Game State
+	-- Post Chat Message
+	CHAT				= function(self, params)
+		local chat = json.decode(params)
+		
+		if chat.scope == "GLOBAL" then
+			self.chat.global = chat.msg
+		elseif chat.scope == "GAME" then
+			self.chat.game = chat.msg
+		elseif chat.scope == "TEAM" then
+			self.chat.team = chat.msg
+		end
+	end,
 	
-	params			= TBA
-]]--
-function Client:updatePlayerState(params)
-	local state = json.decode(params)
-	self.state.players[state.id].x = state.x
-	self.state.players[state.id].y = state.y
-	self.state.players[state.id].r = state.r
-	self.state.players[state.id].tr = state.tr
-end
-
-function Client:setState(params)
-	self.state = json.decode(params)
-end
-
-function Client:setClientId(params)
-	local str = json.decode(params)
-	self.id = str.id
-end
-
-function Client:setPlayerReady(params)
-	local state = json.decode(params)
-	client.state.players[state.id].ready = state.ready
-end
+	-- Confirm Ready to Play
+	READY				= function(self, params)
+		local state = json.decode(params)
+		client.state.players[state.id].ready = state.ready
+	end,
+	
+	-- Update Player Data
+	UPDATE_PLAYER		= function(self, params)
+		local state = json.decode(params)
+		self.state.players[state.id].x = state.x
+		self.state.players[state.id].y = state.y
+		self.state.players[state.id].r = state.r
+		self.state.players[state.id].tr = state.tr
+	end,
+	
+	-- Set State
+	SET_STATE			= function(self, params)
+		self.state = json.decode(params)
+	end,
+	
+	-- Set ID
+	WHO_AM_I			= function(self, params)
+		local str = json.decode(params)
+		self.id = str.id
+	end,
+}
