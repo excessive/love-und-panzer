@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- list class
@@ -25,11 +25,13 @@ function newobject:initialize()
 	self.extrawidth = 0
 	self.extraheight = 0
 	self.buttonscrollamount = 0.10
-	self.mousewheelscrollamount = 5
+	self.mousewheelscrollamount = 10
 	self.internal = false
 	self.hbar = false
 	self.vbar = false
 	self.autoscroll = false
+	self.horizontalstacking = false
+	self.dtscrolling = false
 	self.internals = {}
 	self.children = {}
 	self.OnScroll = nil
@@ -41,6 +43,13 @@ end
 	- desc: updates the object
 --]]---------------------------------------------------------
 function newobject:update(dt)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	local alwaysupdate 	= self.alwaysupdate
@@ -55,6 +64,7 @@ function newobject:update(dt)
 	local children = self.children
 	local display = self.display
 	local parent = self.parent
+	local horizontalstacking = self.horizontalstacking
 	local base = loveframes.base
 	local update = self.Update
 	
@@ -70,11 +80,18 @@ function newobject:update(dt)
 		v:update(dt)
 	end
 	
+	local x = self.x
+	local y = self.y
+	local width = self.width
+	local height = self.height
+	local offsetx = self.offsetx
+	local offsety = self.offsety
+	
 	for k, v in ipairs(children) do
 		v:update(dt)
-		v:SetClickBounds(self.x, self.y, self.width, self.height)
-		v.y = (v.parent.y + v.staticy) - self.offsety
-		v.x = (v.parent.x + v.staticx) - self.offsetx
+		v:SetClickBounds(x, y, width, height)
+		v.x = (v.parent.x + v.staticx) - offsetx
+		v.y = (v.parent.y + v.staticy) - offsety
 		if display == "vertical" then
 			if v.lastheight ~= v.height then
 				self:CalculateSize()
@@ -95,15 +112,26 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
 		return
 	end
 
+	local x = self.x
+	local y = self.y
+	local width = self.width
+	local height = self.height
 	local internals = self.internals
 	local children = self.children
-	local stencilfunc = function() love.graphics.rectangle("fill", self.x, self.y, self.width, self.height) end
+	local stencilfunc = function() love.graphics.rectangle("fill", x, y, width, height) end
 	local stencil = love.graphics.newStencil(stencilfunc)
 	local skins = loveframes.skins.available
 	local skinindex = loveframes.config["ACTIVESKIN"]
@@ -127,8 +155,8 @@ function newobject:draw()
 	love.graphics.setStencil(stencil)
 		
 	for k, v in ipairs(children) do
-		local col = loveframes.util.BoundingBox(self.x, v.x, self.y, v.y, self.width, v.width, self.height, v.height)
-		if col == true then
+		local col = loveframes.util.BoundingBox(x, v.x, y, v.y, width, v.width, height, v.height)
+		if col then
 			v:draw()
 		end
 	end
@@ -150,6 +178,13 @@ end
 	- desc: called when the player presses a mouse button
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	
@@ -175,10 +210,20 @@ function newobject:mousepressed(x, y, button)
 	if vbar or hbar then
 		if toplist then
 			local bar = self:GetScrollBar()
-			if button == "wu" then
-				bar:Scroll(-scrollamount)
-			elseif button == "wd" then
-				bar:Scroll(scrollamount)
+			local dtscrolling = self.dtscrolling
+			if dtscrolling then
+				local dt = love.timer.getDelta()
+				if button == "wu" then
+					bar:Scroll(-scrollamount * dt)
+				elseif button == "wd" then
+					bar:Scroll(scrollamount * dt)
+				end
+			else
+				if button == "wu" then
+					bar:Scroll(-scrollamount)
+				elseif button == "wd" then
+					bar:Scroll(scrollamount)
+				end
 			end
 		end
 	end
@@ -205,26 +250,38 @@ function newobject:AddItem(object)
 
 	local children = self.children
 	
-	-- remove the item object from it's current parent and make it's new parent the list object
+	-- remove the item object from its current parent and make its new parent the list object
 	object:Remove()
 	object.parent = self
+	object.state = self.state
 	
 	-- insert the item object into the list object's children table
 	table.insert(children, object)
 	
-	-- resize the list and redo it's layout
+	-- resize the list and redo its layout
 	self:CalculateSize()
 	self:RedoLayout()
 	
 end
 
 --[[---------------------------------------------------------
-	- func: RemoveItem(object)
+	- func: RemoveItem(object or number)
 	- desc: removes an item from the object
 --]]---------------------------------------------------------
-function newobject:RemoveItem(object)
+function newobject:RemoveItem(data)
 
-	object:Remove()
+	local dtype = type(data)
+	
+	if dtype == "number" then
+		local children = self.children
+		local item = children[data]
+		if item then
+			item:Remove()
+		end
+	else
+		data:Remove()
+	end
+	
 	self:CalculateSize()
 	self:RedoLayout()
 	
@@ -248,12 +305,39 @@ function newobject:CalculateSize()
 	local hbar = self.hbar
 	local internals = self.internals
 	local children = self.children
+	local horizontalstacking = self.horizontalstacking
 	
 	if display == "vertical" then
-		for k, v in ipairs(self.children) do
-			itemheight = itemheight + v.height + spacing
+		if horizontalstacking then
+			local curwidth = 0
+			local maxwidth = width - padding * 2
+			local prevheight = 0
+			local scrollbar = self:GetScrollBar()
+			if scrollbar then
+				maxwidth = maxwidth - scrollbar.width
+			end
+			for k, v in ipairs(children) do
+				if v.height > prevheight then
+					prevheight = v.height
+				end
+				curwidth = curwidth + v.width + spacing
+				if children[k + 1] then
+					if curwidth + children[k + 1].width > maxwidth then
+						curwidth = padding
+						itemheight = itemheight + prevheight + spacing
+						prevheight = 0
+					end
+				else
+					itemheight = itemheight + prevheight + padding
+				end
+			end
+			self.itemheight = itemheight
+		else
+			for k, v in ipairs(children) do
+				itemheight = itemheight + v.height + spacing
+			end
+			self.itemheight = (itemheight - spacing) + padding
 		end
-		self.itemheight = (itemheight - spacing) + padding
 		local itemheight = self.itemheight
 		if itemheight > height then
 			self.extraheight = itemheight - height
@@ -303,7 +387,10 @@ end
 --]]---------------------------------------------------------
 function newobject:RedoLayout()
 	
+	local width = self.width
+	local height = self.height
 	local children = self.children
+	local internals = self.internals
 	local padding = self.padding
 	local spacing = self.spacing
 	local starty = padding
@@ -311,48 +398,91 @@ function newobject:RedoLayout()
 	local vbar = self.vbar
 	local hbar = self.hbar
 	local display = self.display
+	local horizontalstacking = self.horizontalstacking
+	local scrollbody, scrollbodywidth, scrollbodyheight
+	
+	if vbar or hbar then
+		scrollbody = internals[1]
+		scrollbodywidth = scrollbody.width
+		scrollbodyheight = scrollbody.height
+	end
 	
 	if #children > 0 then
-		for k, v in ipairs(children) do
-			if display == "vertical" then
-				local height = v.height
-				v.staticx = padding
-				v.staticy = starty
-				v.lastheight = v.height
-				if vbar then
-					if v.width + padding > (self.width - self.internals[1].width) then
-						v:SetWidth((self.width - self.internals[1].width) - (padding*2))
+		if display == "vertical" then
+			if horizontalstacking then
+				local curwidth = padding
+				local curheight = padding
+				local maxwidth = self.width - padding * 2
+				local prevheight = 0
+				local scrollbar = self:GetScrollBar()
+				if scrollbar then
+					maxwidth = maxwidth - scrollbar.width
+				end
+				for k, v in ipairs(children) do
+					local itemheight = v.height
+					v.lastheight = itemheight
+					v.staticx = curwidth
+					v.staticy = curheight
+					if v.height > prevheight then
+						prevheight = v.height
 					end
-					if not v.retainsize then
-						v:SetWidth((self.width - self.internals[1].width) - (padding*2))
-					end
-					self.internals[1].staticx = self.width - self.internals[1].width
-					self.internals[1].height = self.height
-				else
-					if not v.retainsize then
-						v:SetWidth(self.width - (padding*2))
+					if children[k + 1] then
+						curwidth = curwidth + v.width + spacing
+						if curwidth + (children[k + 1].width) > maxwidth then
+							curwidth = padding
+							curheight = curheight + prevheight + spacing
+							prevheight = 0
+						end
 					end
 				end
-				starty = starty + v.height
-				starty = starty + spacing
-			elseif display == "horizontal" then
+			else
+				for k, v in ipairs(children) do
+					local itemwidth = v.width
+					local itemheight = v.height
+					local retainsize = v.retainsize
+					v.staticx = padding
+					v.staticy = starty
+					v.lastheight = itemheight
+					if vbar then
+						if itemwidth + padding > (width - scrollbodywidth) then
+							v:SetWidth((width - scrollbodywidth) - (padding * 2))
+						end
+						if not retainsize then
+							v:SetWidth((width - scrollbodywidth) - (padding * 2))
+						end
+						scrollbody.staticx = width - scrollbodywidth
+						scrollbody.height = height
+					else
+						if not retainsize then
+							v:SetWidth(width - (padding * 2))
+						end
+					end
+					starty = starty + itemheight
+					starty = starty + spacing
+				end
+			end
+		elseif display == "horizontal" then
+			for k, v in ipairs(children) do
+				local itemwidth = v.width
+				local itemheight = v.height
+				local retainsize = v.retainsize
 				v.staticx = startx
 				v.staticy = padding
 				if hbar then
-					if v.height + padding > (self.height - self.internals[1].height) then
-						v:SetHeight((self.height - self.internals[1].height) - (padding*2))
+					if itemheight + padding > (height - scrollbodyheight) then
+						v:SetHeight((height - scrollbodyheight) - (padding * 2))
 					end
-					if not v.retainsize then
-						v:SetHeight((self.height - self.internals[1].height) - (padding*2))
+					if not retainsize then
+						v:SetHeight((height - scrollbodyheight) - (padding * 2))
 					end
-					self.internals[1].staticy = self.height - self.internals[1].height
-					self.internals[1].width = self.width
+					scrollbody.staticy = height - scrollbodyheight
+					scrollbody.width = width
 				else
-					if not v.retainsize then
-						v:SetHeight(self.height - (padding*2))
+					if not retainsize then
+						v:SetHeight(height - (padding * 2))
 					end
 				end
-				startx = startx + v.width
+				startx = startx + itemwidth
 				startx = startx + spacing
 			end
 		end
@@ -556,5 +686,56 @@ end
 function newobject:GetButtonScrollAmount()
 
 	return self.mousewheelscrollamount
+	
+end
+
+--[[---------------------------------------------------------
+	- func: EnableHorizontalStacking(bool)
+	- desc: enables or disables horizontal stacking
+--]]---------------------------------------------------------
+function newobject:EnableHorizontalStacking(bool)
+
+	local children = self.children
+	local numchildren = #children
+	
+	self.horizontalstacking = bool
+	
+	if numchildren > 0 then
+		self:CalculateSize()
+		self:RedoLayout()
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetHorizontalStacking()
+	- desc: gets whether or not the object allows horizontal
+			stacking
+--]]---------------------------------------------------------
+function newobject:GetHorizontalStacking()
+
+	return self.horizontalstacking
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetDTScrolling(bool)
+	- desc: sets whether or not the object should use delta
+			time when scrolling
+--]]---------------------------------------------------------
+function newobject:SetDTScrolling(bool)
+
+	self.dtscrolling = bool
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetDTScrolling()
+	- desc: gets whether or not the object should use delta
+			time when scrolling
+--]]---------------------------------------------------------
+function newobject:GetDTScrolling()
+
+	return self.dtscrolling
 	
 end

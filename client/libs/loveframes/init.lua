@@ -1,33 +1,38 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
+
+local path = ...
 
 -- central library table
 loveframes = {}
 
 -- library info
-loveframes.info                      = {}
-loveframes.info.author               = "Kenny Shields"
-loveframes.info.version              = "0.9.4.11"
-loveframes.info.stage                = "Alpha"
+loveframes.info = {}
+loveframes.info.author = "Kenny Shields"
+loveframes.info.version = "0.9.5.12"
+loveframes.info.stage = "Alpha"
 
 -- library configurations
-loveframes.config                    = {}
-loveframes.config["DIRECTORY"]       = "libs.loveframes"
-loveframes.config["DEFAULTSKIN"]     = "Blue"
-loveframes.config["ACTIVESKIN"]      = "Blue"
+loveframes.config = {}
+loveframes.config["DIRECTORY"] = nil
+loveframes.config["DEFAULTSKIN"] = "Blue"
+loveframes.config["ACTIVESKIN"] = "Blue"
 loveframes.config["INDEXSKINIMAGES"] = true
-loveframes.config["DEBUG"]           = false
+loveframes.config["DEBUG"] = false
 
 -- misc library vars
-loveframes.drawcount                 = 0
-loveframes.hoverobject               = false
-loveframes.modalobject               = false
-loveframes.inputobject               = false
-loveframes.basicfont                 = love.graphics.newFont(12)
-loveframes.basicfontsmall            = love.graphics.newFont(10)
-loveframes.objects                   = {}
+loveframes.state = "none"
+loveframes.drawcount = 0
+loveframes.collisioncount = 0
+loveframes.hoverobject = false
+loveframes.modalobject = false
+loveframes.inputobject = false
+loveframes.hover = false
+loveframes.basicfont = love.graphics.newFont(12)
+loveframes.basicfontsmall = love.graphics.newFont(10)
+loveframes.objects = {}
 
 --[[---------------------------------------------------------
 	- func: load()
@@ -36,7 +41,7 @@ loveframes.objects                   = {}
 function loveframes.load()
 	
 	-- install directory of the library
-	local dir = loveframes.config["DIRECTORY"]
+	local dir = loveframes.config["DIRECTORY"] or path
 	
 	-- require the internal base libraries
 	require(dir .. ".third-party.middleclass")
@@ -88,6 +93,9 @@ end
 function loveframes.update(dt)
 
 	local base = loveframes.base
+	
+	loveframes.collisioncount = 0
+	loveframes.hover = false
 	base:update(dt)
 
 end
@@ -99,10 +107,19 @@ end
 function loveframes.draw()
 
 	local base = loveframes.base
+	local r, g, b, a = love.graphics.getColor()
+	local font = love.graphics.getFont()
+	
 	base:draw()
 	
 	loveframes.drawcount = 0
 	loveframes.debug.draw()
+	
+	love.graphics.setColor(r, g, b, a)
+	
+	if font then
+		love.graphics.setFont(font)
+	end
 	
 end
 
@@ -226,7 +243,7 @@ function loveframes.Create(data, parent)
 				-- to the current object
 				for i, j in pairs(v) do
 					if i ~= "children" and i ~= "func" then
-						if child == true then
+						if child then
 							if i == "x" then
 								object["staticx"] = j
 							elseif i == "y" then
@@ -275,6 +292,27 @@ function loveframes.NewObject(id, name, inherit_from_base)
 	end
 	
 	return object
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetState(name)
+	- desc: sets the current state
+--]]---------------------------------------------------------
+function loveframes.SetState(name)
+
+	loveframes.state = name
+	loveframes.base.state = name
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetState()
+	- desc: gets the current state
+--]]---------------------------------------------------------
+function loveframes.GetState()
+
+	return loveframes.state
 	
 end
 

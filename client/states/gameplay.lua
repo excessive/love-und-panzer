@@ -1,5 +1,6 @@
-require "libs.screen"
 require "libs.panzer.tank"
+
+local gameplay = {}
 
 local function createCollisionMap(map, layer)
 	local w, h = map.width-1, map.height-1
@@ -19,7 +20,7 @@ local function createCollisionMap(map, layer)
 	return walk
 end
 
-local function load(self)
+function gameplay:enter(state)
 	---------------------------------
 	gui.lobby.players.group:SetVisible(false)
 	gui.lobby.ready.button:SetVisible(false)
@@ -66,7 +67,7 @@ local function load(self)
 	self.map.layers.Sprites.players = self.players
 end
 
-local function update(self, dt)
+function gameplay:update(dt)
 	local move		= 0
 	local turn		= 0
 	local turret	= 0
@@ -168,7 +169,7 @@ local function update(self, dt)
 	loveframes.update(dt)
 end
 
-local function draw(self)
+function gameplay:draw()
 	-- Draw World + Entities
 	love.graphics.push()
 	love.graphics.setColor(255, 255, 255, 255)
@@ -183,7 +184,7 @@ local function draw(self)
 	loveframes.draw()
 end
 
-local function keypressed(self, k, unicode)
+function gameplay:keypressed(key, unicode)
 	if not gui.chat.input:GetFocus() then
 		if k == " " then
 			self.player:shoot()
@@ -199,31 +200,19 @@ local function keypressed(self, k, unicode)
 		end
 	end
 	
-	loveframes.keypressed(k, unicode)
+	loveframes.keypressed(key, unicode)
 end
 
-local function keyreleased(self, k)
-	loveframes.keyreleased(k)
+function gameplay:keyreleased(key)
+	loveframes.keyreleased(key)
 end
 
-local function mousepressed(self, x, y, button)
+function gameplay:mousepressed(x, y, button)
 	loveframes.mousepressed(x, y, button)
 end
 
-local function mousereleased(self, x, y, button)
+function gameplay:mousereleased(x, y, button)
 	loveframes.mousereleased(x, y, button)
 end
 
-return function(data)
-	return Screen {
-		name			= "Gameplay",
-		load			= load,
-		update			= update,
-		draw			= draw,
-		keypressed		= keypressed,
-		keyreleased		= keyreleased,
-		mousepressed	= mousepressed,
-		mousereleased	= mousereleased,
-		data			= data
-	}
-end
+return gameplay

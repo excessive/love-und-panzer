@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- textinput class
@@ -10,9 +10,8 @@ local newobject = loveframes.NewObject("textinput", "loveframes_object_textinput
 	- func: initialize()
 	- desc: initializes the object
 --]]---------------------------------------------------------
-
 function newobject:initialize()
-
+	
 	self.type = "textinput"
 	self.keydown = "none"
 	self.tabreplacement = "        "
@@ -20,6 +19,8 @@ function newobject:initialize()
 	self.width = 200
 	self.height = 25
 	self.delay = 0
+	self.repeatdelay = 0.80
+	self.repeatrate = 0.02
 	self.offsetx = 0
 	self.offsety = 0
 	self.indincatortime = 0
@@ -71,6 +72,13 @@ end
 --]]---------------------------------------------------------
 function newobject:update(dt)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
 	
@@ -100,6 +108,7 @@ function newobject:update(dt)
 	local hbar = self.hbar
 	local inputobject = loveframes.inputobject
 	local internals = self.internals
+	local repeatrate = self.repeatrate
 	
 	-- move to parent if there is a parent
 	if parent ~= base then
@@ -116,11 +125,11 @@ function newobject:update(dt)
 	if keydown ~= "none" then
 		if time > delay then
 			self:RunKey(keydown, unicode)
-			self.delay = time + 0.02
+			self.delay = time + repeatrate
 		end
 	end
 	
-	-- psotion the object's text
+	-- position the object's text
 	self:PositionText()
 	
 	-- update the object's text insertion positon indicator
@@ -144,7 +153,7 @@ function newobject:update(dt)
 			self.itemwidth = twidth
 		end
 		if panel then
-			self.itemwidth = self.itemwidth + panel.width
+			self.itemwidth = self.itemwidth + panel.width + self.textoffsetx + 5
 		end
 		-- item height calculation
 		if hbar then
@@ -238,6 +247,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -292,6 +308,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -376,6 +399,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousereleased(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -396,6 +426,13 @@ end
 --]]---------------------------------------------------------
 function newobject:keypressed(key, unicode)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -406,8 +443,9 @@ function newobject:keypressed(key, unicode)
 	local lctrl = love.keyboard.isDown("lctrl")
 	local rctrl = love.keyboard.isDown("rctrl")
 	local focus = self.focus
+	local repeatdelay = self.repeatdelay
 	
-	self.delay = time + 0.80
+	self.delay = time + repeatdelay
 	self.keydown = key
 	
 	if (lctrl or rctrl) and focus then
@@ -426,6 +464,13 @@ end
 --]]---------------------------------------------------------
 function newobject:keyreleased(key)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -502,8 +547,8 @@ function newobject:RunKey(key, unicode)
 			if indicatorx >= (self.x + swidth) and indicatornum ~= #text then
 				local width = self.font:getWidth(text:sub(indicatornum, indicatornum))
 				self.offsetx = self.offsetx + width
-			elseif indicatornum == #text and self.offsetx ~= ((0 - font:getWidth(text)) + swidth) and font:getWidth(text) + self.textoffsetx > self.width then
-				self.offsetx = ((0 - font:getWidth(text)) + swidth)
+			elseif indicatornum == #text and self.offsetx ~= ((font:getWidth(text)) - swidth + 10) and font:getWidth(text) + self.textoffsetx > self.width then
+				self.offsetx = ((font:getWidth(text)) - swidth + 10)
 			end
 		else
 			if indicatornum == #text then
@@ -555,7 +600,7 @@ function newobject:RunKey(key, unicode)
 			if multiline then
 				if line > 1 and indicatornum == 0 then
 					local newindicatornum = 0
-					local oldtext         = lines[line]
+					local oldtext = lines[line]
 					table.remove(lines, line)
 					self.line = line - 1
 					if #oldtext > 0 then
@@ -568,8 +613,10 @@ function newobject:RunKey(key, unicode)
 				end
 			end
 			local cwidth = font:getWidth(text:sub(#text))
-			if self.offsetx ~= 0 then
+			if self.offsetx > 0 then
 				self.offsetx = self.offsetx - cwidth
+			elseif self.offsetx < 0 then
+				self.offsetx = 0
 			end
 		end
 	elseif key == "delete" then
@@ -634,14 +681,6 @@ function newobject:RunKey(key, unicode)
 		end
 	else
 		if unicode > 31 and unicode < 127 then
-			if alltextselected then
-				self.alltextselected = false
-				self:Clear()
-				indicatornum = self.indicatornum
-				text = ""
-				lines = self.lines
-				line = self.line
-			end
 			-- do not continue if the text limit has been reached or exceeded
 			if #text >= self.limit and self.limit ~= 0 then
 				return
@@ -656,7 +695,7 @@ function newobject:RunKey(key, unicode)
 						found = true
 					end
 				end
-				if found == false then
+				if not found then
 					return
 				end
 			end
@@ -668,9 +707,17 @@ function newobject:RunKey(key, unicode)
 						found = true
 					end
 				end
-				if found == true then
+				if found then
 					return
 				end
+			end
+			if alltextselected then
+				self.alltextselected = false
+				self:Clear()
+				indicatornum = self.indicatornum
+				text = ""
+				lines = self.lines
+				line = self.line
 			end
 			if indicatornum ~= 0 and indicatornum ~= #text then
 				text = self:AddIntoText(unicode, indicatornum)
@@ -690,9 +737,8 @@ function newobject:RunKey(key, unicode)
 			curline = lines[line]
 			text = curline
 			if not multiline then
-				local twidth    = font:getWidth(text)
-				local cwidth    = font:getWidth(ckey)
-				
+				local twidth = font:getWidth(text)
+				local cwidth = font:getWidth(ckey)
 				-- swidth - 1 is for the "-" character
 				if (twidth + textoffsetx) >= (swidth - 1) then
 					self.offsetx = self.offsetx + cwidth
@@ -816,12 +862,10 @@ function newobject:RemoveFromeText(p)
 	local line = self.line
 	local curline = lines[line]
 	local text = curline
-	local indicatornum = self.indicatornum
-	
-		local part1 = text:sub(1, p - 1)
-		local part2 = text:sub(p + 1)
-		local new = part1 .. part2
-		return new
+	local part1 = text:sub(1, p - 1)
+	local part2 = text:sub(p + 1)
+	local new = part1 .. part2
+	return new
 	
 end
 
@@ -1113,6 +1157,9 @@ function newobject:SetText(text)
 
 	local tabreplacement = self.tabreplacement
 	local multiline = self.multiline
+	
+	-- make sure the text is a string
+	text = tostring(text)
 	
 	-- replace any tabs character with spaces
 	text = text:gsub(string.char(9), tabreplacement)
@@ -1521,5 +1568,79 @@ end
 function newobject:GetAutoScroll()
 
 	return self.autoscroll
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetRepeatDelay(delay)
+	- desc: sets the object's repeat delay
+--]]---------------------------------------------------------
+function newobject:SetRepeatDelay(delay)
+
+	self.repeatdelay = delay
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetRepeatDelay()
+	- desc: gets the object's repeat delay
+--]]---------------------------------------------------------
+function newobject:GetRepeatDelay()
+
+	return self.repeatdelay
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetRepeatRate(rate)
+	- desc: sets the object's repeat rate
+--]]---------------------------------------------------------
+function newobject:SetRepeatRate(rate)
+
+	self.repeatrate = rate
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetRepeatRate()
+	- desc: gets the object's repeat rate
+--]]---------------------------------------------------------
+function newobject:GetRepeatRate()
+
+	return self.repeatrate
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetValue(value)
+	- desc: sets the object's value (alias of SetText)
+--]]---------------------------------------------------------
+function newobject:SetValue(value)
+
+	self:SetText(value)
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetValue()
+	- desc: gets the object's value (alias of GetText)
+--]]---------------------------------------------------------
+function newobject:GetValue()
+
+	return self:GetText()
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetVisible(bool)
+	- desc: sets the object's visibility
+--]]---------------------------------------------------------
+function newobject:SetVisible(bool)
+
+	self.visible = bool
+	
+	if not bool then
+		self.keydown = "none"
+	end
 	
 end

@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- util library
@@ -51,15 +51,29 @@ end
 function loveframes.util.GetCollisions(object, t)
 
 	local x, y = love.mouse.getPosition()
+	local curstate = loveframes.state
 	local object = object or loveframes.base
+	local visible = object.visible
+	local children = object.children
+	local internals = object.internals
+	local objectstate = object.state
 	local t = t or {}
 	
-	-- add the current object if colliding
-	if object.visible == true then
-		local col = loveframes.util.BoundingBox(x, object.x, y, object.y, 1, object.width, 1, object.height)
-		if col == true and object.collide ~= false then
-			if object.clickbounds then
-				local clickcol = loveframes.util.BoundingBox(x, object.clickbounds.x, y, object.clickbounds.y, 1, object.clickbounds.width, 1, object.clickbounds.height)
+	if objectstate == curstate and visible then
+		local objectx = object.x
+		local objecty = object.y
+		local objectwidth = object.width
+		local objectheight = object.height
+		local col = loveframes.util.BoundingBox(x, objectx, y, objecty, 1, objectwidth, 1, objectheight)
+		local collide = object.collide
+		if col and collide then
+			local clickbounds = object.clickbounds
+			if clickbounds then
+				local cx = clickbounds.x
+				local cy = clickbounds.y
+				local cwidth = clickbounds.width
+				local cheight = clickbounds.height
+				local clickcol = loveframes.util.BoundingBox(x, cx, y, cy, 1, cwidth, 1, cheight)
 				if clickcol then
 					table.insert(t, object)
 				end
@@ -67,22 +81,17 @@ function loveframes.util.GetCollisions(object, t)
 				table.insert(t, object)
 			end
 		end
-	end
-	
-	-- check for children
-	if object.children then
-		for k, v in ipairs(object.children) do
-			if v.visible then
+		if children then
+			for k, v in ipairs(children) do
 				loveframes.util.GetCollisions(v, t)
 			end
 		end
-	end
-	
-	-- check for internals
-	if object.internals then
-		for k, v in ipairs(object.internals) do
-			if v.visible and v.type ~= "tooltip" then
-				loveframes.util.GetCollisions(v, t)
+		if internals then
+			for k, v in ipairs(internals) do
+				local type = v.type
+				if type ~= "tooltip" then
+					loveframes.util.GetCollisions(v, t)
+				end
 			end
 		end
 	end
@@ -98,18 +107,20 @@ end
 function loveframes.util.GetAllObjects(object, t)
 	
 	local object = object or loveframes.base
+	local internals = object.internals
+	local children = object.children
 	local t = t or {}
 	
 	table.insert(t, object)
 	
-	if object.internals then
-		for k, v in ipairs(object.internals) do
+	if internals then
+		for k, v in ipairs(internals) do
 			loveframes.util.GetAllObjects(v, t)
 		end
 	end
 	
-	if object.children then
-		for k, v in ipairs(object.children) do
+	if children then
+		for k, v in ipairs(children) do
 			loveframes.util.GetAllObjects(v, t)
 		end
 	end
@@ -121,7 +132,7 @@ end
 --[[---------------------------------------------------------
 	- func: GetDirectoryContents(directory, table)
 	- desc: gets the contents of a directory and all of
-			it's subdirectories
+			its subdirectories
 --]]---------------------------------------------------------
 function loveframes.util.GetDirectoryContents(dir, t)
 
@@ -260,21 +271,26 @@ function loveframes.util.Error(message)
 end
 
 --[[---------------------------------------------------------
-	- func: loveframes.util.CheckForUpdates()
-	- desc: checks for more recent versions of Love Frames
+	- func: loveframes.util.GetCollisionCount()
+	- desc: gets the total number of objects colliding with
+			the mouse
 --]]---------------------------------------------------------
-function loveframes.util.CheckForUpdates()
+function loveframes.util.GetCollisionCount()
 
-	local info = loveframes.info
-	local version = info.version
-	local stage = info.stage
-	local socket = require("socket.http")
-	local b, c, h = socket.request("http://update.nikolairesokav.com/?id=loveframes&version=" ..version.. "&stage=" ..stage)
-	
-	if c == 200 then
-		return b
-	else
-		return "An error occurred while checking for updates. Please try again later."
-	end
+	local collisioncount = loveframes.collisioncount
+	return collisioncount
 
 end
+
+--[[---------------------------------------------------------
+	- func: loveframes.util.GetHover()
+	- desc: returns loveframes.hover, can be used to check
+			if the mouse is colliding with a visible
+			Love Frames object
+--]]---------------------------------------------------------
+function loveframes.util.GetHover()
+
+	return loveframes.hover
+	
+end
+	

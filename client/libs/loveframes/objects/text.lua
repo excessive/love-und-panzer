@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 --[[------------------------------------------------
@@ -23,11 +23,11 @@ function newobject:initialize()
 	self.width = 5
 	self.height = 5
 	self.maxw = 0
-	self.lines = 1
 	self.shadowxoffset = 1
 	self.shadowyoffset = 1
 	self.formattedtext = {}
 	self.original = {}
+	self.defaultcolor = {0, 0, 0, 255}
 	self.shadowcolor = {0, 0, 0, 255}
 	self.ignorenewlines = false
 	self.shadow = false
@@ -41,8 +41,18 @@ end
 --]]---------------------------------------------------------
 function newobject:update(dt)
 
-	if not self.visible then
-		if not self.alwaysupdate then
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
+	local visible = self.visible
+	local alwaysupdate = self.alwaysupdate
+	
+	if not visible then
+		if not alwaysupdate then
 			return
 		end
 	end
@@ -71,6 +81,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	if not self.visible then
 		return
 	end
@@ -103,6 +120,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -129,7 +153,9 @@ function newobject:SetText(t)
 	local dtype = type(t)
 	local maxw = self.maxw
 	local font = self.font
+	local defaultcolor = self.defaultcolor
 	local inserts = {}
+	local prevfont = font
 	local tdata, prevcolor
 	
 	self.text = ""
@@ -151,12 +177,14 @@ function newobject:SetText(t)
 	for k, v in ipairs(tdata) do
 		local dtype = type(v)
 		if k == 1 and dtype ~= "table" then
-			prevcolor = {0, 0, 0, 255}
+			prevcolor = defaultcolor
 		end
 		if dtype == "table" then
 			prevcolor = v
+		elseif dtype == "userdata" then
+			prevfont = v
 		elseif dtype == "number" then
-			table.insert(self.formattedtext, {color = prevcolor, text = tostring(v)})
+			table.insert(self.formattedtext, {font = prevfont, color = prevcolor, text = tostring(v)})
 		elseif dtype == "string" then
 			if self.ignorenewlines then
 				v = v:gsub(" \n ", " ")
@@ -165,7 +193,7 @@ function newobject:SetText(t)
 			v = v:gsub(string.char(9), "    ")
 			local parts = loveframes.util.SplitString(v, " ")
 			for i, j in ipairs(parts) do
-				table.insert(self.formattedtext, {color = prevcolor, text = j})
+				table.insert(self.formattedtext, {font = prevfont, color = prevcolor, text = j})
 			end
 		end
 	end
@@ -173,7 +201,7 @@ function newobject:SetText(t)
 	if maxw > 0 then
 		for k, v in ipairs(self.formattedtext) do
 			local data = v.text
-			local width = font:getWidth(data)
+			local width = v.font:getWidth(data)
 			local curw = 0
 			local new = ""
 			local key = k
@@ -181,10 +209,10 @@ function newobject:SetText(t)
 				table.remove(self.formattedtext, k)
 				for n=1, #data do	
 					local item = data:sub(n, n)
-					local itemw = font:getWidth(item)
+					local itemw = v.font:getWidth(item)
 					if n ~= #data then
 						if (curw + itemw) > maxw then
-							table.insert(inserts, {key = key, color = v.color, text = new})
+							table.insert(inserts, {key = key, font = v.font, color = v.color, text = new})
 							new = item
 							curw = 0 + itemw
 							key = key + 1
@@ -194,7 +222,7 @@ function newobject:SetText(t)
 						end
 					else
 						new = new .. item
-						table.insert(inserts, {key = key, color = v.color, text = new})
+						table.insert(inserts, {key = key, font = v.font, color = v.color, text = new})
 					end
 				end
 			end
@@ -202,13 +230,12 @@ function newobject:SetText(t)
 	end
 	
 	for k, v in ipairs(inserts) do
-		table.insert(self.formattedtext, v.key, {color = v.color, text = v.text})
+		table.insert(self.formattedtext, v.key, {font = v.font, color = v.color, text = v.text})
 	end
 	
 	local textdata = self.formattedtext
 	local maxw = self.maxw
 	local font = self.font
-	local height = font:getHeight("a")
 	local twidth = 0
 	local drawx = 0
 	local drawy = 0
@@ -218,14 +245,23 @@ function newobject:SetText(t)
 	local totalwidth = 0
 	local x = self.x
 	local y = self.y
-	local prevtextwidth  = 0
+	local prevtextwidth = 0
+	local prevtextheight = 0
+	local prevlargestheight = 0
+	local largestheight = 0
+	
 	
 	for k, v in ipairs(textdata) do
 		local text = v.text
 		local color = v.color
 		if type(text) == "string" then
 			self.text = self.text .. text
-			local width = font:getWidth(text)
+			local width = v.font:getWidth(text)
+			local height = v.font:getHeight("a")
+			if height > largestheight then
+				largestheight = height
+				prevlargestheight = height
+			end
 			totalwidth = totalwidth + width
 			if maxw > 0 then
 				if k ~= 1 then
@@ -233,12 +269,14 @@ function newobject:SetText(t)
 						twidth = 0
 						drawx = 0
 						width = 0
-						drawy = drawy + height
+						drawy = drawy + largestheight
+						largestheight = 0
 						text = ""
 					elseif (twidth + width) > maxw then
 						twidth = 0 + width
 						drawx = 0
-						drawy = drawy + height
+						drawy = drawy + largestheight
+						largestheight = 0
 					else
 						twidth = twidth + width
 						drawx = drawx + prevtextwidth
@@ -247,6 +285,7 @@ function newobject:SetText(t)
 					twidth = twidth + width
 				end
 				prevtextwidth = width
+				prevtextheight = height
 				v.x = drawx
 				v.y = drawy
 			else
@@ -255,7 +294,8 @@ function newobject:SetText(t)
 						twidth = 0
 						drawx = 0
 						width = 0
-						drawy = drawy + height
+						drawy = drawy + largestheight
+						largestheight = 0
 						text = ""
 						if lastwidth < textwidth then
 							lastwidth = textwidth
@@ -267,6 +307,7 @@ function newobject:SetText(t)
 					end
 				end
 				prevtextwidth = width
+				prevtextheight = height
 				v.x = drawx
 				v.y = drawy
 			end
@@ -283,7 +324,7 @@ function newobject:SetText(t)
 		self.width = textwidth
 	end
 	
-	self.height = drawy + height
+	self.height = drawy + prevlargestheight
 	
 end
 
@@ -308,14 +349,12 @@ function newobject:GetFormattedText()
 end
 
 --[[---------------------------------------------------------
-	- func: Format()
-	- desc: formats the text
+	- func: DrawText()
+	- desc: draws the object's text
 --]]---------------------------------------------------------
 function newobject:DrawText()
 
 	local textdata = self.formattedtext
-	local font = self.font
-	local theight = font:getHeight("a")
 	local x = self.x
 	local y = self.y
 	local shadow = self.shadow
@@ -327,6 +366,8 @@ function newobject:DrawText()
 	for k, v in ipairs(textdata) do
 		local text = v.text
 		local color = v.color
+		local font = v.font
+		local theight = font:getHeight("a")
 		if inlist then
 			if (y + v.y) <= (list.y + list.height) and self.y + ((v.y + theight)) >= list.y then
 				love.graphics.setFont(font)
@@ -356,8 +397,10 @@ end
 --]]---------------------------------------------------------
 function newobject:SetMaxWidth(width)
 
+	local original = self.original
+	
 	self.maxw = width
-	self:SetText(self.original)
+	self:SetText(original)
 	
 end
 
@@ -461,7 +504,7 @@ end
 --[[---------------------------------------------------------
 	- func: SetShadow(bool)
 	- desc: sets whether or not the object should draw a
-			shadow behind it's text
+			shadow behind its text
 --]]---------------------------------------------------------
 function newobject:SetShadow(bool)
 
@@ -472,7 +515,7 @@ end
 --[[---------------------------------------------------------
 	- func: GetShadow()
 	- desc: gets whether or not the object should draw a
-			shadow behind it's text
+			shadow behind its text
 --]]---------------------------------------------------------
 function newobject:GetShadow()
 
@@ -518,5 +561,25 @@ end
 function newobject:GetShadowColor()
 	
 	return self.shadowcolor
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetDefaultColor(r, g, b, a)
+	- desc: sets the object's default text color
+--]]---------------------------------------------------------
+function newobject:SetDefaultColor(r, g, b, a)
+
+	self.defaultcolor = {r, g, b, a}
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetDefaultColor()
+	- desc: gets the object's default text color
+--]]---------------------------------------------------------
+function newobject:GetDefaultColor()
+
+	return self.defaultcolor
 	
 end

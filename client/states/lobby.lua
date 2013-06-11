@@ -1,4 +1,4 @@
-require "libs.screen"
+local lobby = {}
 
 -- Send Chat Message
 function sendChat()
@@ -14,7 +14,7 @@ function sendChat()
 	end
 end
 
-local function load(self)
+function lobby:enter(state)
 	---------------------------------
 	for _, obj in pairs(gui.title) do
 		obj:SetVisible(false)
@@ -93,16 +93,8 @@ local function load(self)
 	
 end
 
-local function update(self, dt)
+function lobby:update(dt)
 	client:update(dt)
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	local count = 1
 	for id, property in pairs(client.state.players) do
@@ -139,20 +131,6 @@ local function update(self, dt)
 		count = count + 1
 	end
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	-- Update Global Chat
 	if client.chat.global then
 		local text = loveframes.Create("text")
@@ -186,36 +164,24 @@ local function update(self, dt)
 	loveframes.update(dt)
 end
 
-local function draw(self)
+function lobby:draw()
 	loveframes.draw()
 end
 
-local function keypressed(self, k, unicode)
-	loveframes.keypressed(k, unicode)
+function lobby:keypressed(key, unicode)
+	loveframes.keypressed(key, unicode)
 end
 
-local function keyreleased(self, k)
-	loveframes.keyreleased(k)
+function lobby:keyreleased(key)
+	loveframes.keyreleased(key)
 end
 
-local function mousepressed(self, x, y, button)
+function lobby:mousepressed(x, y, button)
 	loveframes.mousepressed(x, y, button)
 end
 
-local function mousereleased(self, x, y, button)
+function lobby:mousereleased(x, y, button)
 	loveframes.mousereleased(x, y, button)
 end
 
-return function(data)
-	return Screen {
-		name			= "Lobby",
-		load			= load,
-		update			= update,
-		draw			= draw,
-		keypressed		= keypressed,
-		keyreleased		= keyreleased,
-		mousepressed	= mousepressed,
-		mousereleased	= mousereleased,
-		data			= data
-	}
-end
+return lobby

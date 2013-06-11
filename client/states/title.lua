@@ -1,6 +1,6 @@
-require "libs.screen"
+local title = {}
 
-local function load(self)
+function title:enter(state)
 	-- Title Image
 	self.title = love.graphics.newImage("assets/images/title.png")
 	gui.title = {}
@@ -67,7 +67,7 @@ local function load(self)
 	gui.title.buttonOptions:SetY(182)
 	gui.title.buttonOptions:SetText("Options")
 	gui.title.buttonOptions.OnClick = function(this)
-		self.next.screen = "options"
+		Gamestate.switch(states.options)
 	end
 	
 	gui.title.buttonCredits = loveframes.Create("button", gui.title.groupTitleMenu)
@@ -76,7 +76,7 @@ local function load(self)
 	gui.title.buttonCredits:SetY(212)
 	gui.title.buttonCredits:SetText("Credits")
 	gui.title.buttonCredits.OnClick = function(this)
-		self.next.screen = "credits"
+		Gamestate.switch(states.credits)
 	end
 	
 	gui.title.buttonExit = loveframes.Create("button", gui.title.groupTitleMenu)
@@ -100,49 +100,37 @@ local function load(self)
 	gui.title.inputPort:SetText("8088")
 end
 
-local function update(self, dt)
+function title:update(dt)
 	if client then
 		client:update(dt)
 		
 		if client.state.players then
-			self.next.screen = "lobby"
+			Gamestate.switch(states.lobby)
 		end
 	end
 	
 	loveframes.update(dt)
 end
 
-local function draw(self)
+function title:draw()
 	love.graphics.draw(self.title, windowWidth/2 - 303/2, 32)
 	loveframes.draw()
 end
 
-local function keypressed(self, k, unicode)
-	loveframes.keypressed(k, unicode)
+function title:keypressed(key, unicode)
+	loveframes.keypressed(key, unicode)
 end
 
-local function keyreleased(self, k)
-	loveframes.keyreleased(k)
+function title:keyreleased(key)
+	loveframes.keyreleased(key)
 end
 
-local function mousepressed(self, x, y, button)
+function title:mousepressed(x, y, button)
 	loveframes.mousepressed(x, y, button)
 end
 
-local function mousereleased(self, x, y, button)
+function title:mousereleased(x, y, button)
 	loveframes.mousereleased(x, y, button)
 end
 
-return function(data)
-	return Screen {
-		name			= "Title",
-		load			= load,
-		update			= update,
-		draw			= draw,
-		keypressed		= keypressed,
-		keyreleased		= keyreleased,
-		mousepressed	= mousepressed,
-		mousereleased	= mousereleased,
-		data			= data
-	}
-end
+return title

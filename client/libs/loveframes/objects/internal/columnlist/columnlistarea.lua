@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- columnlistarea class
@@ -28,6 +28,7 @@ function newobject:initialize(parent)
 	self.buttonscrollamount = parent.buttonscrollamount
 	self.mousewheelscrollamount = parent.mousewheelscrollamount
 	self.bar = false
+	self.dtscrolling = parent.dtscrolling
 	self.internal = true
 	self.internals = {}
 	self.children = {}
@@ -160,10 +161,20 @@ function newobject:mousepressed(x, y, button)
 	
 	if self.bar and toplist then
 		local bar = self:GetScrollBar()
-		if button == "wu" then
-			bar:Scroll(-scrollamount)
-		elseif button == "wd" then
-			bar:Scroll(scrollamount)
+		local dtscrolling = self.dtscrolling
+		if dtscrolling then
+			local dt = love.timer.getDelta()
+			if button == "wu" then
+				bar:Scroll(-scrollamount * dt)
+			elseif button == "wd" then
+				bar:Scroll(scrollamount * dt)
+			end
+		else
+			if button == "wu" then
+				bar:Scroll(-scrollamount)
+			elseif button == "wd" then
+				bar:Scroll(scrollamount)
+			end
 		end
 	end
 	

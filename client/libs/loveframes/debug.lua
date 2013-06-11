@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- debug library
@@ -25,7 +25,7 @@ local loremipsum =
 	- desc: draws debug information
 --]]---------------------------------------------------------
 function loveframes.debug.draw()
-
+	
 	-- get the current debug setting
 	local debug = loveframes.config["DEBUG"]
 	
@@ -128,7 +128,7 @@ end
 			objects
 --]]---------------------------------------------------------
 function loveframes.debug.ExamplesMenu()
-
+	
 	------------------------------------
 	-- examples frame
 	------------------------------------
@@ -190,14 +190,10 @@ function loveframes.debug.ExamplesMenu()
 		local checkbox1 = loveframes.Create("checkbox", frame1)
 		checkbox1:SetText("Checkbox 1")
 		checkbox1:SetPos(5, 30)
-		checkbox1.OnChanged = function(object2)
-		end
 		
 		local checkbox2 = loveframes.Create("checkbox", frame1)
 		checkbox2:SetText("Checkbox 2")
 		checkbox2:SetPos(5, 60)
-		checkbox2.OnChanged = function(object3)
-		end
 		
 	end
 	exampleslist:AddItem(checkboxexample)
@@ -216,7 +212,7 @@ function loveframes.debug.ExamplesMenu()
 		
 		local panel1 = loveframes.Create("panel")
 		panel1:SetHeight(230)
-			
+		
 		local collapsiblecategory1 = loveframes.Create("collapsiblecategory", frame1)
 		collapsiblecategory1:SetPos(5, 30)
 		collapsiblecategory1:SetSize(490, 265)
@@ -263,6 +259,7 @@ function loveframes.debug.ExamplesMenu()
 		local frame1 = loveframes.Create("frame")
 		frame1:SetName("Frame")
 		frame1:CenterWithinArea(unpack(centerarea))
+		frame1:SetIcon("resources/images/application.png")
 		
 		local text1 = loveframes.Create("text", frame1)
 		text1:SetText("This is an example frame.")
@@ -278,7 +275,7 @@ function loveframes.debug.ExamplesMenu()
 		button1.Update = function(object2, dt)
 			local modal = object2:GetParent():GetModal()
 			
-			if modal == true then
+			if modal then
 				object2:SetText("Remove Modal")
 				object2.OnClick = function()
 					object2:GetParent():SetModal(false)
@@ -293,6 +290,47 @@ function loveframes.debug.ExamplesMenu()
 		
 	end
 	exampleslist:AddItem(frameexample)
+	
+	------------------------------------
+	-- grid example
+	------------------------------------
+	
+	local gridexample = loveframes.Create("button")
+	gridexample:SetText("Grid")
+	gridexample.OnClick = function(object1, x, y)
+	
+		local frame = loveframes.Create("frame")
+		frame:SetName("Grid")
+		frame:CenterWithinArea(unpack(centerarea))
+		
+		local grid = loveframes.Create("grid", frame)
+		grid:SetPos(5, 30)
+		grid:SetRows(5)
+		grid:SetColumns(5)
+		grid:SetCellWidth(25)
+		grid:SetCellHeight(25)
+		grid:SetCellPadding(5)
+		grid:SetItemAutoSize(true)
+		
+		local id = 1
+		
+		for i=1, 5 do
+			for n=1, 5 do
+				local button = loveframes.Create("button")
+				button:SetSize(15, 15)
+				button:SetText(id)
+				grid:AddItem(button, i, n)
+				id = id + 1
+			end
+		end
+		
+		grid.OnSizeChanged = function(object)
+			frame:SetSize(object:GetWidth() + 10, object:GetHeight() + 35)
+			frame:CenterWithinArea(unpack(centerarea))
+		end
+		
+	end
+	exampleslist:AddItem(gridexample)
 	
 	------------------------------------
 	-- image example
@@ -313,7 +351,6 @@ function loveframes.debug.ExamplesMenu()
 		local panel1 = loveframes.Create("panel", frame1)
 		panel1:SetPos(5, 160)
 		panel1:SetSize(128, 150)
-		
 		
 		local text1 = loveframes.Create("text", panel1)
 		text1:SetPos(5, 5)
@@ -421,6 +458,8 @@ function loveframes.debug.ExamplesMenu()
 		local list1 = loveframes.Create("list", frame1)
 		list1:SetPos(5, 30)
 		list1:SetSize(490, 300)
+		list1:SetPadding(5)
+		list1:SetSpacing(5)
 		
 		local panel1 = loveframes.Create("panel", frame1)
 		panel1:SetPos(5, 335)
@@ -430,6 +469,7 @@ function loveframes.debug.ExamplesMenu()
 		slider1:SetPos(5, 20)
 		slider1:SetWidth(480)
 		slider1:SetMinMax(0, 100)
+		slider1:SetValue(5)
 		slider1:SetText("Padding")
 		slider1:SetDecimals(0)
 		slider1.OnValueChanged = function(object2, value)
@@ -452,6 +492,7 @@ function loveframes.debug.ExamplesMenu()
 		slider2:SetPos(5, 60)
 		slider2:SetWidth(480)
 		slider2:SetMinMax(0, 100)
+		slider2:SetValue(5)
 		slider2:SetText("Spacing")
 		slider2:SetDecimals(0)
 		slider2.OnValueChanged = function(object2, value)
@@ -472,7 +513,7 @@ function loveframes.debug.ExamplesMenu()
 		
 		local button1 = loveframes.Create("button", panel1)
 		button1:SetPos(5, 85)
-		button1:SetSize(480, 25)
+		button1:SetSize(237, 25)
 		button1:SetText("Change List Type")
 		button1.OnClick = function(object2, x, y)
 			if list1:GetDisplayType() == "vertical" then
@@ -480,12 +521,44 @@ function loveframes.debug.ExamplesMenu()
 			else
 				list1:SetDisplayType("vertical")
 			end
+			list1:Clear()
+			for i=1, 100 do
+				local button = loveframes.Create("button")
+				button:SetText(i)
+				list1:AddItem(button)
+			end
 		end
 		
-		for i=1, 50 do
-			local button2 = loveframes.Create("button")
-			button2:SetText(i)
-			list1:AddItem(button2)
+		local button2 = loveframes.Create("button", panel1)
+		button2:SetPos(247, 85)
+		button2:SetSize(237, 25)
+		button2:SetText("Toggle Horizontal Stacking")
+		button2.OnClick = function(object2, x, y)
+			local enabled = list1:GetHorizontalStacking()
+			list1:EnableHorizontalStacking(not enabled)
+			list1:Clear()
+			for i=1, 100 do
+				local button = loveframes.Create("button")
+				button:SetSize(100, 25)
+				button:SetText(i)
+				list1:AddItem(button)
+			end
+		end
+		button2.Update = function(object)
+			local displaytype = list1:GetDisplayType()
+			if displaytype ~= "vertical" then
+				object:SetEnabled(false)
+				object:SetClickable(false)
+			else
+				object:SetEnabled(true)
+				object:SetClickable(true)
+			end
+		end
+		
+		for i=1, 100 do
+			local button = loveframes.Create("button")
+			button:SetText(i)
+			list1:AddItem(button)
 		end
 		
 	end
@@ -512,6 +585,25 @@ function loveframes.debug.ExamplesMenu()
 		
 	end
 	exampleslist:AddItem(multichoiceexample)
+	
+	------------------------------------
+	-- numberbox example
+	------------------------------------
+	local numberboxexample = loveframes.Create("button")
+	numberboxexample:SetText("Numberbox")
+	numberboxexample.OnClick = function(object1, x, y)
+	
+		local frame1 = loveframes.Create("frame")
+		frame1:SetName("Numberbox")
+		frame1:SetSize(210, 60)
+		frame1:CenterWithinArea(unpack(centerarea))
+		
+		local numberbox1 = loveframes.Create("numberbox", frame1)
+		numberbox1:SetPos(5, 30)
+		numberbox1:SetSize(200, 25)
+		
+	end
+	exampleslist:AddItem(numberboxexample)
 	
 	------------------------------------
 	-- panel example
@@ -546,7 +638,7 @@ function loveframes.debug.ExamplesMenu()
 		local progressbar1 = loveframes.Create("progressbar", frame1)
 		progressbar1:SetPos(5, 30)
 		progressbar1:SetWidth(490)
-		progressbar1:SetLerpRate(1)
+		progressbar1:SetLerpRate(10)
 		
 		local button1 = loveframes.Create("button", frame1)
 		button1:SetPos(5, 60)
@@ -574,6 +666,7 @@ function loveframes.debug.ExamplesMenu()
 		slider1:SetText("Progressbar lerp rate")
 		slider1:SetMinMax(0, 50)
 		slider1:SetDecimals(0)
+		slider1:SetValue(10)
 		slider1.OnValueChanged = function(object2, value)
 			progressbar1:SetLerpRate(value)
 		end
@@ -648,11 +741,11 @@ function loveframes.debug.ExamplesMenu()
 			end
 			local text1 = loveframes.Create("text", panel1)
 			text1:SetText("Tab " ..i)
-			tabs1:AddTab("Tab " ..i, panel1, "Tab " ..i, image)
 			text1:SetAlwaysUpdate(true)
 			text1.Update = function(object, dt)
 				object:Center()
 			end
+			tabs1:AddTab("Tab " ..i, panel1, "Tab " ..i, image)
 		end
 		
 	end
@@ -693,7 +786,7 @@ function loveframes.debug.ExamplesMenu()
 	exampleslist:AddItem(textexample)
 	
 	------------------------------------
-	-- text input example
+	-- textinput example
 	------------------------------------
 	local textinputexample = loveframes.Create("button")
 	textinputexample:SetText("Text Input")
@@ -738,7 +831,7 @@ function loveframes.debug.ExamplesMenu()
 		
 	end
 	exampleslist:AddItem(textinputexample)
-
+	
 end
 
 --[[---------------------------------------------------------
@@ -765,5 +858,7 @@ function loveframes.debug.SkinSelector()
 	for k, v in pairs(skins) do
 		skinslist:AddChoice(v.name)
 	end
+	
+	skinslist:Sort()
 	
 end

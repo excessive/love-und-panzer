@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- collapsiblecategory class
@@ -31,6 +31,13 @@ end
 	- desc: updates the object
 --]]---------------------------------------------------------
 function newobject:update(dt)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
@@ -73,6 +80,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -112,6 +126,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -147,6 +168,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousereleased(x, y, button)
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -172,7 +200,7 @@ function newobject:mousereleased(x, y, button)
 	end
 	
 	if open and curobject then
-		curobject:mousepressed(x, y, button)
+		curobject:mousereleased(x, y, button)
 	end
 
 end
@@ -213,6 +241,7 @@ function newobject:SetObject(object)
 	
 	object:Remove()
 	object.parent = self
+	object:SetState(self.state)
 	object:SetWidth(self.width - self.padding*2)
 	object:SetPos(self.padding, self.closedheight + self.padding)
 	table.insert(self.children, object)

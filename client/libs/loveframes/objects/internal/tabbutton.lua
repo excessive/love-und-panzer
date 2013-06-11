@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- tabbutton class
@@ -30,7 +30,8 @@ function newobject:initialize(parent, text, tabnumber, tip, image, onopened, onc
 	if tip then
 		self.tooltip = loveframes.objects["tooltip"]:new(self, tip)
 		self.tooltip:SetFollowCursor(false)
-		self.tooltip:SetOffsets(0, -5)
+		self.tooltip:SetFollowObject(true)
+		self.tooltip:SetOffsets(0, -(self.tooltip.text:GetHeight() + 12))
 	end
 	
 	if image then
@@ -72,12 +73,6 @@ function newobject:update(dt)
 	self:CheckHover()
 	self:SetClickBounds(parent.x, parent.y, parent.width, parent.height)
 	
-	-- move to parent if there is a parent
-	if parent ~= base then
-		self.x = self.parent.x + self.staticx
-		self.y = self.parent.y + self.staticy
-	end
-	
 	if update then
 		update(self, dt)
 	end
@@ -103,10 +98,11 @@ function newobject:draw()
 	local drawfunc = skin.DrawTabButton or skins[defaultskin].DrawTabButton
 	local draw = self.Draw
 	local drawcount = loveframes.drawcount
+	local internals = self.internals
 	
 	-- set the object's draw order
 	self:SetDrawOrder()
-		
+	
 	if draw then
 		draw(self)
 	else
@@ -128,6 +124,7 @@ function newobject:mousepressed(x, y, button)
 	end
 	
 	local hover = self.hover
+	local internals = self.internals
 	
 	if hover and button == "l" then
 		local baseparent = self:GetBaseParent()
@@ -158,7 +155,7 @@ function newobject:mousereleased(x, y, button)
 	
 	if hover and button == "l" then
 		if button == "l" then
-			local tab = self.parent.tab
+			local tab = parent.tab
 			local internals = parent.internals
 			local onopened = self.OnOpened
 			local prevtab = internals[tab]

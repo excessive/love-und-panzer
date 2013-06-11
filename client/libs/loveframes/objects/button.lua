@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- button class
@@ -29,6 +29,13 @@ end
 	- desc: updates the object
 --]]---------------------------------------------------------
 function newobject:update(dt)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
@@ -77,6 +84,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -109,6 +123,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -134,6 +155,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousereleased(x, y, button)
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -155,27 +183,6 @@ function newobject:mousereleased(x, y, button)
 	end
 	
 	self.down = false
-
-end
-
---[[---------------------------------------------------------
-	- func: keypressed(key)
-	- desc: called when the player presses a key
---]]---------------------------------------------------------
-function newobject:keypressed(key, unicode)
-	
-	local visible = self.visible
-	
-	if not visible then
-		return
-	end
-	
-	local selectedobject = loveframes.selectedobject
-	local onclick = self.OnClick
-	
-	if key == "return" and selectedobject == self then
-		onclick(self, 0, 0)
-	end
 
 end
 
@@ -221,7 +228,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: SetClickable(bool)
-	- desc: sets whether the object is enabled or not
+	- desc: sets whether or not the object is enabled
 --]]---------------------------------------------------------
 function newobject:SetEnabled(bool)
 
@@ -231,7 +238,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: GetEnabled()
-	- desc: gets whether the object is enabled or not
+	- desc: gets whether or not the object is enabled
 --]]---------------------------------------------------------
 function newobject:GetEnabled()
 

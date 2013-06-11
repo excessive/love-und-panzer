@@ -2,6 +2,7 @@ require "libs.TEsound"
 require "libs.panzer.settings"
 require "libs.panzer.client"
 require "libs.loveframes"
+Gamestate = require "libs.hump.gamestate"
 
 function love.load()
 	gui = {}
@@ -18,27 +19,15 @@ function love.load()
 	windowHeight = love.graphics.getHeight()
 	
 	-- Load screen types
-	screens = {}
-	screens.title		= require "screens.title"
-	screens.options		= require "screens.options"
-	screens.credits		= require "screens.credits"
-	screens.lobby		= require "screens.lobby"
-	screens.gameplay	= require "screens.gameplay"
-	screens.results		= require "screens.results"
-
-	-- Initialize layers
-	layers = {
-		each = function(self, fn, ...)
-			for k, v in ipairs(self) do
-				if v[fn] then
-					v[fn](v, unpack {...})
-				end
-			end
-		end,
-		screens.title(nil)
-	}
-
-	layers:each("load")
+	states = {}
+	states.title		= require "states.title"
+	states.options	= require "states.options"
+	states.credits	= require "states.credits"
+	states.lobby		= require "states.lobby"
+	states.gameplay	= require "states.gameplay"
+	states.results	= require "states.results"
+	
+	Gamestate.switch(states.title)
 end
 
 function love.update(dt)
@@ -46,16 +35,7 @@ function love.update(dt)
 	windowWidth = love.graphics.getWidth()
 	windowHeight = love.graphics.getHeight()
 
-	for k, v in ipairs(layers) do
-		if v.next.screen then
-			local n = #layers
-			table.remove(layers, n)
-			layers[n] = screens[v.next.screen](v.next.data)
-			layers[n]:load()
-		end
-	end
-
-	layers:each("update", dt)
+	Gamestate.update(dt)
 
 	TEsound.cleanup()
 end
@@ -63,8 +43,11 @@ end
 function love.draw()
 	love.graphics.push()
 	love.graphics.scale(scale)
-	layers:each("draw")
+	
+	Gamestate.draw()
+	
 	love.graphics.pop()
+	
 
 	-- Display debug info
 	local i = 0
@@ -80,30 +63,30 @@ function love.draw()
 	end
 end
 
-function love.keypressed(k, unicode)
-	layers:each("keypressed", k, unicode)
+function love.keypressed(key, unicode)
+	Gamestate.keypressed(key, unicode)
 end
 
-function love.keyreleased(k)
-	layers:each("keyreleased", k)
+function love.keyreleased(key)
+	Gamestate.keyreleased(key)
 end
 
 function love.mousepressed(x, y, button)
-	layers:each("mousepressed", x, y, button)
+	Gamestate.mousepressed(x, y, button)
 end
 
 function love.mousereleased(x, y, button)
-	layers:each("mousereleased", x, y, button)
+	Gamestate.mousereleased(x, y, button)
 end
 
 function love.joystickpressed(joystick, button)
-	layers:each("joystickpressed", joystick, button)
+	Gamestate.joystickpressed(joystick, button)
 end
 
 function love.joystickreleased(joystick, button)
-	layers:each("joystickreleased", joystick, button)
+	Gamestate.joystickreleased(joystick, button)
 end
 
 function love.quit()
-	layers:each("quit")
+	Gamestate.quit()
 end

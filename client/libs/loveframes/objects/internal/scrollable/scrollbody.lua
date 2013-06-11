@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- scrollbar class
@@ -43,7 +43,13 @@ function newobject:initialize(parent, bartype)
 			upbutton.staticx = 0 + self.width - upbutton.width
 			upbutton.staticy = 0
 			if object.down and object.hover then
-				bar:Scroll(-self.parent.buttonscrollamount)
+				local dtscrolling = self.parent.dtscrolling
+				if dtscrolling then
+					local dt = love.timer.getDelta()
+					bar:Scroll(-self.parent.buttonscrollamount * dt)
+				else
+					bar:Scroll(-self.parent.buttonscrollamount)
+				end
 			end
 		end
 		local downbutton = loveframes.objects["scrollbutton"]:new("down")
@@ -52,7 +58,13 @@ function newobject:initialize(parent, bartype)
 			downbutton.staticx = 0 + self.width - downbutton.width
 			downbutton.staticy = 0 + self.height - downbutton.height
 			if object.down and object.hover then
-				bar:Scroll(self.parent.buttonscrollamount)
+				local dtscrolling = self.parent.dtscrolling
+				if dtscrolling then
+					local dt = love.timer.getDelta()
+					bar:Scroll(self.parent.buttonscrollamount * dt)
+				else
+					bar:Scroll(self.parent.buttonscrollamount)
+				end
 			end
 		end
 		table.insert(self.internals, upbutton)
@@ -64,7 +76,13 @@ function newobject:initialize(parent, bartype)
 			leftbutton.staticx = 0
 			leftbutton.staticy = 0
 			if object.down and object.hover then
-				bar:Scroll(-self.parent.buttonscrollamount)
+				local dtscrolling = self.parent.dtscrolling
+				if dtscrolling then
+					local dt = love.timer.getDelta()
+					bar:Scroll(-self.parent.buttonscrollamount * dt)
+				else
+					bar:Scroll(-self.parent.buttonscrollamount)
+				end
 			end
 		end
 		local rightbutton = loveframes.objects["scrollbutton"]:new("right")
@@ -73,12 +91,20 @@ function newobject:initialize(parent, bartype)
 			rightbutton.staticx = 0 + self.width - rightbutton.width
 			rightbutton.staticy = 0
 			if object.down and object.hover then
-				bar:Scroll(self.parent.buttonscrollamount)
+				local dtscrolling = self.parent.dtscrolling
+				if dtscrolling then
+					local dt = love.timer.getDelta()
+					bar:Scroll(self.parent.buttonscrollamount * dt)
+				else
+					bar:Scroll(self.parent.buttonscrollamount)
+				end
 			end
 		end
 		table.insert(self.internals, leftbutton)
 		table.insert(self.internals, rightbutton)
 	end
+	
+	self:SetState(parent.state)
 	
 	-- apply template properties to the object
 	loveframes.templates.ApplyToObject(self)

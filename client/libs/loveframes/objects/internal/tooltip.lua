@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- tooltip clas
@@ -25,6 +25,7 @@ function newobject:initialize(object, text, width)
 	self.internal = true
 	self.show = false
 	self.followcursor = true
+	self.followobject = false
 	self.alwaysupdate = true
 	
 	-- create the object's text
@@ -48,6 +49,13 @@ end
 --]]---------------------------------------------------------
 function newobject:update(dt)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
 	
@@ -74,14 +82,25 @@ function newobject:update(dt)
 		local odraworder = object.draworder
 		local ovisible = object.visible
 		local ohover = object.hover
+		local ostate = object.state
+		if ostate ~= state then
+			self.show = false
+			self.visible = false
+			return
+		end
 		self.show = ohover
 		self.visible = ovisible
 		if ohover and ovisible then
 			local top = self:IsTopInternal()
-			if self.followcursor then
+			local followcursor = self.followcursor
+			local followobject = self.followobject
+			if followcursor then
 				local x, y = love.mouse.getPosition()
 				self.x = x + self.xoffset
 				self.y = y - self.height + self.yoffset
+			elseif followobject then
+				self.x = object.x + self.xoffset
+				self.y = object.y + self.yoffset
 			end
 			if not top then
 				self:MoveToTop()
@@ -111,6 +130,13 @@ end
 	- desc: draws the object
 --]]---------------------------------------------------------
 function newobject:draw()
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	
@@ -215,5 +241,16 @@ end
 function newobject:SetFont(font)
 
 	self.text:SetFont(font)
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetFollowObject(bool)
+	- desc: sets whether or not the tooltip should follow
+			its assigned object
+--]]---------------------------------------------------------
+function newobject:SetFollowObject(bool)
+
+	self.followobject = bool
 	
 end

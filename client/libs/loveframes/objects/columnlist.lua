@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- columnlist class
@@ -16,13 +16,18 @@ function newobject:initialize()
 	self.width = 300
 	self.height = 100
 	self.columnheight = 16
-	self.buttonscrollamount = 0.10
-	self.mousewheelscrollamount = 5
+	self.buttonscrollamount = 200
+	self.mousewheelscrollamount = 1500
 	self.autoscroll = false
+	self.dtscrolling = true
 	self.internal = false
+	self.selectionenabled = true
+	self.multiselect = false
 	self.children = {}
 	self.internals = {}
 	self.OnRowClicked = nil
+	self.OnRowRightClicked = nil
+	self.OnRowSelected = nil
 	self.OnScroll = nil
 
 	local list = loveframes.objects["columnlistarea"]:new(self)
@@ -35,6 +40,13 @@ end
 	- desc: updates the object
 --]]---------------------------------------------------------
 function newobject:update(dt)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
@@ -79,6 +91,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -121,9 +140,16 @@ end
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
-	if visible == false then
+	if not visible then
 		return
 	end
 	
@@ -131,13 +157,13 @@ function newobject:mousepressed(x, y, button)
 	local children  = self.children
 	local internals = self.internals
 	
-	if hover == true and button == "l" then
+	if hover and button == "l" then
 		local baseparent = self:GetBaseParent()
 		if baseparent and baseparent.type == "frame" then
 			baseparent:MakeTop()
 		end
 	end
-		
+	
 	for k, v in ipairs(internals) do
 		v:mousepressed(x, y, button)
 	end
@@ -154,9 +180,16 @@ end
 --]]---------------------------------------------------------
 function newobject:mousereleased(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
-	if visible == false then
+	if not visible then
 		return
 	end
 	
@@ -192,7 +225,7 @@ function newobject:AdjustColumns()
 	local x = 0
 	
 	for k, v in ipairs(children) do
-		if bar == true then
+		if bar then
 			v:SetWidth(columnwidth)
 		else
 			v:SetWidth(columnwidth)
@@ -267,9 +300,12 @@ function newobject:SetSize(width, height)
 	
 	self.width = width
 	self.height = height
+	self:AdjustColumns()
 	
 	list:SetSize(width, height)
 	list:SetPos(0, 0)
+	list:CalculateSize()
+	list:RedoLayout()
 	
 end
 
@@ -283,9 +319,12 @@ function newobject:SetWidth(width)
 	local list = internals[1]
 	
 	self.width = width
+	self:AdjustColumns()
 	
 	list:SetSize(width)
 	list:SetPos(0, 0)
+	list:CalculateSize()
+	list:RedoLayout()
 	
 end
 
@@ -299,9 +338,12 @@ function newobject:SetHeight(height)
 	local list = internals[1]
 	
 	self.height = height
+	self:AdjustColumns()
 	
 	list:SetSize(height)
 	list:SetPos(0, 0)
+	list:CalculateSize()
+	list:RedoLayout()
 	
 end
 
@@ -416,5 +458,138 @@ function newobject:SetColumnHeight(height)
 	
 	list:CalculateSize()
 	list:RedoLayout()
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetDTScrolling(bool)
+	- desc: sets whether or not the object should use delta
+			time when scrolling
+--]]---------------------------------------------------------
+function newobject:SetDTScrolling(bool)
+
+	self.dtscrolling = bool
+	self.internals[1].dtscrolling = bool
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetDTScrolling()
+	- desc: gets whether or not the object should use delta
+			time when scrolling
+--]]---------------------------------------------------------
+function newobject:GetDTScrolling()
+
+	return self.dtscrolling
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SelectRow(row, ctrl)
+	- desc: selects the specfied row in the object's list
+			of rows
+--]]---------------------------------------------------------
+function newobject:SelectRow(row, ctrl)
+
+	local selectionenabled = self.selectionenabled
+	
+	if not selectionenabled then
+		return
+	end
+	
+	local list = self.internals[1]
+	local children = list.children
+	local multiselect = self.multiselect
+	local onrowselected = self.OnRowSelected
+	
+	for k, v in ipairs(children) do
+		if v == row then
+			if v.selected and ctrl then
+				v.selected = false
+			else
+				v.selected = true
+				if onrowselected then
+					onrowselected(self, row, row:GetColumnData())
+				end
+			end
+		elseif v ~= row and not multiselect and not ctrl then
+			v.selected = false
+		end
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: DeselectRow(row)
+	- desc: deselects the specfied row in the object's list
+			of rows
+--]]---------------------------------------------------------
+function newobject:DeselectRow(row)
+
+	row.selected = false
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetSelectedRows()
+	- desc: gets the object's selected rows
+--]]---------------------------------------------------------
+function newobject:GetSelectedRows()
+	
+	local rows = {}
+	local list = self.internals[1]
+	local children = list.children
+	
+	for k, v in ipairs(children) do
+		if v.selected then
+			table.insert(rows, v)
+		end
+	end
+	
+	return v
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetSelectionEnabled(bool)
+	- desc: sets whether or not the object's rows can be
+			selected
+--]]---------------------------------------------------------
+function newobject:SetSelectionEnabled(bool)
+
+	self.selectionenabled = bool
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetSelectionEnabled()
+	- desc: gets whether or not the object's rows can be
+			selected
+--]]---------------------------------------------------------
+function newobject:GetSelectionEnabled()
+
+	return self.selectionenabled
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetMultiselectEnabled(bool)
+	- desc: sets whether or not the object can have more
+			than one row selected
+--]]---------------------------------------------------------
+function newobject:SetMultiselectEnabled(bool)
+
+	self.multiselect = bool
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetMultiselectEnabled()
+	- desc: gets whether or not the object can have more
+			than one row selected
+--]]---------------------------------------------------------
+function newobject:GetMultiselectEnabled()
+
+	return self.multiselect
 	
 end

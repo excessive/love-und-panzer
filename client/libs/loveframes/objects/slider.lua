@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- slider class
@@ -21,12 +21,19 @@ function newobject:initialize()
 	self.min = 0
 	self.value = 0
 	self.decimals = 5
+	self.scrollincrease = 1
+	self.scrolldecrease = 1
+	self.scrollable = true
+	self.enabled = true
 	self.internal = false
 	self.internals = {}
 	self.OnValueChanged	= nil
+	self.OnRelease = nil
 	
 	-- create the slider button
-	table.insert(self.internals, loveframes.objects["sliderbutton"]:new(self))
+	local sliderbutton = loveframes.objects["sliderbutton"]:new(self)
+	sliderbutton.state = self.state
+	table.insert(self.internals, sliderbutton)
 	
 	-- set initial value to minimum
 	self:SetValue(self.min)
@@ -39,6 +46,13 @@ end
 --]]---------------------------------------------------------
 function newobject:update(dt)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
 	
@@ -63,10 +77,13 @@ function newobject:update(dt)
 	end
 	
 	if sliderbutton then
-		if self.slidetype == "horizontal" then
-			self.height = sliderbutton.height
-		elseif self.slidetype == "vertical" then
-			self.width = sliderbutton.width
+		local slidetype = self.slidetype
+		local buttonwidth = sliderbutton.width
+		local buttonheight = sliderbutton.height
+		if slidetype == "horizontal" then
+			self.height = buttonheight
+		elseif slidetype == "vertical" then
+			self.width = buttonwidth
 		end
 	end
 	
@@ -87,6 +104,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -125,16 +149,32 @@ end
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
 		return
 	end
+		
+	local enabled = self.enabled
+	
+	if not enabled then
+		return
+	end
 	
 	local internals = self.internals
+	local hover = self.hover
+	local slidetype = self.slidetype
+	local scrollable = self.scrollable
 	
-	if self.hover and button == "l" then
-		if self.slidetype == "horizontal" then
+	if hover and button == "l" then
+		if slidetype == "horizontal" then
 			local xpos = x - self.x
 			local button = internals[1]
 			local baseparent = self:GetBaseParent()
@@ -146,7 +186,7 @@ function newobject:mousepressed(x, y, button)
 			button.dragging = true
 			button.startx = button.staticx
 			button.clickx = x
-		elseif self.slidetype == "vertical" then
+		elseif slidetype == "vertical" then
 			local ypos = y - self.y
 			local button = internals[1]
 			local baseparent = self:GetBaseParent()
@@ -159,6 +199,16 @@ function newobject:mousepressed(x, y, button)
 			button.starty = button.staticy
 			button.clicky = y
 		end
+	elseif hover and scrollable and button == "wu" then
+		local value = self.value
+		local increase = self.scrollincrease
+		local newvalue = value + increase
+		self:SetValue(newvalue)
+	elseif hover and scrollable and button == "wd" then
+		local value = self.value
+		local decrease = self.scrolldecrease
+		local newvalue = value - decrease
+		self:SetValue(newvalue)
 	end
 	
 	for k, v in ipairs(internals) do
@@ -208,7 +258,7 @@ function newobject:SetValue(value)
 	
 	-- call OnValueChanged
 	if onvaluechanged then
-		onvaluechanged(self)
+		onvaluechanged(self, newval)
 	end
 	
 end
@@ -322,11 +372,23 @@ end
 
 --[[---------------------------------------------------------
 	- func: SetDecimals(decimals)
-	- desc: sets the objects's decimals
+	- desc: sets how many decimals the object's value 
+			can have
 --]]---------------------------------------------------------
 function newobject:SetDecimals(decimals)
 
 	self.decimals = decimals
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetDecimals()
+	- desc: gets how many decimals the object's value 
+			can have
+--]]---------------------------------------------------------
+function newobject:GetDecimals()
+
+	return self.decimals
 	
 end
 
@@ -357,8 +419,6 @@ function newobject:GetButtonSize()
 	
 	if sliderbutton then
 		return sliderbutton.width, sliderbutton.height
-	else
-		return false
 	end
 	
 end
@@ -384,5 +444,91 @@ end
 function newobject:GetSlideType()
 
 	return self.slidetype
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetScrollable(bool)
+	- desc: sets whether or not the object can be scrolled
+			via the mouse wheel
+--]]---------------------------------------------------------
+function newobject:SetScrollable(bool)
+
+	self.scrollable = bool
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetScrollable()
+	- desc: gets whether or not the object can be scrolled
+			via the mouse wheel
+--]]---------------------------------------------------------
+function newobject:GetScrollable()
+
+	return self.scrollable
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetScrollIncrease(increase)
+	- desc: sets the amount to increase the object's value
+			by when scrolling with the mouse wheel
+--]]---------------------------------------------------------
+function newobject:SetScrollIncrease(increase)
+
+	self.scrollincrease = increase
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetScrollIncrease()
+	- desc: gets the amount to increase the object's value
+			by when scrolling with the mouse wheel
+--]]---------------------------------------------------------
+function newobject:GetScrollIncrease()
+
+	return self.scrollincrease
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetScrollDecrease(decrease)
+	- desc: sets the amount to decrease the object's value
+			by when scrolling with the mouse wheel
+--]]---------------------------------------------------------
+function newobject:SetScrollDecrease(decrease)
+
+	self.scrolldecrease = decrease
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetScrollDecrease()
+	- desc: gets the amount to decrease the object's value
+			by when scrolling with the mouse wheel
+--]]---------------------------------------------------------
+function newobject:GetScrollDecrease()
+
+	return self.scrolldecrease
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetEnabled(bool)
+	- desc: sets whether or not the object is enabled
+--]]---------------------------------------------------------
+function newobject:SetEnabled(bool)
+
+	self.enabled = bool
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetEnabled()
+	- desc: gets whether or not the object is enabled
+--]]---------------------------------------------------------
+function newobject:GetEnabled()
+
+	return self.enabled
 	
 end

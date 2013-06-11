@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- columnlistrow class
@@ -20,6 +20,7 @@ function newobject:initialize(parent, data)
 	self.height = 25
 	self.textx = 5
 	self.texty = 5
+	self.selected = false
 	self.internal = true
 	self.columndata = data
 	
@@ -69,7 +70,7 @@ function newobject:draw()
 
 	local visible = self.visible
 	
-	if visible == false then
+	if not visible then
 		return
 	end
 	
@@ -103,11 +104,17 @@ function newobject:mousepressed(x, y, button)
 		return
 	end
 	
-	if self.hover and button == "l" then
+	local hover = self.hover
+	
+	if hover and button == "l" then
 		local baseparent = self:GetBaseParent()
 		if baseparent and baseparent.type == "frame" then
 			baseparent:MakeTop()
 		end
+		local parent1 = self:GetParent()
+		local parent2 = parent1:GetParent()
+		local ctrldown = love.keyboard.isDown("lctrl")
+		parent2:SelectRow(self, ctrldown)
 	end
 
 end
@@ -122,12 +129,19 @@ function newobject:mousereleased(x, y, button)
 		return
 	end
 	
-	if self.hover and button == "l" then
+	if self.hover then
 		local parent1 = self:GetParent()
 		local parent2 = parent1:GetParent()
-		local onrowclicked = parent2.OnRowClicked
-		if onrowclicked then
-			onrowclicked(parent2, self, self.columndata)
+		if button == "l" then
+			local onrowclicked = parent2.OnRowClicked
+			if onrowclicked then
+				onrowclicked(parent2, self, self.columndata)
+			end
+		elseif button == "r" then
+			local onrowrightclicked = parent2.OnRowRightClicked
+			if onrowrightclicked then
+				onrowrightclicked(parent2, self, self.columndata)
+			end
 		end
 	end
 	
@@ -195,11 +209,41 @@ function newobject:GetColorIndex()
 end
 
 --[[---------------------------------------------------------
+	- func: SetColumnData(data)
+	- desc: sets the object's column data
+--]]---------------------------------------------------------
+function newobject:SetColumnData(data)
+
+	self.columndata = data
+	
+end
+
+--[[---------------------------------------------------------
 	- func: GetColumnData()
 	- desc: gets the object's column data
 --]]---------------------------------------------------------
 function newobject:GetColumnData()
 
 	return self.columndata
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetSelected(selected)
+	- desc: sets whether or not the object is selected
+--]]---------------------------------------------------------
+function newobject:SetSelected(selected)
+
+	self.selected = true
+
+end
+
+--[[---------------------------------------------------------
+	- func: GetSelected()
+	- desc: gets whether or not the object is selected
+--]]---------------------------------------------------------
+function newobject:GetSelected()
+
+	return self.selected
 	
 end

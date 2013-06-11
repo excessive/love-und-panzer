@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- progressbar class
@@ -34,6 +34,13 @@ end
 --]]---------------------------------------------------------
 function newobject:update(dt)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
 	
@@ -46,6 +53,8 @@ function newobject:update(dt)
 	local parent = self.parent
 	local base = loveframes.base
 	local update = self.Update
+	
+	self:CheckHover()
 	
 	-- move to parent if there is a parent
 	if parent ~= base then
@@ -64,6 +73,13 @@ end
 	- desc: draws the object
 --]]---------------------------------------------------------
 function newobject:draw()
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	
@@ -119,12 +135,12 @@ function newobject:GetImage()
 end
 
 --[[---------------------------------------------------------
-	- func: SetColor(table)
+	- func: SetColor(r, g, b, a)
 	- desc: sets the object's color 
 --]]---------------------------------------------------------
-function newobject:SetColor(data)
+function newobject:SetColor(r, g, b, a)
 
-	self.imagecolor = data
+	self.imagecolor = {r, g, b, a}
 	
 end
 
@@ -134,7 +150,7 @@ end
 --]]---------------------------------------------------------
 function newobject:GetColor()
 
-	return self.imagecolor
+	return unpack(self.imagecolor)
 	
 end
 
@@ -338,5 +354,47 @@ end
 function newobject:GetShear()
 
 	return self.shearx, self.sheary
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetImageSize()
+	- desc: gets the size of the object's image
+--]]---------------------------------------------------------
+function newobject:GetImageSize()
+
+	local image = self.image
+	
+	if image then
+		return image:getWidth(), image:getHeight()
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetImageWidth()
+	- desc: gets the width of the object's image
+--]]---------------------------------------------------------
+function newobject:GetImageWidth()
+
+	local image = self.image
+	
+	if image then
+		return image:getWidth()
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetImageWidth()
+	- desc: gets the height of the object's image
+--]]---------------------------------------------------------
+function newobject:GetImageHeight()
+
+	local image = self.image
+	
+	if image then
+		return image:getHeight()
+	end
 	
 end

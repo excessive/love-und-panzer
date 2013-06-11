@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- multichoicelist class
@@ -30,6 +30,7 @@ function newobject:initialize(object)
 	self.extrawidth = 0
 	self.extraheight = 0
 	self.canremove = false
+	self.dtscrolling = self.list.dtscrolling
 	self.internal = true
 	self.vbar = false
 	self.children = {}
@@ -53,6 +54,13 @@ end
 	- desc: updates the object
 --]]---------------------------------------------------------
 function newobject:update(dt)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
@@ -118,6 +126,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -174,6 +189,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -191,10 +213,21 @@ function newobject:mousepressed(x, y, button)
 	end
 	
 	if self.vbar and toplist then
-		if button == "wu" then
-			internals[1].internals[1].internals[1]:Scroll(-scrollamount)
-		elseif button == "wd" then
-			internals[1].internals[1].internals[1]:Scroll(scrollamount)
+		local bar = internals[1].internals[1].internals[1]
+		local dtscrolling = self.dtscrolling
+		if dtscrolling then
+			local dt = love.timer.getDelta()
+			if button == "wu" then
+				bar:Scroll(-scrollamount * dt)
+			elseif button == "wd" then
+				bar:Scroll(scrollamount * dt)
+			end
+		else
+			if button == "wu" then
+				bar:Scroll(-scrollamount)
+			elseif button == "wd" then
+				bar:Scroll(scrollamount)
+			end
 		end
 	end
 	
@@ -213,6 +246,13 @@ end
 	- desc: called when the player releases a mouse button
 --]]---------------------------------------------------------
 function newobject:mousereleased(x, y, button)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	

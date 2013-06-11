@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- checkbox class
@@ -22,6 +22,7 @@ function newobject:initialize()
 	self.lastvalue = false
 	self.internal = false
 	self.down = true
+	self.enabled = true
 	self.internals = {}
 	self.OnChanged = nil
 	
@@ -32,6 +33,13 @@ end
 	- desc: updates the object
 --]]---------------------------------------------------------
 function newobject:update(dt)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
@@ -102,6 +110,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -139,6 +154,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -164,6 +186,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousereleased(x, y, button)
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -171,43 +200,22 @@ function newobject:mousereleased(x, y, button)
 	end
 	
 	local hover = self.hover
+	local down = self.down
+	local enabled = self.enabled
 	local checked = self.checked
 	local onchanged = self.OnChanged
 	
-	if hover and button == "l" then
+	if hover and down and enabled and button == "l" then
 		if checked then
 			self.checked = false
 		else
 			self.checked = true
 		end
 		if onchanged then
-			onchanged(self)
+			onchanged(self, self.checked)
 		end
 	end
 		
-end
-
---[[---------------------------------------------------------
-	- func: keypressed(key)
-	- desc: called when the player presses a key
---]]---------------------------------------------------------
-function newobject:keypressed(key, unicode)
-
-	local checked = self.checked
-	local onchanged = self.OnChanged
-	local selectedobject = loveframes.selectedobject
-	
-	if key == "return" and selectedobject == self then
-		if checked then
-			self.checked = false
-		else
-			self.checked = true
-		end
-		if onchanged then
-			onchanged(self)
-		end
-	end
-
 end
 
 --[[---------------------------------------------------------
@@ -371,5 +379,25 @@ end
 function newobject:GetBoxHeight()
 
 	return self.boxheight
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetClickable(bool)
+	- desc: sets whether or not the object is enabled
+--]]---------------------------------------------------------
+function newobject:SetEnabled(bool)
+
+	self.enabled = bool
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetEnabled()
+	- desc: gets whether or not the object is enabled
+--]]---------------------------------------------------------
+function newobject:GetEnabled()
+
+	return self.enabled
 	
 end

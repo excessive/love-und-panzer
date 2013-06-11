@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- imagebutton class
@@ -30,6 +30,13 @@ end
 	- desc: updates the object
 --]]---------------------------------------------------------
 function newobject:update(dt)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
@@ -79,6 +86,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -111,6 +125,13 @@ end
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
 
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -135,6 +156,13 @@ end
 	- desc: called when the player releases a mouse button
 --]]---------------------------------------------------------
 function newobject:mousereleased(x, y, button)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	
@@ -246,7 +274,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: SizeToImage()
-	- desc: makes the object the same size as it's image
+	- desc: makes the object the same size as its image
 --]]---------------------------------------------------------
 function newobject:SizeToImage()
 
@@ -257,4 +285,46 @@ function newobject:SizeToImage()
 		self.height = image:getHeight()
 	end
 
+end
+
+--[[---------------------------------------------------------
+	- func: GetImageSize()
+	- desc: gets the size of the object's image
+--]]---------------------------------------------------------
+function newobject:GetImageSize()
+
+	local image = self.image
+	
+	if image then
+		return image:getWidth(), image:getHeight()
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetImageWidth()
+	- desc: gets the width of the object's image
+--]]---------------------------------------------------------
+function newobject:GetImageWidth()
+
+	local image = self.image
+	
+	if image then
+		return image:getWidth()
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetImageWidth()
+	- desc: gets the height of the object's image
+--]]---------------------------------------------------------
+function newobject:GetImageHeight()
+
+	local image = self.image
+	
+	if image then
+		return image:getHeight()
+	end
+	
 end

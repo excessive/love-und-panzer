@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- frame class
@@ -28,6 +28,7 @@ function newobject:initialize()
 	self.showclose = true
 	self.internals = {}
 	self.children = {}
+	self.icon = nil
 	self.OnClose = nil
 	
 	-- create the close button for the frame
@@ -50,6 +51,13 @@ end
 	- desc: updates the element
 --]]---------------------------------------------------------
 function newobject:update(dt)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	local alwaysupdate = self.alwaysupdate
@@ -173,6 +181,13 @@ end
 --]]---------------------------------------------------------
 function newobject:draw()
 	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -215,7 +230,14 @@ end
 	- desc: called when the player presses a mouse button
 --]]---------------------------------------------------------
 function newobject:mousepressed(x, y, button)
-
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
 	local visible = self.visible
 	
 	if not visible then
@@ -266,6 +288,13 @@ end
 	- desc: called when the player releases a mouse button
 --]]---------------------------------------------------------
 function newobject:mousereleased(x, y, button)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
 	
 	local visible = self.visible
 	
@@ -490,7 +519,7 @@ end
 --[[---------------------------------------------------------
 	- func: SetParentLocked(bool)
 	- desc: sets whether the frame can be moved passed the
-			boundaries of it's parent or not
+			boundaries of its parent or not
 --]]---------------------------------------------------------
 function newobject:SetParentLocked(bool)
 
@@ -501,10 +530,40 @@ end
 --[[---------------------------------------------------------
 	- func: GetParentLocked(bool)
 	- desc: gets whether the frame can be moved passed the
-			boundaries of it's parent or not
+			boundaries of its parent or not
 --]]---------------------------------------------------------
 function newobject:GetParentLocked()
 
 	return self.parentlocked
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetIcon(icon)
+	- desc: sets the object's icon
+--]]---------------------------------------------------------
+function newobject:SetIcon(icon)
+	
+	if type(icon) == "string" then
+		self.icon = love.graphics.newImage(icon)
+	else
+		self.icon = icon
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetIcon()
+	- desc: gets the object's icon
+--]]---------------------------------------------------------
+function newobject:GetIcon()
+
+	local icon = self.icon
+	
+	if icon then
+		return icon
+	end
+	
+	return false
 	
 end

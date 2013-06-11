@@ -2,7 +2,7 @@
 
 ## Information
 
-Love Frames is a GUI library for [LOVE](https://love2d.org/). For information on installation and usage, please visit the [wiki](https://github.com/NikolaiResokav/LoveFrames/wiki). A demo of the library can be found at: http://nikolairesokav.com/projects/loveframes/
+Love Frames is a GUI library for [LÖVE](https://love2d.org/). For information on installation and usage, please visit the [wiki](http://nikolairesokav.com/documents/?page=loveframes/main). A demo of the library can be found at: http://nikolairesokav.com/projects/loveframes/
 
 ## License
 

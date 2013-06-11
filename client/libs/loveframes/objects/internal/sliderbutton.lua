@@ -1,6 +1,6 @@
 --[[------------------------------------------------
 	-- Love Frames - A GUI library for LOVE --
-	-- Copyright (c) 2012 Kenny Shields --
+	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
 -- sliderbutton class
@@ -60,7 +60,6 @@ function newobject:update(dt)
 	local parent = self.parent
 	local slidetype = parent.slidetype
 	local dragging = self.dragging
-	local parent = self.parent
 	local base = loveframes.base
 	local update = self.Update
 	
@@ -216,6 +215,17 @@ function newobject:mousereleased(x, y, button)
 	
 	if not visible then
 		return
+	end
+	
+	local down = self.down
+	local dragging = self.dragging
+	
+	if dragging then
+		local parent = self.parent
+		local onrelease = parent.OnRelease
+		if onrelease then
+			onrelease(parent)
+		end
 	end
 	
 	self.down = false
