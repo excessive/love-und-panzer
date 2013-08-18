@@ -1,4 +1,83 @@
 ================================================
+Version 0.9.6.3 - Alpha (August 15 - 2013)
+================================================
+[CHANGED] the collapsible category icons used in the stock skins
+
+[REMOVED] loveframes.info
+
+================================================
+Version 0.9.6.2 - Alpha (August 14 - 2013)
+================================================
+[FIXED] collapsiblecategory:GetOpen() returning a nil value
+
+[CHANGED] loveframes.util.RemoveAll() now resets loveframes.hoverobject, loveframes.modalobject, loveframes.inputobject and loveframes.hover
+[CHANGED] the frame topbar image of both stock skins back to the gradients used before the 0.9.6 update
+[CHANGED] the stock skins now draw a gradient for the body of the frame object instead of a solid color
+[CHANGED] slight color/drawing adjustments to the blue stock skin
+[CHANGED] the collapsiblecategory object now checks its child object's visibility while closed to make sure it hasn't been marked as visible (mainly to prevent collision issues)
+
+[REMOVED] examples menu from the debug library
+[REMOVED] skin selector menu from the debug library
+[REMOVED] many skin controls from the orange stock skin that are no longer needed
+
+================================================
+Version 0.9.6.1 - Alpha (August 12 - 2013)
+================================================
+[FIXED] blue stock skin setting an invalid image directory in its skin file
+
+================================================
+Version 0.9.6 - Alpha (August 12 - 2013)
+================================================
+[ADDED] a new base method: GetSkinName()
+[ADDED] a new frame method: SetDockable(dockable)
+[ADDED] a new frame method: GetDockable()
+[ADDED] a new frame method: SetDockZoneSize(size)
+[ADDED] a new frame method: GetDockZoneSize()
+[ADDED] a new columnlist method: RemoveColumn(id)
+[ADDED] a new columnlist method: SetColumnName(id, name)
+[ADDED] a new columnlist method: RemoveRow(id)
+[ADDED] a new columnlist method: SetRowColumnText(text, rowid, columnid)
+[ADDED] a new columnlist method: SetRowColumnData(rowid, columndata)
+[ADDED] a new columnlist method: SizeToChildren(max)
+[ADDED] a new frame event callback: OnDock(object, dockobject)
+[ADDED] a new tabs method: SetTabObject(id, object)
+[ADDED] a new util library function: RectangleCollisionCheck(rect1, rect2)
+[ADDED] a new util library function: DeepCopy(orig)
+[ADDED] a new skins library function: Get(name)
+[ADDED] a new skins library function: SetControl(name, control, value)
+[ADDED] a new skins library function: SetImage(name, image, value)
+[ADDED] a new skins library function: SetImageDirectory(name, dir)
+[ADDED] a new skins library function: ReloadImages(name)
+[ADDED] docking functionality for frame objects
+[ADDED] skins can now define a separate skin to use as a base via skin.base
+[ADDED] skins can now load images from external directories via the skin.imagedir setting (defaults to loveframes/skins/skin_name/images)
+[ADDED] compatibility for LOVE 0.9.0
+
+[CHANGED] scroll buttons for the tabs object are no longer removed and re-created everytime a new tab is added
+[CHANGED] base:GetSkin() now returns the skin's table instead of the skin's name
+[CHANGED] the frame topbar image of both stock skins to a different gradient
+
+[FIXED] columnlist:GetSelectedRows() returning a nil value
+[FIXED] syntax typo in textinput:RemoveFromText() (was textinput:RemoveFromeText())
+[FIXED] object creation via datatables
+[FIXED] multichoice:SelectChoice(choice) causing an error if called when a multichoice list was not open
+[FIXED] multichoice object value not being reset when calling multichoice:Clear()
+[FIXED] an error that would occurred when attempting to scroll a tabs object with the scroll wheel when the object had no tabs
+[FIXED] colunlist:AddRow not working correctly with LuaJIT versions of LOVE
+
+[REMOVED] drawing code from the orange stock skin (now inherits from the blue stock skin)
+
+================================================
+Version 0.9.5.14 - Alpha (June 25 - 2013)
+================================================
+[FIXED] columnlistheaders and columnlistrows not being clickable when the columnlist object was using a custom state
+
+================================================
+Version 0.9.5.13 - Alpha (June 24 - 2013)
+================================================
+[FIXED] tabbuttons not being clickable when the tabs object was using a custom state
+
+================================================
 Version 0.9.5.12 - Alpha (June 10 - 2013)
 ================================================
 [ADDED] a new columnlist method: SelectRow(row, ctrl)

@@ -262,6 +262,7 @@ end
 --]]---------------------------------------------------------
 function newobject:AddRow(...)
 
+	local arg = {...}
 	local internals = self.internals
 	local list = internals[1]
 	
@@ -546,7 +547,7 @@ function newobject:GetSelectedRows()
 		end
 	end
 	
-	return v
+	return rows
 	
 end
 
@@ -591,5 +592,120 @@ end
 function newobject:GetMultiselectEnabled()
 
 	return self.multiselect
+	
+end
+
+--[[---------------------------------------------------------
+	- func: RemoveColumn(id)
+	- desc: removes a column
+--]]---------------------------------------------------------
+function newobject:RemoveColumn(id)
+
+	local children = self.children
+	
+	for k, v in ipairs(children) do
+		if k == id then
+			v:Remove()
+		end
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetColumnName(id, name)
+	- desc: sets a column's name
+--]]---------------------------------------------------------
+function newobject:SetColumnName(id, name)
+
+	local children = self.children
+	
+	for k, v in ipairs(children) do
+		if k == id then
+			v.name = name
+		end
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SizeToChildren(max)
+	- desc: sizes the object to match the combined height
+			of its children
+	- note: Credit to retupmoc258, the original author of
+			this method. This version has a few slight
+			modifications.
+--]]---------------------------------------------------------
+function newobject:SizeToChildren(max)
+	
+	local oldheight = self.height
+	local list = self.internals[1]
+	local listchildren = list.children
+	local children = self.children
+	local width = self.width
+	local buf = children[1].height
+	local h = listchildren[1].height
+	local c = #listchildren
+	local height = buf + h*c
+	
+	if max then
+		height = math.min(max, oldheight) 
+	end
+	
+	self:SetSize(width, height)
+	self:AdjustColumns()
+	
+end
+
+--[[---------------------------------------------------------
+	- func: RemoveRow(id)
+	- desc: removes a row from the object's list
+--]]---------------------------------------------------------
+function newobject:RemoveRow(id)
+
+	local list = self.internals[1]
+	local listchildren = list.children
+	local row = listchildren[id]
+	
+	if row then
+		row:Remove()
+	end
+	
+	list:CalculateSize()
+	list:RedoLayout()
+
+end
+
+--[[---------------------------------------------------------
+	- func: SetRowColumnText(text, rowid, columnid)
+	- desc: sets the text of the of specific column in the
+			specified row
+--]]---------------------------------------------------------
+function newobject:SetRowColumnText(text, rowid, columnid)
+	
+	local list = self.internals[1]
+	local listchildren = list.children
+	local row = listchildren[rowid]
+	
+	if row and row.columndata[columnid]then
+		row.columndata[columnid] = text
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetRowColumnData(rowid, columndata)
+	- desc: sets the columndata of the specified row
+--]]---------------------------------------------------------
+function newobject:SetRowColumnData(rowid, columndata)
+
+	local list = self.internals[1]
+	local listchildren = list.children
+	local row = listchildren[rowid]
+	
+	if row then
+		for k, v in ipairs(columndata) do
+			row.columndata[k] = tostring(v)
+		end
+	end
 	
 end

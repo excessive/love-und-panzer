@@ -14,16 +14,16 @@ function love.load()
 	numTiles = 18.75
 	
 	-- Screen
-	scale = love.graphics.getHeight() / numTiles / tileSize
-	windowWidth = love.graphics.getWidth()
-	windowHeight = love.graphics.getHeight()
+	scale			= love.graphics.getHeight() / numTiles / tileSize
+	windowWidth		= love.graphics.getWidth()
+	windowHeight	= love.graphics.getHeight()
 	
 	-- Load screen types
 	states = {}
-	states.title		= require "states.title"
+	states.title	= require "states.title"
 	states.options	= require "states.options"
 	states.credits	= require "states.credits"
-	states.lobby		= require "states.lobby"
+	states.lobby	= require "states.lobby"
 	states.gameplay	= require "states.gameplay"
 	states.results	= require "states.results"
 	

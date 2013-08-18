@@ -9,10 +9,9 @@ local path = ...
 loveframes = {}
 
 -- library info
-loveframes.info = {}
-loveframes.info.author = "Kenny Shields"
-loveframes.info.version = "0.9.5.12"
-loveframes.info.stage = "Alpha"
+loveframes.author = "Kenny Shields"
+loveframes.version = "0.9.6.3"
+loveframes.stage = "Alpha"
 
 -- library configurations
 loveframes.config = {}
@@ -39,6 +38,12 @@ loveframes.objects = {}
 	- desc: loads the library
 --]]---------------------------------------------------------
 function loveframes.load()
+	
+	local loveversion = love._version
+	
+	if loveversion ~= "0.8.0" and loveversion ~= "0.9.0" then
+		error("Love Frames is not compatible with your version of LOVE.")
+	end
 	
 	-- install directory of the library
 	local dir = loveframes.config["DIRECTORY"] or path
@@ -228,9 +233,10 @@ function loveframes.Create(data, parent)
 		-- creates objects based on those properties
 		local function CreateObjects(t, o, c)
 			local child = c or false
+			local validobjects = loveframes.objects
 			for k, v in pairs(t) do
 				-- current default object
-				local object = _G[v.type]:new()
+				local object = validobjects[v.type]:new()
 				-- indert the object into the table of objects being created
 				table.insert(objects, object)
 				-- parent the new object by default to the base gui object

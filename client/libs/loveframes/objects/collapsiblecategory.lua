@@ -66,6 +66,10 @@ function newobject:update(dt)
 	if open and curobject then
 		curobject:SetWidth(self.width - self.padding * 2)
 		curobject:update(dt)
+	elseif not open and curobject then
+		if curobject:GetVisible() then
+			curobject:SetVisible(false)
+		end
 	end
 	
 	if update then
@@ -346,6 +350,6 @@ end
 --]]---------------------------------------------------------
 function newobject:GetOpen()
 
-	return self.opened
+	return self.open
 
 end

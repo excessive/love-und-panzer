@@ -956,6 +956,22 @@ end
 	- desc: gets the object's skin
 --]]---------------------------------------------------------
 function newobject:GetSkin(name)
+	
+	local skins = loveframes.skins.available
+	local skinindex = loveframes.config["ACTIVESKIN"]
+	local defaultskin = loveframes.config["DEFAULTSKIN"]
+	local selfskin = self.skin
+	local skin = skins[selfskin] or skins[skinindex]
+	
+	return skin
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetSkinName()
+	- desc: gets the name of the object's skin
+--]]---------------------------------------------------------
+function newobject:GetSkinName()
 
 	return self.skin
 	

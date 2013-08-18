@@ -215,7 +215,10 @@ function newobject:SelectChoice(choice)
 	local onchoiceselected = self.OnChoiceSelected
 	
 	self.choice = choice
-	self.list:Close()
+	
+	if self.list then
+		self.list:Close()
+	end
 	
 	if onchoiceselected then
 		onchoiceselected(self, choice)
@@ -401,6 +404,8 @@ end
 function newobject:Clear()
 
 	self.choices = {}
+	self.choice = ""
+	self.text = "Select an option"
 	
 end
 

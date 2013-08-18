@@ -18,6 +18,9 @@ function newobject:initialize()
 	self.height = 150
 	self.clickx = 0
 	self.clicky = 0
+	self.dockx = 0
+	self.docky = 0
+	self.dockzonesize = 10
 	self.internal = false
 	self.draggable = true
 	self.screenlocked = false
@@ -26,10 +29,29 @@ function newobject:initialize()
 	self.modal = false
 	self.modalbackground = false
 	self.showclose = true
+	self.dockedtop = false
+	self.dockedbottom = false
+	self.dockedleft = false
+	self.dockedright = false
+	self.topdockobject = false
+	self.bottomdockobject = false
+	self.leftdockobject = false
+	self.rightdockobject = false
+	self.dockable = false
 	self.internals = {}
 	self.children = {}
 	self.icon = nil
 	self.OnClose = nil
+	self.OnDock = nil
+	
+	-- create docking zones
+	self.dockzones = 
+	{
+		top = {x = 0, y = 0, width = 0, height = 0},
+		bottom = {x = 0, y = 0, width = 0, height = 0},
+		left = {x = 0, y = 0, width = 0, height = 0},
+		right = {x = 0, y = 0, width = 0, height = 0}
+	}
 	
 	-- create the close button for the frame
 	local close = loveframes.objects["closebutton"]:new()
@@ -68,7 +90,9 @@ function newobject:update(dt)
 		end
 	end
 	
-	local x, y = love.mouse.getPosition()
+	local mx, my = love.mouse.getPosition()
+	local width = self.width
+	local height = self.height
 	local showclose = self.showclose
 	local close = self.internals[1]
 	local dragging = self.dragging
@@ -79,6 +103,12 @@ function newobject:update(dt)
 	local basechildren = base.children
 	local numbasechildren = #basechildren
 	local draworder = self.draworder
+	local dockedtop = self.dockedtop
+	local dockedbottom = self.dockedbottom
+	local dockedleft = self.dockedleft
+	local dockedright = self.dockedright
+	local dockable = self.dockable
+	local dockzonesize = self.dockzonesize
 	local children = self.children
 	local internals = self.internals
 	local parent = self.parent
@@ -86,53 +116,154 @@ function newobject:update(dt)
 	
 	self:CheckHover()
 	
+	-- update dockzones
+	self.dockzones.top = {x = self.x, y = self.y - dockzonesize, width = self.width, height = dockzonesize}
+	self.dockzones.bottom = {x = self.x, y = self.y + self.height, width = self.width, height = dockzonesize}
+	self.dockzones.left = {x = self.x - dockzonesize, y = self.y, width = dockzonesize, height = self.height}
+	self.dockzones.right = {x = self.x + self.width, y = self.y, width = dockzonesize, height = self.height}
+	
 	-- dragging check
 	if dragging then
 		if parent == base then
-			self.x = x - self.clickx
-			self.y = y - self.clicky
+			if not dockedtop and not dockedbottom then
+				self.y = my - self.clicky
+			end
+			if not dockedleft and not dockedright then
+				self.x = mx - self.clickx
+			end
+			local basechildren = loveframes.base.children
+			-- check for frames to dock with
+			if dockable then
+				local ondock = self.OnDock
+				for k, v in ipairs(basechildren) do
+					if v.type == "frame" then
+						local topcol = loveframes.util.RectangleCollisionCheck(self.dockzones.bottom, v.dockzones.top)
+						local botcol = loveframes.util.RectangleCollisionCheck(self.dockzones.top, v.dockzones.bottom)
+						local leftcol = loveframes.util.RectangleCollisionCheck(self.dockzones.right, v.dockzones.left)
+						local rightcol = loveframes.util.RectangleCollisionCheck(self.dockzones.left, v.dockzones.right)
+						local candockobject = v.dockable
+						if candockobject then
+							if topcol and not dockedtop then
+								self.y = v.y - self.height
+								self.docky = my
+								self.dockedtop = true
+								self.topdockobject = v
+								if ondock then
+									ondock(object, v)
+								end
+							elseif botcol and not dockedbottom then
+								self.y = v.y + v.height
+								self.docky = my
+								self.dockedbottom = true
+								self.bottomdockobject = v
+								if ondock then
+									ondock(object, v)
+								end
+							elseif leftcol and not dockedleft then
+								self.x = v.x - self.width
+								self.dockx = mx
+								self.dockedleft = true
+								self.leftdockobject = v
+								if ondock then
+									ondock(object, v)
+								end
+							elseif rightcol and not dockedright then
+								self.x = v.x + v.width
+								self.dockx = mx
+								self.dockedright = true
+								self.rightdockobject = v
+								if ondock then
+									ondock(object, v)
+								end
+							end
+						end
+					end
+				end
+			end
+			local dockx = self.dockx
+			local docky = self.docky
+			local x = self.x
+			local y = self.y
+			-- check to see if the frame should be undocked
+			if dockedtop then
+				local topdockobject = self.topdockobject
+				local tdox = topdockobject.x
+				local tdowidth = topdockobject.width
+				if my > (docky + 20) or my < (docky - 20) or (x + width) < tdox or x > (tdox + tdowidth) then
+					self.dockedtop = false
+					self.docky = 0
+				end
+			end
+			if dockedbottom then
+				local bottomdockobject = self.bottomdockobject
+				local bdox = bottomdockobject.x
+				local bdowidth = bottomdockobject.width
+				if my > (docky + 20) or my < (docky - 20) or (x + width) < bdox or x > (bdox + bdowidth) then
+					self.dockedbottom = false
+					self.docky = 0
+				end
+			end
+			if dockedleft then
+				local leftdockobject = self.leftdockobject
+				local ldoy = leftdockobject.y
+				local ldoheight = leftdockobject.height
+				if mx > (dockx + 20) or mx < (dockx - 20) or (y + height) < ldoy or y > (ldoy + ldoheight) then
+					self.dockedleft = false
+					self.dockx = 0
+				end
+			end
+			if dockedright then
+				local rightdockobject = self.rightdockobject
+				local rdoy = rightdockobject.y
+				local rdoheight = rightdockobject.height
+				if mx > (dockx + 20) or mx < (dockx - 20) or (y + height) < rdoy or y > (rdoy + rdoheight) then
+					self.dockedright = false
+					self.dockx = 0
+				end
+			end
 		else
-			self.staticx = x - self.clickx
-			self.staticy = y - self.clicky
+			self.staticx = mx - self.clickx
+			self.staticy = my - self.clicky
 		end
 	end
 	
 	-- if screenlocked then keep within screen
 	if screenlocked then
-		local width = love.graphics.getWidth()
-		local height = love.graphics.getHeight()
-		local selfwidth = self.width
-		local selfheight = self.height
-		if self.x < 0 then
+		local screenwidth = love.graphics.getWidth()
+		local screenheight = love.graphics.getHeight()
+		local x = self.x
+		local y = self.y
+		if x < 0 then
 			self.x = 0
 		end
-		if self.x + selfwidth > width then
-			self.x = width - selfwidth
+		if x + width > screenwidth then
+			self.x = screenwidth - width
 		end
-		if self.y < 0 then
+		if y < 0 then
 			self.y = 0
 		end
-		if self.y + selfheight > height then
-			self.y = height - selfheight
+		if y + height > screenheight then
+			self.y = screenheight - height
 		end
 	end
 	
+	-- keep the frame within its parent's boundaries if parentlocked
 	if parentlocked then
-		local width = self.parent.width
-		local height = self.parent.height
-		local selfwidth = self.width
-		local selfheight = self.height
-		if self.staticx < 0 then
+		local parentwidth = self.parent.width
+		local parentheight = self.parent.height
+		local staticx = self.staticx
+		local staticy = self.staticy
+		if staticx < 0 then
 			self.staticx = 0
 		end
-		if self.staticx + selfwidth > width then
-			self.staticx = width - selfwidth
+		if staticx + width > parentwidth then
+			self.staticx = parentwidth - width
 		end
-		if self.staticy < 0 then
+		if staticy < 0 then
 			self.staticy = 0
 		end
-		if self.staticy + selfheight > height then
-			self.staticy = height - selfheight
+		if staticy + height > parentheight then
+			self.staticy = parentheight - height
 		end
 	end
 	
@@ -140,12 +271,12 @@ function newobject:update(dt)
 		local tip = false
 		local key = 0
 		for k, v in ipairs(basechildren) do
-			if v.type == "tooltip" and v.show == true then
+			if v.type == "tooltip" and v.show then
 				tip = v
 				key = k
 			end
 		end
-		if tip ~= false then
+		if tip then
 			self:Remove()
 			self.modalbackground:Remove()
 			table.insert(basechildren, key - 2, self.modalbackground)
@@ -465,7 +596,6 @@ function newobject:SetModal(bool)
 			modalobject:SetModal(false)
 		end
 		loveframes.modalobject = self
-		
 		if not mbackground then
 			self.modalbackground = loveframes.objects["modalbackground"]:new(self)
 			self.modal = true
@@ -566,4 +696,46 @@ function newobject:GetIcon()
 	
 	return false
 	
+end
+
+--[[---------------------------------------------------------
+	- func: SetDockable(dockable)
+	- desc: sets whether or not the object can dock onto
+			another from or be docked by another frame
+--]]---------------------------------------------------------
+function newobject:SetDockable(dockable)
+
+	self.dockable = dockable
+
+end
+
+--[[---------------------------------------------------------
+	- func: GetDockable()
+	- desc: gets whether or not the object can dock onto
+			another from or be docked by another frame
+--]]---------------------------------------------------------
+function newobject:GetDockable()
+
+	return self.dockable
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetDockZoneSize(size)
+	- desc: sets the size of the object's docking zone
+--]]---------------------------------------------------------
+function newobject:SetDockZoneSize(size)
+
+	self.dockzonesize = size
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetDockZoneSize(size)
+	- desc: gets the size of the object's docking zone
+--]]---------------------------------------------------------
+function newobject:GetDockZoneSize()
+
+	return self.dockzonesize
+
 end

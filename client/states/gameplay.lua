@@ -21,10 +21,7 @@ local function createCollisionMap(map, layer)
 end
 
 function gameplay:enter(state)
-	---------------------------------
-	gui.lobby.players.group:SetVisible(false)
-	gui.lobby.ready.button:SetVisible(false)
-	---------------------------------
+	loveframes.SetState("gameplay")
 	
 	gui.gameplay = {}
 

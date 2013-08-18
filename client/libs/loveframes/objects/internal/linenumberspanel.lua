@@ -82,6 +82,12 @@ function newobject:draw()
 		return
 	end
 	
+	local x = self.x
+	local y = self.y
+	local width = self.width
+	local height = self.height
+	local stencilfunc = function() love.graphics.rectangle("fill", x, y, width, height) end
+	local loveversion = love._version
 	local skins = loveframes.skins.available
 	local skinindex = loveframes.config["ACTIVESKIN"]
 	local defaultskin = loveframes.config["DEFAULTSKIN"]
@@ -91,7 +97,6 @@ function newobject:draw()
 	local draw = self.Draw
 	local drawcount = loveframes.drawcount
 	local stencilfunc = function() love.graphics.rectangle("fill", self.parent.x, self.parent.y, self.width, self.height) end
-	local stencil = love.graphics.newStencil(stencilfunc)
 	
 	if self.parent.hbar then
 		stencilfunc = function() love.graphics.rectangle("fill", self.parent.x, self.parent.y, self.width, self.parent.height - 16) end
@@ -100,7 +105,12 @@ function newobject:draw()
 	-- set the object's draw order
 	self:SetDrawOrder()
 	
-	love.graphics.setStencil(stencilfunc)
+	if loveversion == "0.8.0" then
+		local stencil = love.graphics.newStencil(stencilfunc)
+		love.graphics.setStencil(stencil)
+	else
+		love.graphics.setStencil(stencilfunc)
+	end
 	
 	if draw then
 		draw(self)

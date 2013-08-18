@@ -17,6 +17,7 @@ function newobject:initialize(parent, text, tabnumber, tip, image, onopened, onc
 	self.text = text
 	self.tabnumber = tabnumber
 	self.parent = parent
+	self.state = parent.state
 	self.staticx = 0
 	self.staticy = 0
 	self.width = 50

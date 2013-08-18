@@ -260,11 +260,15 @@ function newobject:draw()
 		return
 	end
 	
+	local x = self.x
+	local y = self.y
+	local width = self.width
+	local height = self.height
 	local skins = loveframes.skins.available
 	local skinindex = loveframes.config["ACTIVESKIN"]
 	local defaultskin = loveframes.config["DEFAULTSKIN"]
-	local stencilfunc = function() love.graphics.rectangle("fill", self.x, self.y, self.width, self.height) end
-	local stencil = love.graphics.newStencil(stencilfunc)
+	local stencilfunc = function() love.graphics.rectangle("fill", x, y, width, height) end
+	local loveversion = love._version
 	local selfskin = self.skin
 	local skin = skins[selfskin] or skins[skinindex]
 	local drawfunc = skin.DrawTextInput or skins[defaultskin].DrawTextInput
@@ -279,10 +283,15 @@ function newobject:draw()
 	self:SetDrawOrder()
 	
 	if vbar and hbar then
-		stencilfunc = function() love.graphics.rectangle("fill", self.x, self.y, self.width - 16, self.height - 16) end
+		stencilfunc = function() love.graphics.rectangle("fill", x, y, width - 16, height - 16) end
 	end
 	
-	love.graphics.setStencil(stencilfunc)
+	if loveversion == "0.8.0" then
+		local stencil = love.graphics.newStencil(stencilfunc)
+		love.graphics.setStencil(stencil)
+	else
+		love.graphics.setStencil(stencilfunc)
+	end
 	
 	if draw then
 		draw(self)
@@ -593,7 +602,7 @@ function newobject:RunKey(key, unicode)
 			indicatornum = self.indicatornum
 		else
 			if text ~= "" and indicatornum ~= 0 then
-				text = self:RemoveFromeText(indicatornum)
+				text = self:RemoveFromText(indicatornum)
 				self:MoveIndicator(-1)
 				lines[line] = text
 			end
@@ -630,7 +639,7 @@ function newobject:RunKey(key, unicode)
 			indicatornum = self.indicatornum
 		else
 			if text ~= "" and indicatornum < #text then
-				text = self:RemoveFromeText(indicatornum + 1)
+				text = self:RemoveFromText(indicatornum + 1)
 				lines[line] = text
 			elseif indicatornum == #text and line < #lines then
 				local oldtext = lines[line + 1]
@@ -680,6 +689,10 @@ function newobject:RunKey(key, unicode)
 			self:MoveIndicator(1)
 		end
 	else
+		local loveversion = love._version
+		if loveversion == "0.9.0" then
+			unicode = string.byte(unicode)
+		end
 		if unicode > 31 and unicode < 127 then
 			-- do not continue if the text limit has been reached or exceeded
 			if #text >= self.limit and self.limit ~= 0 then
@@ -852,11 +865,11 @@ function newobject:AddIntoText(t, p)
 end
 
 --[[---------------------------------------------------------
-	- func: RemoveFromeText(p)
+	- func: RemoveFromText(p)
 	- desc: removes text from the object's text a given 
 			position
 --]]---------------------------------------------------------
-function newobject:RemoveFromeText(p)
+function newobject:RemoveFromText(p)
 
 	local lines = self.lines
 	local line = self.line

@@ -1,26 +1,26 @@
 Class = require "libs.hump.class"
 
-Bullet = Class {
-	--[[
-		Tank object
-		
-		map			- A reference of the map
-		collision	- Collision map
-		image		- Spritemap
-		w			- Width on map
-		h			- Height on map
-		speed		- Tiles per second
-	]]--
-	function(self, map, collision, image, w, h, speed)
-		self.map		= map
-		self.collision	= collision
-		self.speed		= speed
-		
-		self.image		= love.graphics.newImage(image)
-		self.w			= self.image:getWidth()
-		self.h			= self.image:getHeight()
-	end
-}
+Bullet = Class {}
+
+--[[
+	Bullet object
+	
+	map			- A reference of the map
+	collision	- Collision map
+	image		- Spritemap
+	w			- Width on map
+	h			- Height on map
+	speed		- Tiles per second
+]]--
+function Bullet:init(map, collision, image, w, h, speed)
+	self.map		= map
+	self.collision	= collision
+	self.speed		= speed
+	
+	self.image		= love.graphics.newImage(image)
+	self.w			= self.image:getWidth()
+	self.h			= self.image:getHeight()
+end
 
 function Bullet:load(x, y, r)
 	self.x = x

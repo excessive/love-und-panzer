@@ -1,7 +1,7 @@
 local results = {}
 
 function results:enter(state)
-	gui.results = {}
+	loveframes.SetState("results")
 end
 
 function results:update(dt)

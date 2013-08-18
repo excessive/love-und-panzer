@@ -15,6 +15,7 @@ function newobject:initialize(name, parent)
 	self.type = "columnlistheader"
 	self.parent = parent
 	self.name = name
+	self.state = parent.state
 	self.width = 80
 	self.height = self.parent.columnheight
 	self.hover = false

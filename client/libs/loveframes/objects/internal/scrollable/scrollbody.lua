@@ -104,7 +104,8 @@ function newobject:initialize(parent, bartype)
 		table.insert(self.internals, rightbutton)
 	end
 	
-	self:SetState(parent.state)
+	local parentstate = parent.state
+	self:SetState(parentstate)
 	
 	-- apply template properties to the object
 	loveframes.templates.ApplyToObject(self)

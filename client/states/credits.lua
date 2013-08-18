@@ -1,7 +1,7 @@
 local credits = {}
 
 function credits:enter(state)
-	gui.credits = {}
+	loveframes.SetState("credits")
 end
 
 function credits:update(dt)

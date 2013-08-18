@@ -139,8 +139,12 @@ function newobject:draw()
 		return
 	end
 	
-	local stencilfunc = function() love.graphics.rectangle("fill", self.x, self.y, self.width, self.height) end
-	local stencil = love.graphics.newStencil(stencilfunc)
+	local x = self.x
+	local y = self.y
+	local width = self.width
+	local height = self.height
+	local stencilfunc = function() love.graphics.rectangle("fill", x, y, width, height) end
+	local loveversion = love._version
 	local skins = loveframes.skins.available
 	local skinindex = loveframes.config["ACTIVESKIN"]
 	local defaultskin = loveframes.config["DEFAULTSKIN"]
@@ -166,7 +170,12 @@ function newobject:draw()
 		v:draw()
 	end
 		
-	love.graphics.setStencil(stencil)
+	if loveversion == "0.8.0" then
+		local stencil = love.graphics.newStencil(stencilfunc)
+		love.graphics.setStencil(stencil)
+	else
+		love.graphics.setStencil(stencilfunc)
+	end
 		
 	for k, v in ipairs(children) do
 		local col = loveframes.util.BoundingBox(self.x, v.x, self.y, v.y, self.width, v.width, self.height, v.height)

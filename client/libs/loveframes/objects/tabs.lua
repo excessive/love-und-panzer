@@ -32,6 +32,8 @@ function newobject:initialize()
 	self.internals = {}
 	self.children = {}
 	
+	self:AddScrollButtons()
+	
 end
 
 --[[---------------------------------------------------------
@@ -61,13 +63,11 @@ function newobject:update(dt)
 	local padding = self.padding
 	local autosize = self.autosize
 	local padding = self.padding
-	local autosize = self.autosize
 	local children = self.children
 	local numchildren = #children
 	local internals = self.internals
 	local tab = self.tab
 	local parent = self.parent
-	local autosize = self.autosize
 	local base = loveframes.base
 	local update = self.Update
 	
@@ -124,10 +124,14 @@ function newobject:draw()
 		return
 	end
 	
+	local x = self.x
+	local y = self.y
+	local width = self.width
+	local height = self.height
 	local internals = self.internals
 	local tabheight = self:GetHeightOfButtons()
-	local stencilfunc = function() love.graphics.rectangle("fill", self.x, self.y, self.width, tabheight) end
-	local stencil = love.graphics.newStencil(stencilfunc)
+	local stencilfunc = function() love.graphics.rectangle("fill", x, y, width, height) end
+	local loveversion = love._version
 	local internals = self.internals
 	local skins = loveframes.skins.available
 	local skinindex = loveframes.config["ACTIVESKIN"]
@@ -147,7 +151,12 @@ function newobject:draw()
 		drawfunc(self)
 	end
 	
-	love.graphics.setStencil(stencil)
+	if loveversion == "0.8.0" then
+		local stencil = love.graphics.newStencil(stencilfunc)
+		love.graphics.setStencil(stencil)
+	else
+		love.graphics.setStencil(stencilfunc)
+	end
 	
 	for k, v in ipairs(internals) do
 		v:draw()
@@ -181,18 +190,16 @@ function newobject:mousepressed(x, y, button)
 	end
 	
 	local children = self.children
-	local numchildren = #children
-	local tab = self.tab
 	local internals = self.internals
+	local numchildren = #children
 	local numinternals = #internals
+	local tab = self.tab
 	local hover = self.hover
 	
-	if hover then
-		if button == "l" then
-			local baseparent = self:GetBaseParent()
-			if baseparent and baseparent.type == "frame" then
-				baseparent:MakeTop()
-			end
+	if hover and button == "l" then
+		local baseparent = self:GetBaseParent()
+		if baseparent and baseparent.type == "frame" then
+			baseparent:MakeTop()
 		end
 	end
 	
@@ -290,17 +297,19 @@ function newobject:AddTab(name, object, tip, image, onopened, onclosed)
 	local tabnumber = self.tabnumber
 	local tabheight = self.tabheight
 	local internals = self.internals
+	local state = self.state
 	
 	object:Remove()
 	object.parent = self
-	object:SetState(self.state)
+	object:SetState(state)
 	object.staticx = 0
 	object.staticy = 0
 	
+	local tab = loveframes.objects["tabbutton"]:new(self, name, tabnumber, tip, image, onopened, onclosed)
+	
 	table.insert(self.children, object)
-	internals[tabnumber] = loveframes.objects["tabbutton"]:new(self, name, tabnumber, tip, image, onopened, onclosed)
+	table.insert(self.internals, #self.internals - 1, tab)
 	self.tabnumber = tabnumber + 1
-	self:AddScrollButtons()
 	
 	if autosize and not retainsize then
 		object:SetSize(self.width - padding * 2, (self.height - tabheight) - padding * 2)
@@ -316,6 +325,7 @@ end
 function newobject:AddScrollButtons()
 
 	local internals = self.internals
+	local state = self.state
 	
 	for k, v in ipairs(internals) do
 		if v.type == "scrollbutton" then
@@ -329,6 +339,8 @@ function newobject:AddScrollButtons()
 	leftbutton:SetSize(15, 25)
 	leftbutton:SetAlwaysUpdate(true)
 	leftbutton.Update = function(object, dt)
+		object.staticx = 0
+		object.staticy = 0
 		if self.offsetx ~= 0 then
 			object.visible = true
 		else
@@ -358,6 +370,8 @@ function newobject:AddScrollButtons()
 	rightbutton:SetSize(15, 25)
 	rightbutton:SetAlwaysUpdate(true)
 	rightbutton.Update = function(object, dt)
+		object.staticx = self.width - object.width
+		object.staticy = 0
 		local bwidth = self:GetWidthOfButtons()
 		if (self.offsetx + bwidth) > self.width then
 			object.visible = true
@@ -379,6 +393,9 @@ function newobject:AddScrollButtons()
 			end
 		end
 	end
+	
+	leftbutton.state = state
+	rightbutton.state = state
 	
 	table.insert(internals, leftbutton)
 	table.insert(internals, rightbutton)
@@ -559,7 +576,6 @@ function newobject:RemoveTab(id)
 	end
 	
 	self.tabnumber = tabnumber
-	self:AddScrollButtons()
 	
 end
 
@@ -624,5 +640,27 @@ end
 function newobject:GetDTScrolling()
 
 	return self.dtscrolling
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetTabObject(id, object)
+	- desc: sets the object of a tab
+--]]---------------------------------------------------------
+function newobject:SetTabObject(id, object)
+
+	local children = self.children
+	local internals = self.internals
+	local tab = children[id]
+	
+	if tab then
+		tab:Remove()
+		object:Remove()
+		object.parent = self
+		object:SetState(state)
+		object.staticx = 0
+		object.staticy = 0
+		children[id] = object
+	end
 	
 end

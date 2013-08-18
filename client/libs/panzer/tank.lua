@@ -2,59 +2,59 @@ require "libs.AnAL"
 require "libs.panzer.bullet"
 Class = require "libs.hump.class"
 
-Tank = Class {
-	--[[
-		Tank object
-		
-		map			- A reference of the map
-		collision	- Collision map
-		image		- Spritemap
-		w			- Width on map
-		h			- Height on map
-		x			- TileX on map
-		y			- TileY on map
-		r			- Radial direction
-		tr			- Turret Radial direction
-		speed		- Tiles per second
-		turnSpeed	- Radians per second
-		ammo		- Number of bullets
-	]]--
-	function(self, map, collision, image, w, h, x, y, r, tr, speed, turnSpeed, reloadSpeed, ammo)
-		self.colour = {
-			pink = 0,
-			blue = 1,
-		}
-		
-		self.map			= map
-		self.collision		= collision
-		self.speed			= speed
-		self.turnSpeed		= turnSpeed
-		self.reloadSpeed	= reloadSpeed
-		
-		self.image			= love.graphics.newImage(image)
-		self.w				= w
-		self.h				= h
-		
-		self.x				= x
-		self.y				= y
-		self.r				= r
-		self.tr				= tr 
-		
-		self.sprites		= {}
-		self:newSprite("idle",		self.image, self.w, self.h, 0, self.colour.pink, 1, self.colour.pink, 0.03)
-		self:newSprite("forward",	self.image, self.w, self.h, 3, self.colour.pink, -1, self.colour.pink, 0.03)
-		self:newSprite("backward",	self.image, self.w, self.h, 0, self.colour.pink, 4, self.colour.pink, 0.03)
-		self:newSprite("turnLeft",	self.image, self.w, self.h, 4, self.colour.pink, 8, self.colour.pink, 0.03)
-		self:newSprite("turnRight",	self.image, self.w, self.h, 7, self.colour.pink, 3, self.colour.pink, 0.03)
-		self.facing			= "idle"
-		
-		self.turret		= love.graphics.newQuad(self.colour.pink * 32, 128, 32, 64, 512, 256)
-		
-		self.bullet			= Bullet(map, collision, "assets/sprites/bullet.png", 4, 4, 5)
-		self.ammo			= ammo
-		self.reload			= 0
-	end
-}
+Tank = Class {}
+
+--[[
+	Tank object
+	
+	map			- A reference of the map
+	collision	- Collision map
+	image		- Spritemap
+	w			- Width on map
+	h			- Height on map
+	x			- TileX on map
+	y			- TileY on map
+	r			- Radial direction
+	tr			- Turret Radial direction
+	speed		- Tiles per second
+	turnSpeed	- Radians per second
+	ammo		- Number of bullets
+]]--
+function Tank:init(map, collision, image, w, h, x, y, r, tr, speed, turnSpeed, reloadSpeed, ammo)
+	self.colour = {
+		pink = 0,
+		blue = 1,
+	}
+	
+	self.map			= map
+	self.collision		= collision
+	self.speed			= speed
+	self.turnSpeed		= turnSpeed
+	self.reloadSpeed	= reloadSpeed
+	
+	self.image			= love.graphics.newImage(image)
+	self.w				= w
+	self.h				= h
+	
+	self.x				= x
+	self.y				= y
+	self.r				= r
+	self.tr				= tr 
+	
+	self.sprites		= {}
+	self:newSprite("idle",		self.image, self.w, self.h, 0, self.colour.pink, 1, self.colour.pink, 0.03)
+	self:newSprite("forward",	self.image, self.w, self.h, 3, self.colour.pink, -1, self.colour.pink, 0.03)
+	self:newSprite("backward",	self.image, self.w, self.h, 0, self.colour.pink, 4, self.colour.pink, 0.03)
+	self:newSprite("turnLeft",	self.image, self.w, self.h, 4, self.colour.pink, 8, self.colour.pink, 0.03)
+	self:newSprite("turnRight",	self.image, self.w, self.h, 7, self.colour.pink, 3, self.colour.pink, 0.03)
+	self.facing			= "idle"
+	
+	self.turret		= love.graphics.newQuad(self.colour.pink * 32, 128, 32, 64, 512, 256)
+	
+	self.bullet			= Bullet(map, collision, "assets/sprites/bullet.png", 4, 4, 5)
+	self.ammo			= ammo
+	self.reload			= 0
+end
 
 --[[
 	Update Tank

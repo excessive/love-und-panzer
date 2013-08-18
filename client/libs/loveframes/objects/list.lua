@@ -129,10 +129,10 @@ function newobject:draw()
 	local y = self.y
 	local width = self.width
 	local height = self.height
+	local stencilfunc = function() love.graphics.rectangle("fill", x, y, width, height) end
+	local loveversion = love._version
 	local internals = self.internals
 	local children = self.children
-	local stencilfunc = function() love.graphics.rectangle("fill", x, y, width, height) end
-	local stencil = love.graphics.newStencil(stencilfunc)
 	local skins = loveframes.skins.available
 	local skinindex = loveframes.config["ACTIVESKIN"]
 	local defaultskin = loveframes.config["DEFAULTSKIN"]
@@ -152,7 +152,12 @@ function newobject:draw()
 		drawfunc(self)
 	end
 	
-	love.graphics.setStencil(stencil)
+	if loveversion == "0.8.0" then
+		local stencil = love.graphics.newStencil(stencilfunc)
+		love.graphics.setStencil(stencil)
+	else
+		love.graphics.setStencil(stencilfunc)
+	end
 		
 	for k, v in ipairs(children) do
 		local col = loveframes.util.BoundingBox(x, v.x, y, v.y, width, v.width, height, v.height)
@@ -249,11 +254,12 @@ function newobject:AddItem(object)
 	end
 
 	local children = self.children
+	local state = self.state
 	
 	-- remove the item object from its current parent and make its new parent the list object
 	object:Remove()
 	object.parent = self
-	object.state = self.state
+	object:SetState(state)
 	
 	-- insert the item object into the list object's children table
 	table.insert(children, object)

@@ -1,7 +1,7 @@
 local options = {}
 
 function options:enter(state)
-	gui.options = {}
+	loveframes.SetState("options")
 end
 
 function options:update(dt)

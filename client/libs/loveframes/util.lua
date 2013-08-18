@@ -32,7 +32,7 @@ end
 --[[---------------------------------------------------------
 	- func: BoundingBox(x1, x2, y1, y2, w1, w2, h1, h2)
 	- desc: checks for a collision between two boxes
-	- note: i take no credit for this function
+	- note: I take no credit for this function
 --]]---------------------------------------------------------
 function loveframes.util.BoundingBox(x1, x2, y1, y2, w1, w2, h1, h2)
 
@@ -168,7 +168,7 @@ end
 --[[---------------------------------------------------------
 	- func: Round(num, idp)
 	- desc: rounds a number based on the decimal limit
-	- note: i take no credit for this function
+	- note: I take no credit for this function
 --]]---------------------------------------------------------
 function loveframes.util.Round(num, idp)
 
@@ -185,7 +185,7 @@ end
 --[[---------------------------------------------------------
 	- func: SplitString(string, pattern)
 	- desc: splits a string into a table based on a given pattern
-	- note: i take no credit for this function
+	- note: I take no credit for this function
 --]]---------------------------------------------------------
 function loveframes.util.SplitString(str, pat)
 
@@ -238,6 +238,11 @@ function loveframes.util.RemoveAll()
 
 	loveframes.base.children = {}
 	loveframes.base.internals = {}
+	
+	loveframes.hoverobject = false
+	loveframes.modalobject = false
+	loveframes.inputobject = false
+	loveframes.hover = false
 	
 end
 
@@ -293,4 +298,35 @@ function loveframes.util.GetHover()
 	return loveframes.hover
 	
 end
+
+--[[---------------------------------------------------------
+	- func: RectangleCollisionCheck(rect1, rect2)
+	- desc: checks for a collision between two rectangles
+			based on two tables containing rectangle sizes
+			and positions
+--]]---------------------------------------------------------
+function loveframes.util.RectangleCollisionCheck(rect1, rect2)
+
+	return loveframes.util.BoundingBox(rect1.x, rect2.x, rect1.y, rect2.y, rect1.width, rect2.width, rect1.height, rect2.height)
 	
+end
+
+--[[---------------------------------------------------------
+	- func: loveframes.util.DeepCopy(orig)
+	- desc: copies a table
+	- note: I take not credit for this function
+--]]---------------------------------------------------------
+function loveframes.util.DeepCopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[loveframes.util.DeepCopy(orig_key)] = loveframes.util.DeepCopy(orig_value)
+        end
+        setmetatable(copy, loveframes.util.DeepCopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end

@@ -2,52 +2,52 @@ Class = require "libs.hump.class"
 json = require "libs.dkjson"
 require "libs.LUBE"
 
-Server = Class {
-    function(self)
-		self.state = {
-			screen = "lobby",
-			players = {
-				--[[
-					id = {,		-- Client ID
-						-- GENERAL INFO
-						name,	-- Player Name
-						team,	-- Player Team
-						host,	-- Host?
-						
-						-- LOBBY INFO
-						ready,	-- Ready?
-						
-						-- GAME INFO
-						x,		-- X Position
-						y,		-- Y Position
-						r,		-- Hull Rotation
-						tr,		-- Turret Rotation
-						hp,		-- Hit Points
-						cd,		-- Cool Down
-					},
-				]]--
-			},
-			options = {
-				--[[
-					tk,		-- Team Kill
-					fow,	-- Fog of War
-					type,	-- Game Type
-					max,	-- Max Players
-				]]--
-			},
-			map = {
-				--[[
-					name,	-- Map Name
-					col,	-- Collision Map
-				]]--
-			},
-		}
-		
-		self.t			= 0
-		self.lt			= 0
-		self.tick		= 1/40
-	end
-}
+Server = Class {}
+
+function Server:init()
+	self.state = {
+		screen = "lobby",
+		players = {
+			--[[
+				id = {,		-- Client ID
+					-- GENERAL INFO
+					name,	-- Player Name
+					team,	-- Player Team
+					host,	-- Host?
+					
+					-- LOBBY INFO
+					ready,	-- Ready?
+					
+					-- GAME INFO
+					x,		-- X Position
+					y,		-- Y Position
+					r,		-- Hull Rotation
+					tr,		-- Turret Rotation
+					hp,		-- Hit Points
+					cd,		-- Cool Down
+				},
+			]]--
+		},
+		options = {
+			--[[
+				tk,		-- Team Kill
+				fow,	-- Fog of War
+				type,	-- Game Type
+				max,	-- Max Players
+			]]--
+		},
+		map = {
+			--[[
+				name,	-- Map Name
+				col,	-- Collision Map
+			]]--
+		},
+	}
+	
+	self.t			= 0
+	self.lt			= 0
+	self.tick		= 1/40
+end
 
 --[[
 	Start Server

@@ -1,84 +1,66 @@
 local lobby = {}
 
--- Send Chat Message
-function sendChat()
-	if gui.chat.input:GetText() ~= "" then
-		local str = json.encode({
-			scope = string.upper(gui.chat.scope),
-			msg = gui.chat.input:GetText(),
-		})
-		local data = string.format("%s %s", "CHAT", str)
-		
-		client:send(data)
-		gui.chat.input:SetText("")
-	end
-end
-
 function lobby:enter(state)
-	---------------------------------
-	for _, obj in pairs(gui.title) do
-		obj:SetVisible(false)
-	end
-	---------------------------------
+	loveframes.SetState("lobby")
 	
 	--[[ Chat UI Elements ]]--
-	gui.chat = {scope="global"}
+	self.scope = "global"
 	
 	-- Chat Group
-	gui.chat.group = loveframes.Create("panel")
-	gui.chat.group:SetSize(400, 200)
-	gui.chat.group:SetPos(0, windowHeight - 200)
+	self.group = loveframes.Create("panel")
+	self.group:SetState("lobby")
+	self.group:SetSize(400, 200)
+	self.group:SetPos(0, windowHeight - 200)
 	
 	-- Chat Text
-	gui.chat.global = loveframes.Create("list")
-	gui.chat.global:SetSize(400, 160)
-	gui.chat.global:SetAutoScroll(true)
+	self.global = loveframes.Create("list")
+	self.global:SetSize(400, 160)
+	self.global:SetAutoScroll(true)
 	
-	gui.chat.team = loveframes.Create("list")
-	gui.chat.team:SetSize(400, 160)
-	gui.chat.team:SetAutoScroll(true)
+	self.team = loveframes.Create("list")
+	self.team:SetSize(400, 160)
+	self.team:SetAutoScroll(true)
 	
 	-- Chat Tabs
-	gui.chat.tabs = loveframes.Create("tabs", gui.chat.group)
-	gui.chat.tabs:SetSize(400, 180)
-	gui.chat.tabs:SetPos(0, 0)
-	gui.chat.tabs:AddTab("Global", gui.chat.global, nil, nil, function() gui.chat.scope="global" end)
-	gui.chat.tabs:AddTab("Team", gui.chat.team, nil, nil, function() gui.chat.scope="team" end)
+	self.tabs = loveframes.Create("tabs", self.group)
+	self.tabs:SetSize(400, 180)
+	self.tabs:SetPos(0, 0)
+	self.tabs:AddTab("Global", self.global, nil, nil, function() self.scope="global" end)
+	self.tabs:AddTab("Team", self.team, nil, nil, function() self.scope="team" end)
 	
 	-- Chat Input
-	gui.chat.input = loveframes.Create("textinput", gui.chat.group)
-	gui.chat.input:SetSize(350, 20)
-	gui.chat.input:SetPos(0, 180)
+	self.input = loveframes.Create("textinput", self.group)
+	self.input:SetSize(350, 20)
+	self.input:SetPos(0, 180)
 	
 	-- Chat Button
-	gui.chat.send = loveframes.Create("button", gui.chat.group)
-	gui.chat.send:SetSize(50, 20)
-	gui.chat.send:SetPos(350, 180)
-	gui.chat.send:SetText("Send")
+	self.send = loveframes.Create("button", self.group)
+	self.send:SetSize(50, 20)
+	self.send:SetPos(350, 180)
+	self.send:SetText("Send")
 	
 	-- Send Button Properties
-	gui.chat.send.OnClick = function(this)
-		sendChat()
+	self.send.OnClick = function(this)
+		self:sendChat()
 	end
-
-
 	
 	--[[ Lobby UI Elements ]]--
-	gui.lobby = {
+	self.lobby = {
 		players = {slots = {}},
 		options = {},
 		ready = {},
 	}
 	
-	gui.lobby.players.group = loveframes.Create("panel")
-	gui.lobby.players.group:SetSize(300, 400)
-	gui.lobby.players.group:SetPos(0, 0)
+	self.lobby.players.group = loveframes.Create("panel")
+	self.lobby.players.group:SetState("lobby")
+	self.lobby.players.group:SetSize(300, 400)
+	self.lobby.players.group:SetPos(0, 0)
 	
-	gui.lobby.ready.button = loveframes.Create("button")
-	gui.lobby.ready.button:SetSize(100, 40)
-	gui.lobby.ready.button:SetPos(500, 500)
-	gui.lobby.ready.button:SetText("Ready")
-	gui.lobby.ready.button.OnClick = function()
+	self.lobby.ready.button = loveframes.Create("button")
+	self.lobby.ready.button:SetSize(100, 40)
+	self.lobby.ready.button:SetPos(500, 500)
+	self.lobby.ready.button:SetText("Ready")
+	self.lobby.ready.button.OnClick = function()
 		local str = nil
 		
 		if client.state.players[client.id].ready then
@@ -98,35 +80,35 @@ function lobby:update(dt)
 	
 	local count = 1
 	for id, property in pairs(client.state.players) do
-		gui.lobby.players.slots[id] = {}
-		gui.lobby.players.slots[id].group = loveframes.Create("panel", gui.lobby.players.group)
-		gui.lobby.players.slots[id].group:SetSize(300, 40)
-		gui.lobby.players.slots[id].group:SetPos(0, 40*count)
+		self.lobby.players.slots[id] = {}
+		self.lobby.players.slots[id].group = loveframes.Create("panel", self.lobby.players.group)
+		self.lobby.players.slots[id].group:SetSize(300, 40)
+		self.lobby.players.slots[id].group:SetPos(0, 40*count)
 		
-		gui.lobby.players.slots[id].ready = loveframes.Create("image", gui.lobby.players.slots[id].group)
-		gui.lobby.players.slots[id].ready:SetPos(0, 0)
+		self.lobby.players.slots[id].ready = loveframes.Create("image", self.lobby.players.slots[id].group)
+		self.lobby.players.slots[id].ready:SetPos(0, 0)
 		
 		if property.host then
-			gui.lobby.players.slots[id].ready:SetImage("assets/images/host.png")
+			self.lobby.players.slots[id].ready:SetImage("assets/images/host.png")
 		elseif property.ready then
 			if property.team == 1 then
-				gui.lobby.players.slots[id].ready:SetImage("assets/images/check-pink.png")
+				self.lobby.players.slots[id].ready:SetImage("assets/images/check-pink.png")
 			else
-				gui.lobby.players.slots[id].ready:SetImage("assets/images/check-blue.png")
+				self.lobby.players.slots[id].ready:SetImage("assets/images/check-blue.png")
 			end
 		else
-			gui.lobby.players.slots[id].ready:SetImage("assets/images/block-blue.png")
+			self.lobby.players.slots[id].ready:SetImage("assets/images/block-blue.png")
 		end
 		
-		gui.lobby.players.slots[id].name = loveframes.Create("text", gui.lobby.players.slots[id].group)
-		gui.lobby.players.slots[id].name:SetSize(100, 20)
-		gui.lobby.players.slots[id].name:SetPos(32, 0)
-		gui.lobby.players.slots[id].name:SetText(property.name)
+		self.lobby.players.slots[id].name = loveframes.Create("text", self.lobby.players.slots[id].group)
+		self.lobby.players.slots[id].name:SetSize(100, 20)
+		self.lobby.players.slots[id].name:SetPos(32, 0)
+		self.lobby.players.slots[id].name:SetText(property.name)
 		
-		gui.lobby.players.slots[id].team = loveframes.Create("text", gui.lobby.players.slots[id].group)
-		gui.lobby.players.slots[id].team:SetSize(20, 20)
-		gui.lobby.players.slots[id].team:SetPos(200, 0)
-		gui.lobby.players.slots[id].team:SetText(property.team)
+		self.lobby.players.slots[id].team = loveframes.Create("text", self.lobby.players.slots[id].group)
+		self.lobby.players.slots[id].team:SetSize(20, 20)
+		self.lobby.players.slots[id].team:SetPos(200, 0)
+		self.lobby.players.slots[id].team:SetText(property.team)
 		
 		count = count + 1
 	end
@@ -136,7 +118,7 @@ function lobby:update(dt)
 		local text = loveframes.Create("text")
 		text:SetMaxWidth(400)
 		text:SetText(client.chat.global)
-		gui.chat.global:AddItem(text)
+		self.global:AddItem(text)
 		client.chat.global = nil
 	end
 	
@@ -145,7 +127,7 @@ function lobby:update(dt)
 		local text = loveframes.Create("text")
 		text:SetMaxWidth(400)
 		text:SetText(client.chat.team)
-		gui.chat.team:AddItem(text)
+		self.team:AddItem(text)
 		client.chat.team = nil
 	end
 	
@@ -158,10 +140,24 @@ function lobby:update(dt)
 	end
 	
 	if client.state.players[client.id].x then
-		--self.next.screen = "gameplay"
+		--Gamestate.switch(states.gameplay)
 	end
 	
 	loveframes.update(dt)
+end
+
+-- Send Chat Message
+function lobby:sendChat()
+	if self.input:GetText() ~= "" then
+		local str = json.encode({
+			scope = string.upper(self.scope),
+			msg = self.input:GetText(),
+		})
+		local data = string.format("%s %s", "CHAT", str)
+		
+		client:send(data)
+		self.input:SetText("")
+	end
 end
 
 function lobby:draw()

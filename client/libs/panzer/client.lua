@@ -2,12 +2,12 @@ Class = require "libs.hump.class"
 json = require "libs.dkjson"
 require "libs.LUBE"
 
-Client = Class {
-    function(self)
-		self.chat = {}
-		self.state = {}
-	end
-}
+Client = Class {}
+
+function Client:init()
+	self.chat = {}
+	self.state = {}
+end
 
 --[[
 	Connect to Server
