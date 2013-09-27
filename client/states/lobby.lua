@@ -57,11 +57,12 @@ function lobby:enter(state)
 	self.lobby.players.group:SetPos(0, 0)
 	
 	self.lobby.ready.button = loveframes.Create("button")
+	self.lobby.ready.button:SetState("lobby")
 	self.lobby.ready.button:SetSize(100, 40)
 	self.lobby.ready.button:SetPos(500, 500)
 	self.lobby.ready.button:SetText("Ready")
 	self.lobby.ready.button.OnClick = function()
-		local str = nil
+		local data = nil
 		
 		if client.state.players[client.id].ready then
 			data = json.encode({cmd = "READY", ready = false})
@@ -77,12 +78,14 @@ end
 function lobby:update(dt)
 	client:update(dt)
 	
-	local count = 1
+	local count = 0
 	for id, property in pairs(client.state.players) do
+		count = count + 1
+		
 		self.lobby.players.slots[id] = {}
 		self.lobby.players.slots[id].group = loveframes.Create("panel", self.lobby.players.group)
 		self.lobby.players.slots[id].group:SetSize(300, 40)
-		self.lobby.players.slots[id].group:SetPos(0, 40*count)
+		self.lobby.players.slots[id].group:SetPos(0, 40 * count - 40)
 		
 		self.lobby.players.slots[id].ready = loveframes.Create("image", self.lobby.players.slots[id].group)
 		self.lobby.players.slots[id].ready:SetPos(0, 0)
@@ -108,8 +111,6 @@ function lobby:update(dt)
 		self.lobby.players.slots[id].team:SetSize(20, 20)
 		self.lobby.players.slots[id].team:SetPos(200, 0)
 		self.lobby.players.slots[id].team:SetText(property.team)
-		
-		count = count + 1
 	end
 	
 	-- Update Global Chat
@@ -155,7 +156,7 @@ function lobby:sendChat()
 		})
 		
 		client:send(data .. client.split)
-		self.input:SetText("")
+		self.input:Clear()
 	end
 end
 
@@ -164,6 +165,19 @@ function lobby:draw()
 end
 
 function lobby:keypressed(key, unicode)
+	if key == "return" then
+		if self.input:GetFocus() then
+			if self.input:GetText() then
+				self:sendChat()
+				self.input:SetFocus(false)
+			else
+				self.input:SetFocus(false)
+			end
+		else
+			self.input:SetFocus(true)
+		end
+	end
+	
 	loveframes.keypressed(key, unicode)
 end
 
