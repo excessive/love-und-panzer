@@ -47,6 +47,8 @@ function Server:init()
 	self.t			= 0
 	self.lt			= 0
 	self.tick		= 1/40
+	
+	self.split		= "$$"
 end
 
 --[[
@@ -78,11 +80,11 @@ end
 function Server:disconnect(clientId)
 	print('Client disconnected: ' .. tostring(clientId))
 	
-	local str = json.encode({
-		scope = "GLOBAL",
-		msg = "has disconnected.",
+	local data = json.encode({
+		scope	= "GLOBAL",
+		msg		= "has disconnected.",
 	})
-	self.recvcommands.CHAT(self, str, clientId)
+	self.recvcommands.CHAT(self, data, clientId)
 	
 	self.state.players[tostring(clientId)] = nil
 end
@@ -94,12 +96,18 @@ function Server:recv(data, clientId)
 	print('Client data received from: ' .. tostring(clientId) .. ' containing: ' .. data)
 	
 	if data then
-		cmd, params = data:match("^(%S*) (.*)")
+		local cmds = string.split(data, self.split)
 		
-		if self.recvcommands[cmd] then
-			self.recvcommands[cmd](self, params, clientId)
-		else
-			print("Unrecognized command: ", cmd)
+		for _, d in pairs(cmds) do
+			local params = json.decode(d)
+			
+			if params then
+				if self.recvcommands[params.cmd] then
+					self.recvcommands[params.cmd](self, d, clientId)
+				else
+					print("Unrecognised command: ", params.cmd)
+				end
+			end
 		end
 	end
 end
@@ -122,9 +130,9 @@ end
 ]]--
 Server.recvcommands = {
 	-- Initialize Player
-	CONNECT				= function(self, params, clientId)
-		local id = tostring(clientId)
-		local client = json.decode(params)
+	CONNECT = function(self, params, clientId)
+		local id		= tostring(clientId)
+		local client	= json.decode(params)
 		
 		self.state.players[id] = {
 			name	= client.name,
@@ -139,78 +147,105 @@ Server.recvcommands = {
 			tr = 45,
 		}
 		
-		local str = json.encode({
-			scope = "GLOBAL",
-			msg = "has connected.",
+		local data	= json.encode({
+			scope	= "GLOBAL",
+			msg		= "has connected.",
 		})
 		
 		self.recvcommands.WHO_AM_I(self, nil, clientId)
 		self.recvcommands.SET_STATE(self, nil, clientId)
-		self.recvcommands.CHAT(self, str, clientId)
+		self.recvcommands.CHAT(self, data, clientId)
 	end,
 	
 	-- Send Chat Message
-	CHAT				= function(self, params, clientId)
-		local id = tostring(clientId)
-		local chat = json.decode(params)
-		local str = json.encode({
-			scope = chat.scope,
-			msg = self.state.players[id].name .. ": " .. chat.msg,
+	CHAT = function(self, params, clientId)
+		local cmd	= "CHAT"
+		local id	= tostring(clientId)
+		local chat	= json.decode(params)
+		local data	= json.encode({
+			cmd		= cmd,
+			scope	= chat.scope,
+			msg		= self.state.players[id].name .. ": " .. chat.msg,
 		})
-		local data = string.format("%s %s", "CHAT", str)
 		
-		self.connection:send(data)
+		self.connection:send(data .. self.split)
 	end,
 	
 	-- Confirm Ready to Play
-	READY				= function(self, params, clientId)
-		local id = tostring(clientId)
-		local ready = json.decode(params)
-		local str = json.encode({
-			id = id,
-			ready = ready.ready,
+	READY = function(self, params, clientId)
+		local cmd	= "READY"
+		local id	= tostring(clientId)
+		local ready	= json.decode(params)
+		local data	= json.encode({
+			cmd		= cmd,
+			id		= id,
+			ready	= ready.ready,
 		})
-		local data = string.format("%s %s", "READY", str)
 		
-		self.connection:send(data)
+		self.connection:send(data .. self.split)
 	end,
 	
 	-- Send Updated Player Data to Clients
-	UPDATE_PLAYER		= function(self, params, clientId)
-		local id = tostring(clientId)
-		local state = json.decode(params)
+	UPDATE_PLAYER = function(self, params, clientId)
+		local cmd	= "UPDATE_PLAYER"
+		local id	= tostring(clientId)
+		local state	= json.decode(params)
 		
 		self.state.players[id].x = state.x
 		self.state.players[id].y = state.y
 		self.state.players[id].r = state.r
 		self.state.players[id].tr = state.tr
 		
-		local str = json.encode({
+		local data	= json.encode({
+			cmd		= cmd,
 			id		= id,
 			x		= state.x,
 			y		= state.y,
 			r		= state.r,
 			tr		= state.tr,
 		})
-		local data = string.format("%s %s", "UPDATE_PLAYER", str)
 		
-		self.connection:send(data)
+		self.connection:send(data .. self.split)
 	end,
 	
 	-- Send State to Clients
-	SET_STATE			= function(self, params, clientId)
-		local str = json.encode(self.state)
-		local data = string.format("%s %s", "SET_STATE", str)
+	SET_STATE = function(self, params, clientId)
+		self.state.cmd	= "SET_STATE"
+		local data	= json.encode(self.state)
 		
-		self.connection:send(data)
+		self.connection:send(data .. self.split)
 	end,
 	
 	-- Send Client ID to Client
-	WHO_AM_I			= function(self, params, clientId)
-		local id = tostring(clientId)
-		local str = json.encode({id=id})
-		local data = string.format("%s %s", "WHO_AM_I", str)
+	WHO_AM_I = function(self, params, clientId)
+		local cmd	= "WHO_AM_I"
+		local id	= tostring(clientId)
+		local data	= json.encode({cmd=cmd, id=id})
 		
-		self.connection:send(data, clientId)
+		self.connection:send(data .. self.split, clientId)
 	end,
 }
+
+-- http://wiki.interfaceware.com/534.html
+function string.split(s, d)
+	local t = {}
+	local i = 0
+	local f
+	local match = '(.-)' .. d .. '()'
+	
+	if string.find(s, d) == nil then
+		return {s}
+	end
+	
+	for sub, j in string.gfind(s, match) do
+		i = i + 1
+		t[i] = sub
+		f = j
+	end
+	
+	if i ~= 0 then
+		t[i+1] = string.sub(s, f)
+	end
+	
+	return t
+end

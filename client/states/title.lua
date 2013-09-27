@@ -64,8 +64,8 @@ function title:enter(state)
 		if client.connection.connected then
 			_G.settings.name = self.inputName:GetText()
 			
-			local data = string.format("%s %s", "CONNECT", json.encode({name = _G.settings.name}))
-			client:send(data)
+			local data = json.encode({cmd="CONNECT", name = _G.settings.name})
+			client:send(data .. client.split)
 		end
 	end
 	
@@ -107,9 +107,9 @@ function title:enter(state)
 	self.textCopyright:SetText({{255,255,255,255}, "© 2012 HEUHAEUAEHUE Productions"})
 	
 	-- Debug
-	self.inputName:SetText("Karai")
-	self.inputHost:SetText("k17.me")
-	self.inputPort:SetText("8088")
+	self.inputName:SetText(settings.name)
+	self.inputHost:SetText(settings.host)
+	self.inputPort:SetText(settings.port)
 end
 
 function title:update(dt)

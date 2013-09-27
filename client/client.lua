@@ -5,8 +5,9 @@ require "libs.LUBE"
 Client = Class {}
 
 function Client:init()
-	self.chat = {}
-	self.state = {}
+	self.chat	= {}
+	self.state	= {}
+	self.split	= "$$"
 end
 
 --[[
@@ -21,7 +22,7 @@ function Client:connect(host, port)
 	self.connection:setPing(true, 2, "lePing\n")
 	
 	if self.connection:connect(host, tonumber(port), true) then
-		print('Connect to ' .. host .. ': ' .. port)
+		print('Connect to ' .. host .. ':' .. port)
 	end
 	
 	self.connection.callbacks.recv = function(d) self:recv(d) end
@@ -36,12 +37,18 @@ function Client:recv(data)
 	print('Server data received: ' .. data)
 	
 	if data then
-		cmd, params = data:match("^(%S*) (.*)")
+		local cmds = string.split(data, self.split)
 		
-		if self.recvcommands[cmd] then
-			self.recvcommands[cmd](self, params)
-		else
-			print("Unrecognized command: ", cmd)
+		for _, d in pairs(cmds) do
+			local params = json.decode(d)
+			
+			if params then
+				if self.recvcommands[params.cmd] then
+					self.recvcommands[params.cmd](self, d)
+				else
+					print("Unrecognised command: ", params.cmd)
+				end
+			end
 		end
 	end
 end
@@ -66,7 +73,7 @@ end
 Client.recvcommands = {
 	
 	-- Post Chat Message
-	CHAT				= function(self, params)
+	CHAT = function(self, params)
 		local chat = json.decode(params)
 		
 		if chat.scope == "GLOBAL" then
@@ -79,13 +86,13 @@ Client.recvcommands = {
 	end,
 	
 	-- Confirm Ready to Play
-	READY				= function(self, params)
+	READY = function(self, params)
 		local state = json.decode(params)
 		client.state.players[state.id].ready = state.ready
 	end,
 	
 	-- Update Player Data
-	UPDATE_PLAYER		= function(self, params)
+	UPDATE_PLAYER = function(self, params)
 		local state = json.decode(params)
 		self.state.players[state.id].x = state.x
 		self.state.players[state.id].y = state.y
@@ -94,13 +101,37 @@ Client.recvcommands = {
 	end,
 	
 	-- Set State
-	SET_STATE			= function(self, params)
+	SET_STATE = function(self, params)
 		self.state = json.decode(params)
 	end,
 	
 	-- Set ID
-	WHO_AM_I			= function(self, params)
+	WHO_AM_I = function(self, params)
 		local str = json.decode(params)
 		self.id = str.id
 	end,
 }
+
+-- http://wiki.interfaceware.com/534.html
+function string.split(s, d)
+	local t = {}
+	local i = 0
+	local f
+	local match = '(.-)' .. d .. '()'
+	
+	if string.find(s, d) == nil then
+		return {s}
+	end
+	
+	for sub, j in string.gfind(s, match) do
+		i = i + 1
+		t[i] = sub
+		f = j
+	end
+	
+	if i ~= 0 then
+		t[i+1] = string.sub(s, f)
+	end
+	
+	return t
+end

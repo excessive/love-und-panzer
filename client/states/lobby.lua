@@ -64,13 +64,12 @@ function lobby:enter(state)
 		local str = nil
 		
 		if client.state.players[client.id].ready then
-			str = json.encode({ready = false})
+			data = json.encode({cmd = "READY", ready = false})
 		else
-			str = json.encode({ready = true})
+			data = json.encode({cmd = "READY", ready = true})
 		end
 		
-		local data = string.format("%s %s", "READY", str)
-		client.connection:send(data)
+		client.connection:send(data .. client.split)
 	end
 	
 end
@@ -149,13 +148,13 @@ end
 -- Send Chat Message
 function lobby:sendChat()
 	if self.input:GetText() ~= "" then
-		local str = json.encode({
-			scope = string.upper(self.scope),
-			msg = self.input:GetText(),
+		local data = json.encode({
+			cmd		= "CHAT",
+			scope	= string.upper(self.scope),
+			msg		= self.input:GetText(),
 		})
-		local data = string.format("%s %s", "CHAT", str)
 		
-		client:send(data)
+		client:send(data .. client.split)
 		self.input:SetText("")
 	end
 end
