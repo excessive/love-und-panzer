@@ -5,16 +5,8 @@ require "libs.loveframes"
 Gamestate = require "libs.hump.gamestate"
 
 function love.load()
-	gui = {}
 	debug = {}
 	game = {}
-	
-	-- Scale
-	tileSize = 32
-	numTiles = 18.75
-	
-	-- Screen
-	scale			= love.graphics.getHeight() / numTiles / tileSize
 	windowWidth		= love.graphics.getWidth()
 	windowHeight	= love.graphics.getHeight()
 	
@@ -31,24 +23,17 @@ function love.load()
 end
 
 function love.update(dt)
-	scale = love.graphics.getHeight() / numTiles / tileSize
 	windowWidth = love.graphics.getWidth()
 	windowHeight = love.graphics.getHeight()
-
+	
 	Gamestate.update(dt)
-
+	
 	TEsound.cleanup()
 end
 
 function love.draw()
-	love.graphics.push()
-	love.graphics.scale(scale)
-	
 	Gamestate.draw()
 	
-	love.graphics.pop()
-	
-
 	-- Display debug info
 	local i = 0
 	for k, v in pairs(debug) do
