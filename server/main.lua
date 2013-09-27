@@ -1,4 +1,4 @@
-require "libs.panzer.server"
+require "server"
 
 if not love then
 	love = {
