@@ -56,9 +56,13 @@ function title:enter(state)
 		client:connect(self.inputHost:GetText(), self.inputPort:GetText())
 		
 		if client.connection.connected then
-			_G.settings.name = self.inputName:GetText()
+			settings.name = self.inputName:GetText()
 			
-			local data = json.encode({cmd="CONNECT", name = _G.settings.name})
+			local data = json.encode({
+				cmd		= "CONNECT",
+				name	= _G.settings.name,
+			})
+			
 			client:send(data .. client.split)
 		end
 	end
@@ -107,11 +111,7 @@ function title:update(dt)
 	if client then
 		client:update(dt)
 		
-		for k,v in pairs(client.state) do
-			print(k,v)
-		end
-		
-		if client.state.players then
+		if client.players then
 			Gamestate.switch(states.lobby)
 		end
 	end

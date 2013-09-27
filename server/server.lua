@@ -5,43 +5,41 @@ require "libs.LUBE"
 Server = Class {}
 
 function Server:init()
-	self.state = {
-		screen = "lobby",
-		players = {
-			--[[
-				id = {,		-- Client ID
-					-- GENERAL INFO
-					name,	-- Player Name
-					team,	-- Player Team
-					host,	-- Host?
-					
-					-- LOBBY INFO
-					ready,	-- Ready?
-					
-					-- GAME INFO
-					x,		-- X Position
-					y,		-- Y Position
-					r,		-- Hull Rotation
-					tr,		-- Turret Rotation
-					hp,		-- Hit Points
-					cd,		-- Cool Down
-				},
-			]]--
-		},
-		options = {
-			--[[
-				tk,		-- Team Kill
-				fow,	-- Fog of War
-				type,	-- Game Type
-				max,	-- Max Players
-			]]--
-		},
-		map = {
-			--[[
-				name,	-- Map Name
-				col,	-- Collision Map
-			]]--
-		},
+	self.state = "lobby"
+	self.players = {
+		--[[
+			id = {,		-- Client ID
+				-- GENERAL INFO
+				name,	-- Player Name
+				team,	-- Player Team
+				host,	-- Host?
+				
+				-- LOBBY INFO
+				ready,	-- Ready?
+				
+				-- GAME INFO
+				x,		-- X Position
+				y,		-- Y Position
+				r,		-- Hull Rotation
+				tr,		-- Turret Rotation
+				hp,		-- Hit Points
+				cd,		-- Cool Down
+			},
+		]]--
+	}
+	self.options = {
+		--[[
+			tk,		-- Team Kill
+			fow,	-- Fog of War
+			type,	-- Game Type
+			max,	-- Max Players
+		]]--
+	}
+	self.map = {
+		--[[
+			name,	-- Map Name
+			col,	-- Collision Map
+		]]--
 	}
 	
 	self.t			= 0
@@ -86,7 +84,7 @@ function Server:disconnect(clientId)
 	})
 	self.recvcommands.CHAT(self, data, clientId)
 	
-	self.state.players[tostring(clientId)] = nil
+	self.players[tostring(clientId)] = nil
 end
 
 --[[
@@ -134,17 +132,19 @@ Server.recvcommands = {
 		local id		= tostring(clientId)
 		local client	= json.decode(params)
 		
-		self.state.players[id] = {
+		self.players[id] = {
 			name	= client.name,
 			team	= 1,
 			host	= false,
 			ready	= false,
 			
 			-- debug
-			x = 128,
-			y = 128,
-			r = 30,
-			tr = 45,
+			x		= 128,
+			y		= 128,
+			r		= 30,
+			tr		= 45,
+			hp		= 100,
+			cd		= 0,
 		}
 		
 		local data	= json.encode({
@@ -153,7 +153,7 @@ Server.recvcommands = {
 		})
 		
 		self.recvcommands.WHO_AM_I(self, nil, clientId)
-		self.recvcommands.SET_STATE(self, nil, clientId)
+		self.recvcommands.SET_DATA(self, nil, clientId)
 		self.recvcommands.CHAT(self, data, clientId)
 	end,
 	
@@ -162,10 +162,11 @@ Server.recvcommands = {
 		local cmd	= "CHAT"
 		local id	= tostring(clientId)
 		local chat	= json.decode(params)
+		
 		local data	= json.encode({
 			cmd		= cmd,
 			scope	= chat.scope,
-			msg		= self.state.players[id].name .. ": " .. chat.msg,
+			msg		= self.players[id].name .. ": " .. chat.msg,
 		})
 		
 		self.connection:send(data .. self.split)
@@ -176,6 +177,7 @@ Server.recvcommands = {
 		local cmd	= "READY"
 		local id	= tostring(clientId)
 		local ready	= json.decode(params)
+		
 		local data	= json.encode({
 			cmd		= cmd,
 			id		= id,
@@ -187,31 +189,37 @@ Server.recvcommands = {
 	
 	-- Send Updated Player Data to Clients
 	UPDATE_PLAYER = function(self, params, clientId)
-		local cmd	= "UPDATE_PLAYER"
-		local id	= tostring(clientId)
-		local state	= json.decode(params)
+		local cmd		= "UPDATE_PLAYER"
+		local id		= tostring(clientId)
+		local player	= json.decode(params)
 		
-		self.state.players[id].x = state.x
-		self.state.players[id].y = state.y
-		self.state.players[id].r = state.r
-		self.state.players[id].tr = state.tr
+		self.players[id].x	= player.x
+		self.players[id].y	= player.y
+		self.players[id].r	= player.r
+		self.players[id].tr	= player.tr
 		
 		local data	= json.encode({
 			cmd		= cmd,
 			id		= id,
-			x		= state.x,
-			y		= state.y,
-			r		= state.r,
-			tr		= state.tr,
+			x		= player.x,
+			y		= player.y,
+			r		= player.r,
+			tr		= player.tr,
 		})
 		
 		self.connection:send(data .. self.split)
 	end,
 	
-	-- Send State to Clients
-	SET_STATE = function(self, params, clientId)
-		self.state.cmd	= "SET_STATE"
-		local data	= json.encode(self.state)
+	-- Send Data to Clients
+	SET_DATA = function(self, params, clientId)
+		local cmd	= "SET_DATA"
+		
+		local data	= json.encode({
+			cmd		= cmd,
+			players	= self.players,
+			options	= self.options,
+			map		= self.map,
+		})
 		
 		self.connection:send(data .. self.split)
 	end,
@@ -220,7 +228,11 @@ Server.recvcommands = {
 	WHO_AM_I = function(self, params, clientId)
 		local cmd	= "WHO_AM_I"
 		local id	= tostring(clientId)
-		local data	= json.encode({cmd=cmd, id=id})
+		
+		local data	= json.encode({
+			cmd		= cmd,
+			id		= id,
+		})
 		
 		self.connection:send(data .. self.split, clientId)
 	end,
