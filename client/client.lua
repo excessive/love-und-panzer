@@ -5,9 +5,8 @@ require "libs.LUBE"
 Client = Class {}
 
 function Client:init()
-	self.chat	= {}
-	self.state	= {}
-	self.split	= "$$"
+	self.chat		= {}
+	self.split		= "$$"
 end
 
 --[[
@@ -87,28 +86,33 @@ Client.recvcommands = {
 	
 	-- Confirm Ready to Play
 	READY = function(self, params)
-		local state = json.decode(params)
-		client.state.players[state.id].ready = state.ready
+		local player = json.decode(params)
+		client.players[player.id].ready = player.ready
 	end,
 	
 	-- Update Player Data
 	UPDATE_PLAYER = function(self, params)
-		local state = json.decode(params)
-		self.state.players[state.id].x = state.x
-		self.state.players[state.id].y = state.y
-		self.state.players[state.id].r = state.r
-		self.state.players[state.id].tr = state.tr
+		local player = json.decode(params)
+		
+		self.players[player.id].x	= player.x
+		self.players[player.id].y	= player.y
+		self.players[player.id].r	= player.r
+		self.players[player.id].tr	= player.tr
 	end,
 	
-	-- Set State
-	SET_STATE = function(self, params)
-		self.state = json.decode(params)
+	-- Set Data
+	SET_DATA = function(self, params)
+		local data = json.decode(params)
+		
+		self.players	= data.players
+		self.options	= data.options
+		self.map		= data.map
 	end,
 	
 	-- Set ID
 	WHO_AM_I = function(self, params)
-		local str = json.decode(params)
-		self.id = str.id
+		local data = json.decode(params)
+		self.id = data.id
 	end,
 }
 

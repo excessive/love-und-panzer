@@ -45,6 +45,7 @@ function lobby:enter(state)
 	end
 	
 	--[[ Lobby UI Elements ]]--
+	---------- just pull data from the Client object, no need to duplicate it!
 	self.lobby = {
 		players = {slots = {}},
 		options = {},
@@ -64,7 +65,7 @@ function lobby:enter(state)
 	self.lobby.ready.button.OnClick = function()
 		local data = nil
 		
-		if client.state.players[client.id].ready then
+		if client.players[client.id].ready then
 			data = json.encode({cmd = "READY", ready = false})
 		else
 			data = json.encode({cmd = "READY", ready = true})
@@ -78,8 +79,11 @@ end
 function lobby:update(dt)
 	client:update(dt)
 	
+	-- this shouldn't be in update, this should be an event!
+	-- this needs to detect when a player connects and disconnects to create/remove objects
+	-- also need to detect when data changes to modify data
 	local count = 0
-	for id, property in pairs(client.state.players) do
+	for id, property in pairs(client.players) do
 		count = count + 1
 		
 		self.lobby.players.slots[id] = {}
@@ -131,17 +135,11 @@ function lobby:update(dt)
 		client.chat.team = nil
 	end
 	
-	if client.updategame then
-		for k,v in pairs(client.updategame) do
-			print(k,v)
-		end
-		
-		client.updategame = nil
+	--[[
+	if HOST_CLICKS_START then
+		Gamestate.switch(states.gameplay)
 	end
-	
-	if client.state.players[client.id].x then
-		--Gamestate.switch(states.gameplay)
-	end
+	]]--
 	
 	loveframes.update(dt)
 end
