@@ -1,6 +1,6 @@
+require "settings"
+require "client"
 require "libs.TEsound"
-require "libs.panzer.settings"
-require "libs.panzer.client"
 require "libs.loveframes"
 Gamestate = require "libs.hump.gamestate"
 

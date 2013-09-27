@@ -1,4 +1,4 @@
-require "libs.panzer.tank"
+require "tank"
 
 local gameplay = {}
 
@@ -130,14 +130,14 @@ function gameplay:update(dt)
 		end
 		
 		if turn ~= 0 or move ~= 0 then
-			local str = json.encode({
+			local data = json.encode({
+				cmd	= "UPDATE_PLAYER",
 				x	= self.player.x,
 				y	= self.player.y,
 				r	= self.player.r,
 				tr	= self.player.tr,
 			})
-			local data = string.format("%s %s", "UPDATE_PLAYER", str)
-			client:send(data)
+			client:send(data .. client.split)
 		end
 		
 		-- Update Player
