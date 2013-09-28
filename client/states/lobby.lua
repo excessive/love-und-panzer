@@ -3,66 +3,81 @@ local lobby = {}
 function lobby:enter(state)
 	loveframes.SetState("lobby")
 	
+	self.chat			= {}
+	self.players		= {}
+	self.players.slots	= {}
+	self.options		= {}
+	self.scope			= "global"
+	
 	--[[ Chat UI Elements ]]--
-	self.scope = "global"
 	
-	-- Chat Group
-	self.group = loveframes.Create("panel")
-	self.group:SetState("lobby")
-	self.group:SetSize(400, 200)
-	self.group:SetPos(0, windowHeight - 200)
+	-- Group containing all chat elements
+	self.chat.panel = loveframes.Create("panel")
+	self.chat.panel:SetState("lobby")
+	self.chat.panel:SetSize(400, 200)
+	self.chat.panel:SetPos(0, windowHeight - 200)
 	
-	-- Chat Text
-	self.global = loveframes.Create("list")
-	self.global:SetSize(400, 160)
-	self.global:SetAutoScroll(true)
+	-- List of chat messages
+	self.chat.globalList = loveframes.Create("list", self.chat.panel)
+	self.chat.globalList:SetSize(400, 160)
+	self.chat.globalList:SetAutoScroll(true)
 	
-	self.team = loveframes.Create("list")
-	self.team:SetSize(400, 160)
-	self.team:SetAutoScroll(true)
+	self.chat.teamList = loveframes.Create("list", self.chat.panel)
+	self.chat.teamList:SetSize(400, 160)
+	self.chat.teamList:SetAutoScroll(true)
 	
-	-- Chat Tabs
-	self.tabs = loveframes.Create("tabs", self.group)
-	self.tabs:SetSize(400, 180)
-	self.tabs:SetPos(0, 0)
-	self.tabs:AddTab("Global", self.global, nil, nil, function() self.scope="global" end)
-	self.tabs:AddTab("Team", self.team, nil, nil, function() self.scope="team" end)
+	-- Toggle lists
+	self.chat.tabs = loveframes.Create("tabs", self.chat.panel)
+	self.chat.tabs:SetSize(400, 180)
+	self.chat.tabs:SetPos(0, 0)
+	self.chat.tabs:AddTab("Global", self.chat.globalList, nil, nil, function() self.scope="global" end)
+	self.chat.tabs:AddTab("Team", self.chat.teamList, nil, nil, function() self.scope="team" end)
 	
-	-- Chat Input
-	self.input = loveframes.Create("textinput", self.group)
-	self.input:SetSize(350, 20)
-	self.input:SetPos(0, 180)
+	-- Input message
+	self.chat.input = loveframes.Create("textinput", self.chat.panel)
+	self.chat.input:SetSize(350, 20)
+	self.chat.input:SetPos(0, 180)
 	
-	-- Chat Button
-	self.send = loveframes.Create("button", self.group)
-	self.send:SetSize(50, 20)
-	self.send:SetPos(350, 180)
-	self.send:SetText("Send")
-	
-	-- Send Button Properties
-	self.send.OnClick = function(this)
+	-- Send message
+	self.chat.sendButton = loveframes.Create("button", self.chat.panel)
+	self.chat.sendButton:SetSize(50, 20)
+	self.chat.sendButton:SetPos(350, 180)
+	self.chat.sendButton:SetText("Send")
+	self.chat.sendButton.OnClick = function(this)
 		self:sendChat()
 	end
 	
-	--[[ Lobby UI Elements ]]--
+	--[[ Player UI Elements ]]--
+	
 	---------- just pull data from the Client object, no need to duplicate it!
-	self.lobby = {
+	--[[
+	self = {
 		players = {slots = {}},
 		options = {},
 		ready = {},
 	}
+	]]--
 	
-	self.lobby.players.group = loveframes.Create("panel")
-	self.lobby.players.group:SetState("lobby")
-	self.lobby.players.group:SetSize(300, 400)
-	self.lobby.players.group:SetPos(0, 0)
+	-- Group containing all players
+	self.players.panel = loveframes.Create("panel")
+	self.players.panel:SetState("lobby")
+	self.players.panel:SetSize(300, 400)
+	self.players.panel:SetPos(0, 0)
 	
-	self.lobby.ready.button = loveframes.Create("button")
-	self.lobby.ready.button:SetState("lobby")
-	self.lobby.ready.button:SetSize(100, 40)
-	self.lobby.ready.button:SetPos(500, 500)
-	self.lobby.ready.button:SetText("Ready")
-	self.lobby.ready.button.OnClick = function()
+	--[[ Option UI Elements ]]--
+	
+	-- Group containing all options
+	self.options.panel = loveframes.Create("panel")
+	self.options.panel:SetState("lobby")
+	self.options.panel:SetSize(300, 400)
+	self.options.panel:SetPos(500, 0)
+	
+	-- Ready to play
+	self.options.readyButton = loveframes.Create("button", self.options.panel)
+	self.options.readyButton:SetSize(100, 40)
+	self.options.readyButton:SetPos(100, 350)
+	self.options.readyButton:SetText("Ready")
+	self.options.readyButton.OnClick = function()
 		local data = nil
 		
 		if client.players[client.id].ready then
@@ -79,42 +94,35 @@ end
 function lobby:update(dt)
 	client:update(dt)
 	
-	-- this shouldn't be in update, this should be an event!
-	-- this needs to detect when a player connects and disconnects to create/remove objects
-	-- also need to detect when data changes to modify data
 	local count = 0
-	for id, property in pairs(client.players) do
+	
+	-- Count current players
+	for id, _ in pairs(client.players) do
+		count = count + 1
+		self.players.slots[id].panel:SetPos(0, 40 * count - 40)
+	end
+	
+	-- Add new players
+	for id, player in pairs(client.createPlayers) do
 		count = count + 1
 		
-		self.lobby.players.slots[id] = {}
-		self.lobby.players.slots[id].group = loveframes.Create("panel", self.lobby.players.group)
-		self.lobby.players.slots[id].group:SetSize(300, 40)
-		self.lobby.players.slots[id].group:SetPos(0, 40 * count - 40)
+		self:createPlayer(id, player, count)
+		client.players[id] = player
+		client.createPlayers[id] = nil
 		
-		self.lobby.players.slots[id].ready = loveframes.Create("image", self.lobby.players.slots[id].group)
-		self.lobby.players.slots[id].ready:SetPos(0, 0)
-		
-		if property.host then
-			self.lobby.players.slots[id].ready:SetImage("assets/images/host.png")
-		elseif property.ready then
-			if property.team == 1 then
-				self.lobby.players.slots[id].ready:SetImage("assets/images/check-pink.png")
-			else
-				self.lobby.players.slots[id].ready:SetImage("assets/images/check-blue.png")
-			end
-		else
-			self.lobby.players.slots[id].ready:SetImage("assets/images/block-blue.png")
-		end
-		
-		self.lobby.players.slots[id].name = loveframes.Create("text", self.lobby.players.slots[id].group)
-		self.lobby.players.slots[id].name:SetSize(100, 20)
-		self.lobby.players.slots[id].name:SetPos(32, 0)
-		self.lobby.players.slots[id].name:SetText(property.name)
-		
-		self.lobby.players.slots[id].team = loveframes.Create("text", self.lobby.players.slots[id].group)
-		self.lobby.players.slots[id].team:SetSize(20, 20)
-		self.lobby.players.slots[id].team:SetPos(200, 0)
-		self.lobby.players.slots[id].team:SetText(property.team)
+	end
+	
+	-- Update current players
+	for id, player in pairs(client.updatePlayers) do
+		self:updatePlayer(id, player)
+		client.players[id] = player
+		client.updatePlayers[id] = nil
+	end
+	
+	-- Remove old players
+	for id, _ in pairs(client.removePlayers) do
+		self:removePlayer(id)
+		client.removePlayers[id] = nil
 	end
 	
 	-- Update Global Chat
@@ -122,7 +130,7 @@ function lobby:update(dt)
 		local text = loveframes.Create("text")
 		text:SetMaxWidth(400)
 		text:SetText(client.chat.global)
-		self.global:AddItem(text)
+		self.chat.globalList:AddItem(text)
 		client.chat.global = nil
 	end
 	
@@ -131,7 +139,7 @@ function lobby:update(dt)
 		local text = loveframes.Create("text")
 		text:SetMaxWidth(400)
 		text:SetText(client.chat.team)
-		self.team:AddItem(text)
+		self.chat.teamList:AddItem(text)
 		client.chat.team = nil
 	end
 	
@@ -146,15 +154,15 @@ end
 
 -- Send Chat Message
 function lobby:sendChat()
-	if self.input:GetText() ~= "" then
+	if self.chat.input:GetText() ~= "" then
 		local data = json.encode({
 			cmd		= "CHAT",
 			scope	= string.upper(self.scope),
-			msg		= self.input:GetText(),
+			msg		= self.chat.input:GetText(),
 		})
 		
 		client:send(data .. client.split)
-		self.input:Clear()
+		self.chat.input:Clear()
 	end
 end
 
@@ -162,17 +170,83 @@ function lobby:draw()
 	loveframes.draw()
 end
 
+function lobby:createPlayer(id, player, offset)
+	
+	print("CREATE PLAYER PANEL")
+	
+	self.players.slots[id] = {}
+	
+	-- Group containing individual player's elements
+	self.players.slots[id].panel = loveframes.Create("panel", self.players.panel)
+	self.players.slots[id].panel:SetSize(300, 40)
+	self.players.slots[id].panel:SetPos(0, 40 * offset - 40)
+	
+	-- Image displaying player's ready status
+	self.players.slots[id].readyImage = loveframes.Create("image", self.players.slots[id].panel)
+	self.players.slots[id].readyImage:SetPos(0, 0)
+	
+	-- Display player's name
+	self.players.slots[id].name = loveframes.Create("text", self.players.slots[id].panel)
+	self.players.slots[id].name:SetSize(100, 20)
+	self.players.slots[id].name:SetPos(32, 0)
+	
+	-- Display player's team number
+	self.players.slots[id].team = loveframes.Create("text", self.players.slots[id].panel)
+	self.players.slots[id].team:SetSize(20, 20)
+	self.players.slots[id].team:SetPos(200, 0)
+	
+	self:updatePlayer(id, player)
+end
+
+function lobby:updatePlayer(id, player)
+	
+	print("UPDATE PLAYER PANEL")
+	
+	-- Display image
+	if player.host then
+		self.players.slots[id].readyImage:SetImage("assets/images/host.png")
+	elseif player.ready then
+		if player.team == 1 then
+			self.players.slots[id].readyImage:SetImage("assets/images/check-pink.png")
+		else
+			self.players.slots[id].readyImage:SetImage("assets/images/check-blue.png")
+		end
+	else
+		if player.team == 1 then
+			self.players.slots[id].readyImage:SetImage("assets/images/block-pink.png")
+		else
+			self.players.slots[id].readyImage:SetImage("assets/images/block-blue.png")
+		end
+	end
+	
+	-- Display info
+	self.players.slots[id].name:SetText(player.name)
+	self.players.slots[id].team:SetText(player.team)
+
+end
+
+function lobby:removePlayer(id)
+	
+	print("REMOVE PLAYER PANEL")
+	
+	self.players.slots[id].panel:Remove()
+	--self.players.slots[id].readyImage:Remove()
+	--self.players.slots[id].name:Remove()
+	--self.players.slots[id].team:Remove()
+	self.players.slots[id] = nil
+end
+
 function lobby:keypressed(key, unicode)
 	if key == "return" then
-		if self.input:GetFocus() then
-			if self.input:GetText() then
+		if self.chat.input:GetFocus() then
+			if self.chat.input:GetText() then
 				self:sendChat()
-				self.input:SetFocus(false)
+				self.chat.input:SetFocus(false)
 			else
-				self.input:SetFocus(false)
+				self.chat.input:SetFocus(false)
 			end
 		else
-			self.input:SetFocus(true)
+			self.chat.input:SetFocus(true)
 		end
 	end
 	

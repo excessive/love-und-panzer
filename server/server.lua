@@ -12,9 +12,9 @@ function Server:init()
 				-- GENERAL INFO
 				name,	-- Player Name
 				team,	-- Player Team
-				host,	-- Host?
 				
 				-- LOBBY INFO
+				host,	-- Host?
 				ready,	-- Ready?
 				
 				-- GAME INFO
@@ -77,14 +77,7 @@ end
 ]]--
 function Server:disconnect(clientId)
 	print('Client disconnected: ' .. tostring(clientId))
-	
-	local data = json.encode({
-		scope	= "GLOBAL",
-		msg		= "has disconnected.",
-	})
-	self.recvcommands.CHAT(self, data, clientId)
-	
-	self.players[tostring(clientId)] = nil
+	self.recvcommands.DISCONNECT(self, nil, clientId)
 end
 
 --[[
@@ -101,7 +94,10 @@ function Server:recv(data, clientId)
 			
 			if params then
 				if self.recvcommands[params.cmd] then
-					self.recvcommands[params.cmd](self, d, clientId)
+					local cmd	= params.cmd
+					params.cmd	= nil
+					
+					self.recvcommands[cmd](self, d, clientId)
 				else
 					print("Unrecognised command: ", params.cmd)
 				end
@@ -132,28 +128,39 @@ Server.recvcommands = {
 		local id		= tostring(clientId)
 		local client	= json.decode(params)
 		
-		self.players[id] = {
-			name	= client.name,
-			team	= 1,
-			host	= false,
-			ready	= false,
-			
-			-- debug
-			x		= 128,
-			y		= 128,
-			r		= 30,
-			tr		= 45,
-			hp		= 100,
-			cd		= 0,
-		}
+		self.recvcommands.WHO_AM_I(self, nil, clientId)
 		
-		local data	= json.encode({
+		local player	= json.encode({
+			id		= id,
+			name	= client.name,
+		})
+		
+		self.recvcommands.CREATE_PLAYER(self, player, clientId)
+		
+		local chat	= json.encode({
 			scope	= "GLOBAL",
 			msg		= "has connected.",
 		})
 		
-		self.recvcommands.WHO_AM_I(self, nil, clientId)
-		self.recvcommands.SET_DATA(self, nil, clientId)
+		self.recvcommands.CHAT(self, chat, clientId)
+		
+		-- this needs to create players for the client only
+		for id, p in pairs(self.players) do
+			p.cmd		= "CREATE_PLAYER"
+			local data	= json.encode(p)
+			self.recvcommands.UPDATE_PLAYER(self, data, clientId)
+		end
+	end,
+	
+	-- Destroy Player
+	DISCONNECT = function(self, params, clientId)
+		self.recvcommands.REMOVE_PLAYER(self, nil, clientId)
+		
+		local data	= json.encode({
+			scope	= "GLOBAL",
+			msg		= "has disconnected.",
+		})
+		
 		self.recvcommands.CHAT(self, data, clientId)
 	end,
 	
@@ -187,36 +194,76 @@ Server.recvcommands = {
 		self.connection:send(data .. self.split)
 	end,
 	
+	CREATE_PLAYER = function(self, params, clientId)
+		local cmd		= "CREATE_PLAYER"
+		local player	= json.decode(params)
+		
+		-- If first player, player becomes host
+		local count = 0
+		for k, _ in pairs(self.players) do
+			count = count + 1
+		end
+		
+		if count == 0 then
+			player.host		= true
+			player.ready	= true
+		else
+			player.host		= false
+			player.ready	= false
+		end
+		
+		player.team		= 1
+		
+		-- debug
+		player.x		= 128
+		player.y		= 128
+		player.r		= 30
+		player.tr		= 45
+		player.hp		= 100
+		player.cd		= 0
+		
+		self.players[player.id] = player
+		
+		player.cmd	= cmd
+		local data	= json.encode(player)
+		self.connection:send(data .. self.split)
+	end,
+	
 	-- Send Updated Player Data to Clients
 	UPDATE_PLAYER = function(self, params, clientId)
 		local cmd		= "UPDATE_PLAYER"
 		local id		= tostring(clientId)
 		local player	= json.decode(params)
 		
-		self.players[id].x	= player.x
-		self.players[id].y	= player.y
-		self.players[id].r	= player.r
-		self.players[id].tr	= player.tr
+		self.players[id] = player
 		
-		local data	= json.encode({
-			cmd		= cmd,
-			id		= id,
-			x		= player.x,
-			y		= player.y,
-			r		= player.r,
-			tr		= player.tr,
-		})
+		player.cmd	= player.cmd or cmd
+		local data	= json.encode(player)
 		
 		self.connection:send(data .. self.split)
 	end,
 	
-	-- Send Data to Clients
+	REMOVE_PLAYER = function(self, params, clientId)
+		local cmd	= "REMOVE_PLAYER"
+		local id	= tostring(clientId)
+		
+		self.players[id] = nil
+		
+		local data	= json.encode({
+			cmd	= cmd,
+			id	= id,
+		})
+		
+		self.connection:send(data .. self.split)
+		
+	end,
+	
+	-- Send Data to Clients					THIS IS DEPRACATED GET RID OF IT ASAP
 	SET_DATA = function(self, params, clientId)
 		local cmd	= "SET_DATA"
 		
 		local data	= json.encode({
 			cmd		= cmd,
-			players	= self.players,
 			options	= self.options,
 			map		= self.map,
 		})

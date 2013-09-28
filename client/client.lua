@@ -5,8 +5,14 @@ require "libs.LUBE"
 Client = Class {}
 
 function Client:init()
-	self.chat		= {}
-	self.split		= "$$"
+	self.chat			= {}
+	self.players		= {}
+	self.createPlayers	= {}
+	self.updatePlayers	= {}
+	self.removePlayers	= {}
+	self.options		= {}
+	self.map			= {}
+	self.split			= "$$"
 end
 
 --[[
@@ -43,7 +49,10 @@ function Client:recv(data)
 			
 			if params then
 				if self.recvcommands[params.cmd] then
-					self.recvcommands[params.cmd](self, d)
+					local cmd	= params.cmd
+					params.cmd	= nil
+					
+					self.recvcommands[cmd](self, d)
 				else
 					print("Unrecognised command: ", params.cmd)
 				end
@@ -90,21 +99,28 @@ Client.recvcommands = {
 		client.players[player.id].ready = player.ready
 	end,
 	
+	-- Player Connected
+	CREATE_PLAYER = function(self, params)
+		local player = json.decode(params)
+		self.createPlayers[player.id] = player
+	end,
+	
 	-- Update Player Data
 	UPDATE_PLAYER = function(self, params)
 		local player = json.decode(params)
-		
-		self.players[player.id].x	= player.x
-		self.players[player.id].y	= player.y
-		self.players[player.id].r	= player.r
-		self.players[player.id].tr	= player.tr
+		self.updatePlayers[player.id] = player
 	end,
 	
-	-- Set Data
+	-- Player Disconnected
+	REMOVE_PLAYER = function(self, params)
+		local player = json.decode(params)
+		self.removePlayers[player.id] = player
+	end,
+	
+	-- Set Data					KILL ME
 	SET_DATA = function(self, params)
 		local data = json.decode(params)
 		
-		self.players	= data.players
 		self.options	= data.options
 		self.map		= data.map
 	end,

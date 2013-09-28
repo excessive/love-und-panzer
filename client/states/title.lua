@@ -60,7 +60,7 @@ function title:enter(state)
 			
 			local data = json.encode({
 				cmd		= "CONNECT",
-				name	= _G.settings.name,
+				name	= settings.name,
 			})
 			
 			client:send(data .. client.split)
@@ -111,7 +111,7 @@ function title:update(dt)
 	if client then
 		client:update(dt)
 		
-		if client.players then
+		for k, _ in pairs(client.createPlayers) do
 			Gamestate.switch(states.lobby)
 		end
 	end
