@@ -52,6 +52,7 @@ function Client:recv(data)
 					local cmd	= params.cmd
 					params.cmd	= nil
 					
+					d = json.encode(params)
 					self.recvcommands[cmd](self, d)
 				else
 					print("Unrecognised command: ", params.cmd)
@@ -99,21 +100,35 @@ Client.recvcommands = {
 		client.players[player.id].ready = player.ready
 	end,
 	
+	-- Retrieve Current Players
+	SEND_PLAYERS = function(self, params)
+		local players = json.decode(params)
+		
+		for id, player in pairs(players) do
+			self.players[id] = player
+			self.createPlayers[id] = player
+		end
+	end,
+	
 	-- Player Connected
 	CREATE_PLAYER = function(self, params)
 		local player = json.decode(params)
+		
+		self.players[player.id] = player
 		self.createPlayers[player.id] = player
 	end,
 	
 	-- Update Player Data
 	UPDATE_PLAYER = function(self, params)
 		local player = json.decode(params)
+		self.players[player.id] = player
 		self.updatePlayers[player.id] = player
 	end,
 	
 	-- Player Disconnected
 	REMOVE_PLAYER = function(self, params)
 		local player = json.decode(params)
+		self.players[player.id] = nil
 		self.removePlayers[player.id] = player
 	end,
 	

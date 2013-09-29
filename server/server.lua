@@ -97,6 +97,7 @@ function Server:recv(data, clientId)
 					local cmd	= params.cmd
 					params.cmd	= nil
 					
+					d = json.encode(params)
 					self.recvcommands[cmd](self, d, clientId)
 				else
 					print("Unrecognised command: ", params.cmd)
@@ -129,6 +130,7 @@ Server.recvcommands = {
 		local client	= json.decode(params)
 		
 		self.recvcommands.WHO_AM_I(self, nil, clientId)
+		self.recvcommands.SEND_PLAYERS(self, nil, clientId)
 		
 		local player	= json.encode({
 			id		= id,
@@ -143,25 +145,17 @@ Server.recvcommands = {
 		})
 		
 		self.recvcommands.CHAT(self, chat, clientId)
-		
-		-- this needs to create players for the client only
-		for id, p in pairs(self.players) do
-			p.cmd		= "CREATE_PLAYER"
-			local data	= json.encode(p)
-			self.recvcommands.UPDATE_PLAYER(self, data, clientId)
-		end
 	end,
 	
 	-- Destroy Player
 	DISCONNECT = function(self, params, clientId)
-		self.recvcommands.REMOVE_PLAYER(self, nil, clientId)
-		
 		local data	= json.encode({
 			scope	= "GLOBAL",
 			msg		= "has disconnected.",
 		})
 		
 		self.recvcommands.CHAT(self, data, clientId)
+		self.recvcommands.REMOVE_PLAYER(self, nil, clientId)
 	end,
 	
 	-- Send Chat Message
@@ -194,8 +188,31 @@ Server.recvcommands = {
 		self.connection:send(data .. self.split)
 	end,
 	
+	SEND_PLAYERS = function(self, params, clientId)
+		local cmd		= "SEND_PLAYERS"
+		local players	= {}
+		local empty		= true
+		
+		for k, v in pairs(self.players) do
+			players[k] = v
+		end
+		
+		for id, _ in pairs(players) do
+			empty = false
+			break
+		end
+		
+		if empty then return end
+		
+		players.cmd = cmd
+		local data	= json.encode(players)
+		
+		self.connection:send(data .. self.split, clientId)
+	end,
+	
 	CREATE_PLAYER = function(self, params, clientId)
 		local cmd		= "CREATE_PLAYER"
+		local id		= tostring(clientId)
 		local player	= json.decode(params)
 		
 		-- If first player, player becomes host
@@ -222,7 +239,10 @@ Server.recvcommands = {
 		player.hp		= 100
 		player.cd		= 0
 		
-		self.players[player.id] = player
+		self.players[id] = {}
+		for k,v in pairs(player) do
+			self.players[id][k] = v
+		end
 		
 		player.cmd	= cmd
 		local data	= json.encode(player)
@@ -235,9 +255,11 @@ Server.recvcommands = {
 		local id		= tostring(clientId)
 		local player	= json.decode(params)
 		
-		self.players[id] = player
+		for k,v in pairs(player) do
+			self.players[id][k] = v
+		end
 		
-		player.cmd	= player.cmd or cmd
+		player.cmd	= cmd
 		local data	= json.encode(player)
 		
 		self.connection:send(data .. self.split)
@@ -260,15 +282,10 @@ Server.recvcommands = {
 	
 	-- Send Data to Clients					THIS IS DEPRACATED GET RID OF IT ASAP
 	SET_DATA = function(self, params, clientId)
-		local cmd	= "SET_DATA"
-		
 		local data	= json.encode({
-			cmd		= cmd,
 			options	= self.options,
 			map		= self.map,
 		})
-		
-		self.connection:send(data .. self.split)
 	end,
 	
 	-- Send Client ID to Client

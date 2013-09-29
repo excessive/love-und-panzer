@@ -49,15 +49,6 @@ function lobby:enter(state)
 	
 	--[[ Player UI Elements ]]--
 	
-	---------- just pull data from the Client object, no need to duplicate it!
-	--[[
-	self = {
-		players = {slots = {}},
-		options = {},
-		ready = {},
-	}
-	]]--
-	
 	-- Group containing all players
 	self.players.panel = loveframes.Create("panel")
 	self.players.panel:SetState("lobby")
@@ -94,28 +85,15 @@ end
 function lobby:update(dt)
 	client:update(dt)
 	
-	local count = 0
-	
-	-- Count current players
-	for id, _ in pairs(client.players) do
-		count = count + 1
-		self.players.slots[id].panel:SetPos(0, 40 * count - 40)
-	end
-	
 	-- Add new players
 	for id, player in pairs(client.createPlayers) do
-		count = count + 1
-		
-		self:createPlayer(id, player, count)
-		client.players[id] = player
+		self:createPlayer(id, player)
 		client.createPlayers[id] = nil
-		
 	end
 	
 	-- Update current players
 	for id, player in pairs(client.updatePlayers) do
 		self:updatePlayer(id, player)
-		client.players[id] = player
 		client.updatePlayers[id] = nil
 	end
 	
@@ -123,6 +101,13 @@ function lobby:update(dt)
 	for id, _ in pairs(client.removePlayers) do
 		self:removePlayer(id)
 		client.removePlayers[id] = nil
+	end
+	
+	-- Update list positions
+	local count = 0
+	for id, _ in pairs(client.players) do
+		count = count + 1
+		self:updateListPosition(id, count)
 	end
 	
 	-- Update Global Chat
@@ -171,15 +156,12 @@ function lobby:draw()
 end
 
 function lobby:createPlayer(id, player, offset)
-	
-	print("CREATE PLAYER PANEL")
-	
 	self.players.slots[id] = {}
 	
 	-- Group containing individual player's elements
 	self.players.slots[id].panel = loveframes.Create("panel", self.players.panel)
 	self.players.slots[id].panel:SetSize(300, 40)
-	self.players.slots[id].panel:SetPos(0, 40 * offset - 40)
+	self.players.slots[id].panel:SetPos(0, 0)
 	
 	-- Image displaying player's ready status
 	self.players.slots[id].readyImage = loveframes.Create("image", self.players.slots[id].panel)
@@ -199,9 +181,6 @@ function lobby:createPlayer(id, player, offset)
 end
 
 function lobby:updatePlayer(id, player)
-	
-	print("UPDATE PLAYER PANEL")
-	
 	-- Display image
 	if player.host then
 		self.players.slots[id].readyImage:SetImage("assets/images/host.png")
@@ -226,14 +205,12 @@ function lobby:updatePlayer(id, player)
 end
 
 function lobby:removePlayer(id)
-	
-	print("REMOVE PLAYER PANEL")
-	
 	self.players.slots[id].panel:Remove()
-	--self.players.slots[id].readyImage:Remove()
-	--self.players.slots[id].name:Remove()
-	--self.players.slots[id].team:Remove()
 	self.players.slots[id] = nil
+end
+
+function lobby:updateListPosition(id, offset)
+	self.players.slots[id].panel:SetPos(0, 40 * offset - 40)
 end
 
 function lobby:keypressed(key, unicode)
