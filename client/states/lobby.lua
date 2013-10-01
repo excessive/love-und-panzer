@@ -67,19 +67,30 @@ function lobby:enter(state)
 	self.options.readyButton = loveframes.Create("button", self.options.panel)
 	self.options.readyButton:SetSize(100, 40)
 	self.options.readyButton:SetPos(100, 350)
-	self.options.readyButton:SetText("Ready")
-	self.options.readyButton.OnClick = function()
-		local data = nil
-		
-		if client.players[client.id].ready then
-			data = json.encode({cmd = "READY", ready = false})
-		else
-			data = json.encode({cmd = "READY", ready = true})
-		end
-		
-		client.connection:send(data .. client.split)
-	end
 	
+	if client.players[client.id].host then
+		self.options.readyButton:SetClickable(false)
+		self.options.readyButton:SetText("Start Game")
+		self.options.readyButton.OnClick = function()
+			local data = json.encode({
+				cmd		= "START_GAME",
+			})
+			client.connection:send(data .. client.split)
+		end
+	else
+		self.options.readyButton:SetText("Ready")
+		self.options.readyButton.OnClick = function()
+			local data = nil
+			
+			if client.players[client.id].ready then
+				data = json.encode({cmd = "READY", ready = false})
+			else
+				data = json.encode({cmd = "READY", ready = true})
+			end
+			
+			client.connection:send(data .. client.split)
+		end
+	end
 end
 
 function lobby:update(dt)
@@ -128,11 +139,30 @@ function lobby:update(dt)
 		client.chat.team = nil
 	end
 	
-	--[[
-	if HOST_CLICKS_START then
+	-- If you are the host, check if everyone is ready
+	if client.players[client.id].host then
+		local players = 0
+		local ready = 0
+		
+		for id, player in pairs(client.players) do
+			players = players + 1
+			
+			if player.ready then
+				ready = ready + 1
+			end
+		end
+		
+		if players == ready and players > 1 then
+			self.options.readyButton:SetClickable(true)
+		else
+			self.options.readyButton:SetClickable(false)
+		end
+	end
+	
+	if client.startGame then
+		client.startGame = nil
 		Gamestate.switch(states.gameplay)
 	end
-	]]--
 	
 	loveframes.update(dt)
 end

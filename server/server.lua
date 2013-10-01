@@ -279,6 +279,14 @@ Server.recvcommands = {
 		})
 		self.connection:send(data .. self.split, clientId)
 	end,
+	
+	START_GAME = function(self, params, clientId)
+		local cmd	= "START_GAME"
+		local data	= json.encode({
+			cmd	= cmd,
+		})
+		self.connection:send(data .. self.split)
+	end,
 }
 
 -- http://wiki.interfaceware.com/534.html

@@ -91,9 +91,10 @@ Client.recvcommands = {
 		end
 	end,
 	
-	-- Confirm Ready to Play
+	-- Confirm Ready to Play				-- all of these need to make more sense. maybe updates should update only specific properties instead of whole players
 	READY = function(self, player)
 		client.players[player.id].ready = player.ready
+		self.updatePlayers[player.id] = client.players[player.id]
 	end,
 	
 	-- Retrieve Current Players
@@ -125,6 +126,11 @@ Client.recvcommands = {
 	-- Set ID
 	WHO_AM_I = function(self, me)
 		self.id = me.id
+	end,
+	
+	-- Start Game
+	START_GAME = function(self, data)
+		client.startGame = true
 	end,
 }
 
