@@ -52,8 +52,7 @@ function Client:recv(data)
 					local cmd	= params.cmd
 					params.cmd	= nil
 					
-					d = json.encode(params)
-					self.recvcommands[cmd](self, d)
+					self.recvcommands[cmd](self, params)
 				else
 					print("Unrecognised command: ", params.cmd)
 				end
@@ -82,9 +81,7 @@ end
 Client.recvcommands = {
 	
 	-- Post Chat Message
-	CHAT = function(self, params)
-		local chat = json.decode(params)
-		
+	CHAT = function(self, chat)
 		if chat.scope == "GLOBAL" then
 			self.chat.global = chat.msg
 		elseif chat.scope == "GAME" then
@@ -95,15 +92,12 @@ Client.recvcommands = {
 	end,
 	
 	-- Confirm Ready to Play
-	READY = function(self, params)
-		local player = json.decode(params)
+	READY = function(self, player)
 		client.players[player.id].ready = player.ready
 	end,
 	
 	-- Retrieve Current Players
-	SEND_PLAYERS = function(self, params)
-		local players = json.decode(params)
-		
+	SEND_PLAYERS = function(self, players)
 		for id, player in pairs(players) do
 			self.players[id] = player
 			self.createPlayers[id] = player
@@ -111,39 +105,26 @@ Client.recvcommands = {
 	end,
 	
 	-- Player Connected
-	CREATE_PLAYER = function(self, params)
-		local player = json.decode(params)
-		
+	CREATE_PLAYER = function(self, player)
 		self.players[player.id] = player
 		self.createPlayers[player.id] = player
 	end,
 	
 	-- Update Player Data
-	UPDATE_PLAYER = function(self, params)
-		local player = json.decode(params)
+	UPDATE_PLAYER = function(self, player)
 		self.players[player.id] = player
 		self.updatePlayers[player.id] = player
 	end,
 	
 	-- Player Disconnected
-	REMOVE_PLAYER = function(self, params)
-		local player = json.decode(params)
+	REMOVE_PLAYER = function(self, player)
 		self.players[player.id] = nil
 		self.removePlayers[player.id] = player
 	end,
 	
-	-- Set Data					KILL ME
-	SET_DATA = function(self, params)
-		local data = json.decode(params)
-		
-		self.options	= data.options
-		self.map		= data.map
-	end,
-	
 	-- Set ID
-	WHO_AM_I = function(self, params)
-		local data = json.decode(params)
-		self.id = data.id
+	WHO_AM_I = function(self, me)
+		self.id = me.id
 	end,
 }
 

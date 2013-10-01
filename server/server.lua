@@ -97,8 +97,7 @@ function Server:recv(data, clientId)
 					local cmd	= params.cmd
 					params.cmd	= nil
 					
-					d = json.encode(params)
-					self.recvcommands[cmd](self, d, clientId)
+					self.recvcommands[cmd](self, params, clientId)
 				else
 					print("Unrecognised command: ", params.cmd)
 				end
@@ -125,66 +124,60 @@ end
 ]]--
 Server.recvcommands = {
 	-- Initialize Player
-	CONNECT = function(self, params, clientId)
-		local id		= tostring(clientId)
-		local client	= json.decode(params)
-		
+	CONNECT = function(self, client, clientId)
 		self.recvcommands.WHO_AM_I(self, nil, clientId)
 		self.recvcommands.SEND_PLAYERS(self, nil, clientId)
 		
-		local player	= json.encode({
+		local id		= tostring(clientId)
+		local player	= {
 			id		= id,
 			name	= client.name,
-		})
+		}
 		
 		self.recvcommands.CREATE_PLAYER(self, player, clientId)
 		
-		local chat	= json.encode({
+		local chat	= {
 			scope	= "GLOBAL",
 			msg		= "has connected.",
-		})
+		}
 		
 		self.recvcommands.CHAT(self, chat, clientId)
 	end,
 	
 	-- Destroy Player
 	DISCONNECT = function(self, params, clientId)
-		local data	= json.encode({
+		local chat	= {
 			scope	= "GLOBAL",
 			msg		= "has disconnected.",
-		})
+		}
 		
-		self.recvcommands.CHAT(self, data, clientId)
+		self.recvcommands.CHAT(self, chat, clientId)
 		self.recvcommands.REMOVE_PLAYER(self, nil, clientId)
 	end,
 	
 	-- Send Chat Message
-	CHAT = function(self, params, clientId)
+	CHAT = function(self, chat, clientId)
 		local cmd	= "CHAT"
 		local id	= tostring(clientId)
-		local chat	= json.decode(params)
 		
 		local data	= json.encode({
 			cmd		= cmd,
 			scope	= chat.scope,
 			msg		= self.players[id].name .. ": " .. chat.msg,
 		})
-		
 		self.connection:send(data .. self.split)
 	end,
 	
 	-- Confirm Ready to Play
-	READY = function(self, params, clientId)
+	READY = function(self, ready, clientId)
 		local cmd	= "READY"
 		local id	= tostring(clientId)
-		local ready	= json.decode(params)
 		
 		local data	= json.encode({
 			cmd		= cmd,
 			id		= id,
 			ready	= ready.ready,
 		})
-		
 		self.connection:send(data .. self.split)
 	end,
 	
@@ -206,14 +199,12 @@ Server.recvcommands = {
 		
 		players.cmd = cmd
 		local data	= json.encode(players)
-		
 		self.connection:send(data .. self.split, clientId)
 	end,
 	
-	CREATE_PLAYER = function(self, params, clientId)
+	CREATE_PLAYER = function(self, player, clientId)
 		local cmd		= "CREATE_PLAYER"
 		local id		= tostring(clientId)
-		local player	= json.decode(params)
 		
 		-- If first player, player becomes host
 		local count = 0
@@ -250,10 +241,9 @@ Server.recvcommands = {
 	end,
 	
 	-- Send Updated Player Data to Clients
-	UPDATE_PLAYER = function(self, params, clientId)
+	UPDATE_PLAYER = function(self, player, clientId)
 		local cmd		= "UPDATE_PLAYER"
 		local id		= tostring(clientId)
-		local player	= json.decode(params)
 		
 		for k,v in pairs(player) do
 			self.players[id][k] = v
@@ -261,7 +251,6 @@ Server.recvcommands = {
 		
 		player.cmd	= cmd
 		local data	= json.encode(player)
-		
 		self.connection:send(data .. self.split)
 	end,
 	
@@ -275,17 +264,8 @@ Server.recvcommands = {
 			cmd	= cmd,
 			id	= id,
 		})
-		
 		self.connection:send(data .. self.split)
 		
-	end,
-	
-	-- Send Data to Clients					THIS IS DEPRACATED GET RID OF IT ASAP
-	SET_DATA = function(self, params, clientId)
-		local data	= json.encode({
-			options	= self.options,
-			map		= self.map,
-		})
 	end,
 	
 	-- Send Client ID to Client
@@ -297,7 +277,6 @@ Server.recvcommands = {
 			cmd		= cmd,
 			id		= id,
 		})
-		
 		self.connection:send(data .. self.split, clientId)
 	end,
 }
