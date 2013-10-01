@@ -97,14 +97,14 @@ function lobby:update(dt)
 	client:update(dt)
 	
 	-- Add new players
-	for id, player in pairs(client.createPlayers) do
-		self:createPlayer(id, player)
+	for id, _ in pairs(client.createPlayers) do
+		self:createPlayer(id, client.players[id])
 		client.createPlayers[id] = nil
 	end
 	
 	-- Update current players
-	for id, player in pairs(client.updatePlayers) do
-		self:updatePlayer(id, player)
+	for id, _ in pairs(client.updatePlayers) do
+		self:updatePlayer(id, client.players[id])
 		client.updatePlayers[id] = nil
 	end
 	
@@ -185,7 +185,7 @@ function lobby:draw()
 	loveframes.draw()
 end
 
-function lobby:createPlayer(id, player, offset)
+function lobby:createPlayer(id, player)
 	self.players.slots[id] = {}
 	
 	-- Group containing individual player's elements

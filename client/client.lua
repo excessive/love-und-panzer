@@ -91,36 +91,48 @@ Client.recvcommands = {
 		end
 	end,
 	
-	-- Confirm Ready to Play				-- all of these need to make more sense. maybe updates should update only specific properties instead of whole players
+	-- Confirm Ready to Play
 	READY = function(self, player)
 		client.players[player.id].ready = player.ready
-		self.updatePlayers[player.id] = client.players[player.id]
+		self.recvcommands.UPDATE_PLAYER(self, player)
 	end,
 	
 	-- Retrieve Current Players
 	SEND_PLAYERS = function(self, players)
 		for id, player in pairs(players) do
 			self.players[id] = player
-			self.createPlayers[id] = player
+			self.createPlayers[id] = true
 		end
 	end,
 	
 	-- Player Connected
 	CREATE_PLAYER = function(self, player)
 		self.players[player.id] = player
-		self.createPlayers[player.id] = player
+		self.createPlayers[player.id] = true
 	end,
 	
 	-- Update Player Data
 	UPDATE_PLAYER = function(self, player)
-		self.players[player.id] = player
-		self.updatePlayers[player.id] = player
+		self.players[player.id].name	= player.name	or self.players[player.id].name
+		self.players[player.id].team	= player.team	or self.players[player.id].team
+		
+		self.players[player.id].host	= player.host	or self.players[player.id].host
+		self.players[player.id].ready	= player.ready	or self.players[player.id].ready
+		
+		self.players[player.id].x		= player.x		or self.players[player.id].x
+		self.players[player.id].y		= player.y		or self.players[player.id].y
+		self.players[player.id].r		= player.r		or self.players[player.id].r
+		self.players[player.id].tr		= player.tr		or self.players[player.id].tr
+		self.players[player.id].hp		= player.hp		or self.players[player.id].hp
+		self.players[player.id].cd		= player.cd		or self.players[player.id].cd
+		
+		self.updatePlayers[player.id] = true
 	end,
 	
 	-- Player Disconnected
 	REMOVE_PLAYER = function(self, player)
 		self.players[player.id] = nil
-		self.removePlayers[player.id] = player
+		self.removePlayers[player.id] = true
 	end,
 	
 	-- Set ID
