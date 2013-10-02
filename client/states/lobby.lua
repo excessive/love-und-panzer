@@ -161,10 +161,14 @@ function lobby:update(dt)
 	
 	if client.startGame then
 		client.startGame = nil
-		Gamestate.switch(states.gameplay)
+		Gamestate.switch(states.gameplay, self.chat)
 	end
 	
 	loveframes.update(dt)
+end
+
+function lobby:draw()
+	loveframes.draw()
 end
 
 -- Send Chat Message
@@ -179,10 +183,6 @@ function lobby:sendChat()
 		client:send(data .. client.split)
 		self.chat.input:Clear()
 	end
-end
-
-function lobby:draw()
-	loveframes.draw()
 end
 
 function lobby:createPlayer(id, player)
@@ -244,16 +244,17 @@ function lobby:updateListPosition(id, offset)
 end
 
 function lobby:keypressed(key, unicode)
-	if key == "return" then
-		if self.chat.input:GetFocus() then
-			if self.chat.input:GetText() then
-				self:sendChat()
-				self.chat.input:SetFocus(false)
-			else
-				self.chat.input:SetFocus(false)
-			end
-		else
+	if not self.chat.input:GetFocus() then
+		if key == "return" then
 			self.chat.input:SetFocus(true)
+		end
+	else
+		if key == "return" then
+			if self.chat.input:GetText() then
+				lobby:sendChat()
+			end
+			
+			self.chat.input:SetFocus(false)
 		end
 	end
 	

@@ -20,11 +20,13 @@ Tank = Class {}
 	turnSpeed	- Radians per second
 	ammo		- Number of bullets
 ]]--
-function Tank:init(map, collision, image, w, h, x, y, r, tr, speed, turnSpeed, reloadSpeed, ammo)
+function Tank:init(id, map, collision, image, w, h, x, y, r, tr, speed, turnSpeed, reloadSpeed)
 	self.colour = {
 		pink = 0,
 		blue = 1,
 	}
+	
+	self.id				= id
 	
 	self.map			= map
 	self.collision		= collision
@@ -39,7 +41,9 @@ function Tank:init(map, collision, image, w, h, x, y, r, tr, speed, turnSpeed, r
 	self.x				= x
 	self.y				= y
 	self.r				= r
-	self.tr				= tr 
+	self.tr				= tr
+	self.hp				= 100
+	self.cd				= 0
 	
 	self.sprites		= {}
 	self:newSprite("idle",		self.image, self.w, self.h, 0, self.colour.pink, 1, self.colour.pink, 0.03)
@@ -49,19 +53,24 @@ function Tank:init(map, collision, image, w, h, x, y, r, tr, speed, turnSpeed, r
 	self:newSprite("turnRight",	self.image, self.w, self.h, 7, self.colour.pink, 3, self.colour.pink, 0.03)
 	self.facing			= "idle"
 	
-	self.turret		= love.graphics.newQuad(self.colour.pink * 32, 128, 32, 64, 512, 256)
+	self.turret			= love.graphics.newQuad(self.colour.pink * 32, 128, 32, 64, 512, 256)
 	
 	self.bullet			= Bullet(map, collision, "assets/sprites/bullet.png", 4, 4, 5)
-	self.ammo			= ammo
-	self.reload			= 0
 end
 
 --[[
 	Update Tank
 ]]--
 function Tank:update(dt)
-	if self.reload > 0 then
-		self.reload = self.reload - dt
+	self.x	= client.players[self.id].x
+	self.y	= client.players[self.id].y
+	self.r	= client.players[self.id].r
+	self.tr	= client.players[self.id].tr
+	self.hp	= client.players[self.id].hp
+	self.cd	= client.players[self.id].cd
+	
+	if self.cd > 0 then
+		self.cd = self.cd - dt
 	end
 	
 	self.sprites[self.facing].image:update(dt)

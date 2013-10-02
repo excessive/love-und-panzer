@@ -20,10 +20,13 @@ local function createCollisionMap(map, layer)
 	return walk
 end
 
-function gameplay:enter(state)
+function gameplay:enter(state, chat)
 	loveframes.SetState("gameplay")
 	
-	gui.gameplay = {}
+	self.chat = chat
+	self.chat.panel:SetState("gameplay")
+	
+	self.keystate = {}
 
 	-- Tick
 	self.t = 0
@@ -40,9 +43,7 @@ function gameplay:enter(state)
 	-- Custom Layer for Sprite Objects
 	local spriteLayer = self.map:newCustomLayer("Sprites", 4)
 	function spriteLayer:draw()
-		self.player:draw()
-		
-		for id, state in pairs(self.players) do
+		for id, _ in pairs(self.players) do
 			self.players[id]:draw()
 		end
 	end
@@ -51,16 +52,12 @@ function gameplay:enter(state)
 	self.collisionMap = createCollisionMap(self.map, "Collision")
 
 	-- Initialize Players
-	for id, state in pairs(client.state.players) do
-		if id ~= client.id then
-			self.players[id]	= Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, state.x, state.y, state.r, state.tr, 2, 30, 5, 10)
-		else
-			self.player			= Tank(self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, state.x, state.y, state.r, state.tr, 2, 30, 5, 10)
-		end
+	self.players = {}
+	for id, player in pairs(client.players) do
+		self.players[id] = Tank(id, self.map, self.collisionMap,"assets/sprites/tank.png", 64, 64, player.x, player.y, player.r, player.tr, 2, 30, 5)
 	end
 	
 	-- Link Players to Sprites Layer
-	self.map.layers.Sprites.player = self.player
 	self.map.layers.Sprites.players = self.players
 end
 
@@ -78,7 +75,7 @@ function gameplay:update(dt)
 		local text = loveframes.Create("text")
 		text:SetMaxWidth(400)
 		text:SetText(client.chat.global)
-		gui.chat.global:AddItem(text)
+		self.chat.globalList:AddItem(text)
 		client.chat.global = nil
 	end
 	
@@ -87,7 +84,7 @@ function gameplay:update(dt)
 		local text = loveframes.Create("text")
 		text:SetMaxWidth(400)
 		text:SetText(client.chat.team)
-		gui.chat.team:AddItem(text)
+		self.chat.teamList:AddItem(text)
 		client.chat.team = nil
 	end
 	
@@ -101,7 +98,7 @@ function gameplay:update(dt)
 			end
 		end
 		
-		if not gui.chat.input:GetFocus() then
+		if not self.chat.input:GetFocus() then
 			updateKeys { "up", "down", "left", "right", "lctrl", "lalt" }
 		end
 
@@ -132,35 +129,26 @@ function gameplay:update(dt)
 		if turn ~= 0 or move ~= 0 then
 			local data = json.encode({
 				cmd	= "UPDATE_PLAYER",
-				x	= self.player.x,
-				y	= self.player.y,
-				r	= self.player.r,
-				tr	= self.player.tr,
+				id	= client.id,
+				x	= self.players[client.id].x,
+				y	= self.players[client.id].y,
+				r	= self.players[client.id].r,
+				tr	= self.players[client.id].tr,
 			})
 			client:send(data .. client.split)
 		end
 		
-		-- Update Player
-		self.player:update(dt)
-		self.player:turn(turn * dt)
-		self.player:move(move * dt)
-		self.player:rotateTurret(turret * dt)
-		
-		self.lt = self.t
-	end
-	
-	-- Update State
-	if client.updatestate then
-		local state = client.updatestate
-		
-		if not game[state.id] then
-			game[state.id] = {}
+		-- Update Players
+		for id, _ in pairs(self.players) do
+			self.players[id]:update(dt)
 		end
 		
-		game[state.id].x	= state.x
-		game[state.id].y	= state.y
-		game[state.id].r	= state.r
-		game[state.id].tr	= state.tr
+		-- Locally update self
+		self.players[client.id]:turn(turn * dt)
+		self.players[client.id]:move(move * dt)
+		self.players[client.id]:rotateTurret(turret * dt)
+		
+		self.lt = self.t
 	end
 	
 	loveframes.update(dt)
@@ -170,10 +158,10 @@ function gameplay:draw()
 	-- Draw World + Entities
 	love.graphics.push()
 	love.graphics.setColor(255, 255, 255, 255)
-	local tx = math.floor(-self.player.x + windowWidth / 2 - self.map.tileWidth / 2)
-	local ty = math.floor(-self.player.y + windowHeight / 2 - self.map.tileHeight / 2)
+	local tx = math.floor(-self.players[client.id].x + windowWidth / 2 - self.map.tileWidth / 2)
+	local ty = math.floor(-self.players[client.id].y + windowHeight / 2 - self.map.tileHeight / 2)
 	love.graphics.translate(tx, ty)
-	self.map:autoDrawRange(tx, ty, self.scale, self.map.tileWidth)
+	self.map:autoDrawRange(tx, ty, 1, 64)
 	self.map:draw()
 	love.graphics.setColor(255, 255, 255, 255)
 	love.graphics.pop()
@@ -181,19 +169,36 @@ function gameplay:draw()
 	loveframes.draw()
 end
 
+-- Send Chat Message
+function gameplay:sendChat()
+	if self.chat.input:GetText() ~= "" then
+		local data = json.encode({
+			cmd		= "CHAT",
+			scope	= string.upper(self.scope),
+			msg		= self.chat.input:GetText(),
+		})
+		
+		client:send(data .. client.split)
+		self.chat.input:Clear()
+	end
+end
+
 function gameplay:keypressed(key, unicode)
-	if not gui.chat.input:GetFocus() then
-		if k == " " then
-			self.player:shoot()
+	if not self.chat.input:GetFocus() then
+		if key == " " then
+			self.players[client.id]:shoot()
 		end
 		
-		if k == "return" then
-			gui.chat.input:SetFocus(true)
+		if key == "return" then
+			self.chat.input:SetFocus(true)
 		end
 	else
-		if k == "return" then
-			sendChat()
-			gui.chat.input:SetFocus(false)
+		if key == "return" then
+			if self.chat.input:GetText() then
+				sendChat()
+			end
+			
+			self.chat.input:SetFocus(false)
 		end
 	end
 	
