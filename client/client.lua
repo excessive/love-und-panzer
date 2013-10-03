@@ -113,20 +113,14 @@ Client.recvcommands = {
 	
 	-- Update Player Data
 	UPDATE_PLAYER = function(self, player)
-		self.players[player.id].name	= player.name	or self.players[player.id].name
-		self.players[player.id].team	= player.team	or self.players[player.id].team
+		local id = player.id
+		player.id = nil
 		
-		self.players[player.id].host	= player.host	or self.players[player.id].host
-		self.players[player.id].ready	= player.ready	or self.players[player.id].ready
+		for k, v in pairs(player) do
+			self.players[id][k] = v
+		end
 		
-		self.players[player.id].x		= player.x		or self.players[player.id].x
-		self.players[player.id].y		= player.y		or self.players[player.id].y
-		self.players[player.id].r		= player.r		or self.players[player.id].r
-		self.players[player.id].tr		= player.tr		or self.players[player.id].tr
-		self.players[player.id].hp		= player.hp		or self.players[player.id].hp
-		self.players[player.id].cd		= player.cd		or self.players[player.id].cd
-		
-		self.updatePlayers[player.id] = true
+		self.updatePlayers[id] = true
 	end,
 	
 	-- Player Disconnected
