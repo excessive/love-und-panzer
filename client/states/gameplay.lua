@@ -70,23 +70,7 @@ function gameplay:update(dt)
 	-- Receive Data
 	client:update(dt)
 	
-	-- Update Global Chat
-	if client.chat.global then
-		local text = loveframes.Create("text")
-		text:SetMaxWidth(400)
-		text:SetText(client.chat.global)
-		self.chat.globalList:AddItem(text)
-		client.chat.global = nil
-	end
-	
-	-- Update Team Chat
-	if client.chat.team then
-		local text = loveframes.Create("text")
-		text:SetMaxWidth(400)
-		text:SetText(client.chat.team)
-		self.chat.teamList:AddItem(text)
-		client.chat.team = nil
-	end
+	self.chat:update()
 	
 	-- Ticks
 	self.t = self.t + dt
@@ -169,20 +153,6 @@ function gameplay:draw()
 	loveframes.draw()
 end
 
--- Send Chat Message
-function gameplay:sendChat()
-	if self.chat.input:GetText() ~= "" then
-		local data = json.encode({
-			cmd		= "CHAT",
-			scope	= string.upper(self.scope),
-			msg		= self.chat.input:GetText(),
-		})
-		
-		client:send(data .. client.split)
-		self.chat.input:Clear()
-	end
-end
-
 function gameplay:keypressed(key, unicode)
 	if not self.chat.input:GetFocus() then
 		if key == " " then
@@ -195,7 +165,7 @@ function gameplay:keypressed(key, unicode)
 	else
 		if key == "return" then
 			if self.chat.input:GetText() then
-				sendChat()
+				self.chat:send()
 			end
 			
 			self.chat.input:SetFocus(false)
