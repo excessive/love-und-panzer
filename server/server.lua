@@ -46,7 +46,7 @@ function Server:init()
 	self.lt			= 0
 	self.tick		= 1/40
 	
-	self.split		= "$$"
+	self.split		= "۞"
 end
 
 --[[

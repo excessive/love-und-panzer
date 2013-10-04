@@ -12,7 +12,7 @@ function Client:init()
 	self.removePlayers	= {}
 	self.options		= {}
 	self.map			= {}
-	self.split			= "$$"
+	self.split			= "۞"
 end
 
 --[[

@@ -121,6 +121,12 @@ function gameplay:update(dt)
 			})
 			client:send(data .. client.split)
 		end
+	
+		-- Remove Disconnected Players
+		for id, _ in pairs(client.removePlayers) do
+			self.players[id] = nil
+			client.removePlayers[id] = nil
+		end
 		
 		-- Update Players
 		for id, _ in pairs(self.players) do
