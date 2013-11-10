@@ -35,10 +35,13 @@ function newobject:initialize()
 	input:SetText(self.value)
 	input.OnTextChanged = function(object)
 		local value = self.value
-		self.value = tonumber(object.lines[1])
-		if not self.value then
+		local newvalue = tonumber(object.lines[1])
+		if not newvalue then
+			self.value = value
+			input:SetText(value)
 			return
 		end
+		self.value = newvalue
 		if self.value > self.max then
 			self.value = self.max
 			object:SetText(self.value)

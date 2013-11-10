@@ -13,8 +13,8 @@ function credits:draw()
 	loveframes.draw()
 end
 
-function credits:keypressed(key, unicode)
-	loveframes.keypressed(key, unicode)
+function credits:keypressed(key, isrepeat)
+	loveframes.keypressed(key, isrepeat)
 end
 
 function credits:keyreleased(key)
@@ -27,6 +27,10 @@ end
 
 function credits:mousereleased(x, y, button)
 	loveframes.mousereleased(x, y, button)
+end
+
+function credits:textinput(text)
+	loveframes.textinput(text)
 end
 
 return credits

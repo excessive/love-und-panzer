@@ -220,6 +220,40 @@ function newobject:keyreleased(key)
 
 end
 
+--[[---------------------------------------------------------
+	- func: textinput(text)
+	- desc: called when the user inputs text
+--]]---------------------------------------------------------
+function newobject:textinput(text)
+	
+	local state = loveframes.state
+	local selfstate = self.state
+	
+	if state ~= selfstate then
+		return
+	end
+	
+	local visible = self.visible
+	local children = self.children
+	local internals = self.internals
+	
+	if not visible then
+		return
+	end
+	
+	if children then
+		for k, v in ipairs(children) do
+			v:textinput(text)
+		end
+	end
+	
+	if internals then
+		for k, v in ipairs(internals) do
+			v:textinput(text)
+		end
+	end
+
+end
 
 
 --[[---------------------------------------------------------
@@ -681,6 +715,7 @@ function newobject:IsTopCollision()
 	local found = false
 	local top = true
 	
+	
 	for k, v in ipairs(cols) do
 		if v == self then
 			found = true
@@ -730,7 +765,7 @@ function newobject:CheckHover()
 	
 	local x, y = love.mouse.getPosition()
 	local selfcol = loveframes.util.BoundingBox(x, self.x, y, self.y, 1, self.width, 1, self.height)
-	local hoverobject = loveframes.hoverobject
+	local downobject = loveframes.downobject
 	local modalobject = loveframes.modalobject
 	local collisioncount = loveframes.collisioncount
 	local clickbounds = self.clickbounds
@@ -740,10 +775,10 @@ function newobject:CheckHover()
 		loveframes.collisioncount = collisioncount + 1
 		local top = self:IsTopCollision()
 		if top then
-			if not hoverobject then
+			if not downobject then
 				self.hover = true
 			else
-				if hoverobject == self then
+				if downobject == self then
 					self.hover = true
 				else
 					self.hover = false
@@ -793,6 +828,10 @@ function newobject:CheckHover()
 				self.calledmousefunc = false
 			end
 		end
+	end
+	
+	if self.hover and self.type ~= "base" then
+		loveframes.hoverobject = self
 	end
 	
 end

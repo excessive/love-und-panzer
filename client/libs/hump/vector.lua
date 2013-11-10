@@ -25,7 +25,7 @@ THE SOFTWARE.
 ]]--
 
 local assert = assert
-local sqrt, cos, sin = math.sqrt, math.cos, math.sin
+local sqrt, cos, sin, atan2 = math.sqrt, math.cos, math.sin, math.atan2
 
 local vector = {}
 vector.__index = vector
@@ -33,6 +33,7 @@ vector.__index = vector
 local function new(x,y)
 	return setmetatable({x = x or 0, y = y or 0}, vector)
 end
+local zero = new(0,0)
 
 local function isvector(v)
 	return getmetatable(v) == vector
@@ -112,6 +113,13 @@ function vector.dist(a, b)
 	return sqrt(dx * dx + dy * dy)
 end
 
+function vector.dist2(a, b)
+	assert(isvector(a) and isvector(b), "dist: wrong argument types (<vector> expected)")
+	local dx = a.x - b.x
+	local dy = a.y - b.y
+	return (dx * dx + dy * dy)
+end
+
 function vector:normalize_inplace()
 	local l = self:len()
 	if l > 0 then
@@ -166,11 +174,18 @@ function vector:trim_inplace(maxLen)
 	return self
 end
 
+function vector:angleTo(other)
+	if other then
+		return atan2(self.y, self.y) - atan2(other.y, other.x)
+	end
+	return atan2(self.y, self.y)
+end
+
 function vector:trimmed(maxLen)
 	return self:clone():trim_inplace(maxLen)
 end
 
 
 -- the module
-return setmetatable({new = new, isvector = isvector},
+return setmetatable({new = new, isvector = isvector, zero = zero},
 {__call = function(_, ...) return new(...) end})

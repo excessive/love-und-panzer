@@ -249,7 +249,7 @@ function newobject:mousepressed(x, y, button)
 			self.clickx = x
 			self.clicky = y
 			self.dragging = true
-			loveframes.hoverobject = self
+			loveframes.downobject = self
 		end
 	end
 

@@ -44,7 +44,7 @@ function newobject:update(dt)
 	
 	local hover = self.hover
 	local down = self.down
-	local hoverobject = loveframes.hoverobject
+	local downobject = loveframes.downobject
 	local parent = self.parent
 	local base = loveframes.base
 	local update = self.Update
@@ -52,12 +52,12 @@ function newobject:update(dt)
 	if not hover then
 		self.down = false
 	else
-		if loveframes.hoverobject == self then
+		if loveframes.downobject == self then
 			self.down = true
 		end
 	end
 	
-	if not down and hoverobject == self then
+	if not down and downobject == self then
 		self.hover = true
 	end
 	
@@ -124,7 +124,7 @@ function newobject:mousepressed(x, y, button)
 			baseparent:MakeTop()
 		end
 		self.down = true
-		loveframes.hoverobject = self
+		loveframes.downobject = self
 	end
 	
 end

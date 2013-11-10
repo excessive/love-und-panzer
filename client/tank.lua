@@ -83,7 +83,7 @@ end
 function Tank:draw()
 	self.bullet:draw()
 	self.sprites[self.facing].image:draw(math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.r + 90)), 1, 1, self.w / 2, self.h / 2)
-	love.graphics.drawq(self.image, self.turret, math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.tr + 90)), 1, 1, 16, 48)
+	love.graphics.draw(self.image, self.turret, math.floor(self.x), math.floor(self.y), math.rad(math.floor(self.tr + 90)), 1, 1, 16, 48)
 end
 
 --[[

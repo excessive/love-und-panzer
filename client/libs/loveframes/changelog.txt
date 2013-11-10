@@ -1,4 +1,43 @@
 ================================================
+Version 0.9.6.4 - Alpha (Release Date TBD)
+================================================
+[ADDED] a new base method: textinput(text)
+[ADDED] a new tooltip method: SetOffsetX(xoffset)
+[ADDED] a new tooltip method: SetOffsetY(yoffset)
+[ADDED] a new tooltip method: GetText()
+[ADDED] a new textinput method: Copy()
+[ADDED] a new textinput method: Paste()
+[ADDED] a new textinput method: SelectAll()
+[ADDED] a new textinput method: DeselectAll()
+[ADDED] a new textinput method: SetMasked(masked)
+[ADDED] a new textinput method: GetMasked()
+[ADDED] a new textinput method: SetMaskChar(char)
+[ADDED] a new textinput method: GetMaskChar()
+[ADDED] a new textinput method: SetPlaceholderText(text)
+[ADDED] a new textinput method: GetPlaceholderText()
+[ADDED] a new text method: SetLinksEnabled(enabled)
+[ADDED] a new text method: GetLinksEnabled()
+[ADDED] a new text event callback: OnClickLink(object, text)
+[ADDED] a new util library function: TableHasValue(table, value)
+[ADDED] a new util library function: GetHoverObject()
+[ADDED] a new callback: textinput(text)
+[ADDED] basic clipboard support for the textinput object (0.9.0 only)
+[ADDED] custom cursor support for the textinput object
+[ADDED] support for love.filesystem changes to loveframes.util.GetDirectoryContents (0.9.0 only)
+[ADDED] support for text object link processing
+[ADDED] loveframes.downobject
+
+[FIXED] error when pressing a function key while a textinput was focused
+[FIXED] the tooltip object not setting the state of its text object
+[FIXED] the text object not being set to the correct width in certain situations
+[FIXED] textinput:GetText appending an extra newline to then end of the text string
+[FIXED] text processing issues with the textinput object (0.9.0 only)
+
+[CHANGED] cleaned up the tooltip object
+[CHANGED] upgraded to middleclass 3.0
+[CHANGED] loveframes.hoverobject is now used to store the currently hovered object
+
+================================================
 Version 0.9.6.3 - Alpha (August 15 - 2013)
 ================================================
 [CHANGED] the collapsible category icons used in the stock skins

@@ -33,8 +33,8 @@ function title:draw()
 	loveframes.draw()
 end
 
-function title:keypressed(key, unicode)
-	loveframes.keypressed(key, unicode)
+function title:keypressed(key, isrepeat)
+	loveframes.keypressed(key, isrepeat)
 end
 
 function title:keyreleased(key)
@@ -47,6 +47,10 @@ end
 
 function title:mousereleased(x, y, button)
 	loveframes.mousereleased(x, y, button)
+end
+
+function title:textinput(text)
+	loveframes.textinput(text)
 end
 
 return title

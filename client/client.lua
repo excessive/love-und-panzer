@@ -151,7 +151,7 @@ function string.split(s, d)
 		return {s}
 	end
 	
-	for sub, j in string.gfind(s, match) do
+	for sub, j in string.gmatch(s, match) do
 		i = i + 1
 		t[i] = sub
 		f = j

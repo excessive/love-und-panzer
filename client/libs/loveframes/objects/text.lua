@@ -16,7 +16,7 @@ local newobject = loveframes.NewObject("text", "loveframes_object_text", true)
 	- desc: initializes the object
 --]]---------------------------------------------------------
 function newobject:initialize()
-
+	
 	self.type = "text"
 	self.text = ""
 	self.font = loveframes.basicfont
@@ -29,9 +29,31 @@ function newobject:initialize()
 	self.original = {}
 	self.defaultcolor = {0, 0, 0, 255}
 	self.shadowcolor = {0, 0, 0, 255}
+	self.linkcolor = {0, 102, 255, 255}
+	self.linkhovercolor = {0, 0, 255, 255}
 	self.ignorenewlines = false
+	self.linkcursorset = false
 	self.shadow = false
 	self.internal = false
+	self.linksenabled = false
+	self.OnClickLink = nil
+	
+	local skin = loveframes.util.GetActiveSkin()
+	local directives = skin.directives
+	if directives then
+		local text_default_color = directives.text_default_color
+		local text_default_shadowcolor = directives.text_default_shadowcolor
+		local text_default_font = directives.text_default_font
+		if text_default_color then
+			self.defaultcolor = text_default_color
+		end
+		if text_default_shadowcolor then
+			self.shadowcolor = text_default_shadowcolor
+		end
+		if text_default_font then
+			self.font = text_default_font
+		end
+	end
 	
 end
 
@@ -63,10 +85,53 @@ function newobject:update(dt)
 	
 	self:CheckHover()
 	
+	local hover = self.hover
+	local linksenabled = self.linksenabled
+	local version = love._version
+	local linkcol = false
+	
+	if hover and linksenabled then
+		local formattedtext = self.formattedtext
+		local x = self.x
+		local y = self.y
+		for k, v in ipairs(formattedtext) do
+			local link = v.link
+			if link then
+				local mx, my = love.mouse.getPosition()
+				local font = v.font
+				local linkx = v.x
+				local linky = v.y
+				local text = v.text
+				local twidth = font:getWidth(text)
+				local theight = font:getHeight()
+				local col = loveframes.util.BoundingBox(x + linkx, mx, y + linky, my, twidth, 1, theight, 1)
+				v.hover = false
+				if col then
+					local linkcursorset = self.linkcursorset
+					v.hover = true
+					if not linkcursorset and version == "0.9.0" then
+						local newcursor = love.mouse.getSystemCursor("hand")
+						love.mouse.setCursor(newcursor)
+						self.linkcursorset = true
+					end
+					linkcol = true
+					break
+				end
+			end
+		end
+	end
+	
 	-- move to parent if there is a parent
 	if parent ~= base then
 		self.x = self.parent.x + self.staticx
 		self.y = self.parent.y + self.staticy
+	end
+	
+	local linkcursorset = self.linkcursorset
+	
+	if not linkcol and linkcursorset and version == "0.9.0" then
+		self.linkcursorset = false
+		love.mouse.setCursor()
 	end
 	
 	if update then
@@ -134,11 +199,34 @@ function newobject:mousepressed(x, y, button)
 	end
 	
 	local hover = self.hover
-	
 	if hover and button == "l" then
 		local baseparent = self:GetBaseParent()
 		if baseparent and baseparent.type == "frame" then
 			baseparent:MakeTop()
+		end
+		local linksenabled = self.linksenabled
+		if linksenabled then
+			local formattedtext = self.formattedtext
+			local x = self.x
+			local y = self.y
+			for k, v in ipairs(formattedtext) do
+				local link = v.link
+				if link then
+					local linkx = v.x
+					local linky = v.y
+					local font = v.font
+					local text = v.text
+					local twidth = font:getWidth(text)
+					local theight = font:getHeight()
+					local col = loveframes.util.BoundingBox(x + linkx, x, y + linky, y, twidth, 1, theight, 1)
+					if col then
+						local onclicklink = self.OnClickLink
+						if onclicklink then
+							onclicklink(self, text)
+						end
+					end
+				end
+			end
 		end
 	end
 	
@@ -175,7 +263,7 @@ function newobject:SetText(t)
 	end
 	
 	for k, v in ipairs(tdata) do
-		local dtype = type(v)
+		dtype = type(v)
 		if k == 1 and dtype ~= "table" then
 			prevcolor = defaultcolor
 		end
@@ -248,12 +336,19 @@ function newobject:SetText(t)
 	local prevtextwidth = 0
 	local prevtextheight = 0
 	local prevlargestheight = 0
+	local largestwidth = 0
 	local largestheight = 0
-	
+	local initialwidth = 0
+	local linksenabled = self.linksenabled
 	
 	for k, v in ipairs(textdata) do
 		local text = v.text
 		local color = v.color
+		if linksenabled then
+			if #text > 7 and text:sub(1, 7) == "http://" then
+				v.link = true
+			end
+		end
 		if type(text) == "string" then
 			self.text = self.text .. text
 			local width = v.font:getWidth(text)
@@ -300,11 +395,16 @@ function newobject:SetText(t)
 						if lastwidth < textwidth then
 							lastwidth = textwidth
 						end
+						if largestwidth < textwidth then
+							largestwidth = textwidth
+						end
 						textwidth = 0
 					else
 						drawx = drawx + prevtextwidth
 						textwidth = textwidth + width
 					end
+				else
+					initialwidth = width
 				end
 				prevtextwidth = width
 				prevtextheight = height
@@ -316,6 +416,10 @@ function newobject:SetText(t)
 	
 	if lastwidth == 0 then
 		textwidth = totalwidth
+	end
+	
+	if textwidth < largestwidth then
+		textwidth = largestwidth + initialwidth
 	end
 	
 	if maxw > 0 then
@@ -364,28 +468,44 @@ function newobject:DrawText()
 	local inlist, list = self:IsInList()
 	
 	for k, v in ipairs(textdata) do
+		local textx = v.x
+		local texty = v.y
 		local text = v.text
 		local color = v.color
 		local font = v.font
+		local link = v.link
 		local theight = font:getHeight("a")
 		if inlist then
-			if (y + v.y) <= (list.y + list.height) and self.y + ((v.y + theight)) >= list.y then
+			local listy = list.y
+			local listhieght = list.height
+			if (y + texty) <= (listy + listhieght) and y + ((texty + theight)) >= listy then
 				love.graphics.setFont(font)
 				if shadow then
 					love.graphics.setColor(unpack(shadowcolor))
-					love.graphics.print(text, x + v.x + shadowxoffset, y + v.y + shadowyoffset)
+					love.graphics.print(text, x + textx + shadowxoffset, y + texty + shadowyoffset)
 				end
-				love.graphics.setColor(unpack(color))
-				love.graphics.print(text, x + v.x, y + v.y)
+				if link then
+					local linkcolor = self.linkcolor
+					local linkhovercolor = self.linkhovercolor
+					local hover = v.hover
+					if hover then
+						love.graphics.setColor(linkhovercolor)
+					else
+						love.graphics.setColor(linkcolor)
+					end
+				else
+					love.graphics.setColor(unpack(color))
+				end
+				love.graphics.print(text, x + textx, y + texty)
 			end
 		else
 			love.graphics.setFont(font)
 			if shadow then
 				love.graphics.setColor(unpack(shadowcolor))
-				love.graphics.print(text, x + v.x + shadowxoffset, y + v.y + shadowyoffset)
+				love.graphics.print(text, x + textx + shadowxoffset, y + texty + shadowyoffset)
 			end
 			love.graphics.setColor(unpack(color))
-			love.graphics.print(text, x + v.x, y + v.y)
+			love.graphics.print(text, x + textx, y + texty)
 		end
 	end
 	
@@ -576,10 +696,33 @@ end
 
 --[[---------------------------------------------------------
 	- func: GetDefaultColor()
-	- desc: gets the object's default text color
+	- desc: gets whether or not the object should draw a
+			shadow behind its text
 --]]---------------------------------------------------------
 function newobject:GetDefaultColor()
 
 	return self.defaultcolor
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetLinksEnabled(enabled)
+	- desc: sets whether or not the object should process
+			urls into clickable links
+--]]---------------------------------------------------------
+function newobject:SetLinksEnabled(enabled)
+
+	self.linksenabled = enabled
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetLinksEnabled()
+	- desc: gets whether or not the object should process
+			urls into clickable links
+--]]---------------------------------------------------------
+function newobject:GetLinksEnabled()
+
+	return self.linksenabled
 	
 end

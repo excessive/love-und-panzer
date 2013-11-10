@@ -1,7 +1,7 @@
 require "settings"
 require "client"
 require "libs.TEsound"
-require "libs.loveframes"
+require "libs.LoveFrames"
 Gamestate = require "libs.hump.gamestate"
 
 function love.load()
@@ -70,6 +70,10 @@ end
 
 function love.joystickreleased(joystick, button)
 	Gamestate.joystickreleased(joystick, button)
+end
+
+function love.textinput(text)
+	Gamestate.textinput(text)
 end
 
 function love.quit()

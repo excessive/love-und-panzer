@@ -159,7 +159,7 @@ function gameplay:draw()
 	loveframes.draw()
 end
 
-function gameplay:keypressed(key, unicode)
+function gameplay:keypressed(key, isrepeat)
 	if not self.chat.input:GetFocus() then
 		if key == " " then
 			self.players[client.id]:shoot()
@@ -178,7 +178,7 @@ function gameplay:keypressed(key, unicode)
 		end
 	end
 	
-	loveframes.keypressed(key, unicode)
+	loveframes.keypressed(key, isrepeat)
 end
 
 function gameplay:keyreleased(key)
@@ -191,6 +191,10 @@ end
 
 function gameplay:mousereleased(x, y, button)
 	loveframes.mousereleased(x, y, button)
+end
+
+function gameplay:textinput(text)
+	loveframes.textinput(text)
 end
 
 return gameplay

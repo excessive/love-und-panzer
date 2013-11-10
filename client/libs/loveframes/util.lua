@@ -136,10 +136,17 @@ end
 --]]---------------------------------------------------------
 function loveframes.util.GetDirectoryContents(dir, t)
 
+	local version = love._version
 	local dir = dir
 	local t = t or {}
-	local files = love.filesystem.enumerate(dir)
 	local dirs = {}
+	local files
+	
+	if version == "0.9.0" then
+		files = love.filesystem.getDirectoryItems(dir)
+	else
+		files = love.filesystem.enumerate(dir)
+	end
 	
 	for k, v in ipairs(files) do
 		local isdir = love.filesystem.isDirectory(dir.. "/" ..v)
@@ -240,9 +247,26 @@ function loveframes.util.RemoveAll()
 	loveframes.base.internals = {}
 	
 	loveframes.hoverobject = false
+	loveframes.downobject = false
 	loveframes.modalobject = false
 	loveframes.inputobject = false
 	loveframes.hover = false
+	
+end
+
+--[[---------------------------------------------------------
+	- func: loveframes.util.TableHasValue(table, value)
+	- desc: checks to see if a table has a specific value
+--]]---------------------------------------------------------
+function loveframes.util.TableHasValue(table, value)
+	
+	for k, v in pairs(table) do
+		if v == value then
+			return true
+		end
+	end
+	
+	return false
 	
 end
 
@@ -252,16 +276,13 @@ end
 --]]---------------------------------------------------------
 function loveframes.util.TableHasKey(table, key)
 
-	local haskey = false
-	
 	for k, v in pairs(table) do
 		if k == key then
-			haskey = true
-			break
+			return true
 		end
 	end
 	
-	return haskey
+	return false
 	
 end
 
@@ -329,4 +350,14 @@ function loveframes.util.DeepCopy(orig)
         copy = orig
     end
     return copy
+end
+
+--[[---------------------------------------------------------
+	- func: loveframes.util.GetHoverObject()
+	- desc: returns loveframes.hoverobject
+--]]---------------------------------------------------------
+function loveframes.util.GetHoverObject()
+	
+	return loveframes.hoverobject
+	
 end

@@ -27,7 +27,7 @@ function lobby:draw()
 	loveframes.draw()
 end
 
-function lobby:keypressed(key, unicode)
+function lobby:keypressed(key, isrepeat)
 	if not self.chat.input:GetFocus() then
 		if key == "return" then
 			self.chat.input:SetFocus(true)
@@ -42,7 +42,7 @@ function lobby:keypressed(key, unicode)
 		end
 	end
 	
-	loveframes.keypressed(key, unicode)
+	loveframes.keypressed(key, isrepeat)
 end
 
 function lobby:keyreleased(key)
@@ -55,6 +55,10 @@ end
 
 function lobby:mousereleased(x, y, button)
 	loveframes.mousereleased(x, y, button)
+end
+
+function lobby:textinput(text)
+	loveframes.textinput(text)
 end
 
 return lobby

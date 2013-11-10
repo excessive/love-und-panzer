@@ -193,7 +193,7 @@ function newobject:mousepressed(x, y, button)
 				bar:Scroll(-bar.width)
 			end
 		end
-		loveframes.hoverobject = self
+		loveframes.downobject = self
 	end
 	
 	for k, v in ipairs(internals) do

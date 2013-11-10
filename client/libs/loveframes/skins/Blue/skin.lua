@@ -15,6 +15,9 @@ local smallfont = love.graphics.newFont(10)
 local imagebuttonfont = love.graphics.newFont(15)
 local bordercolor = {143, 143, 143, 255}
 
+-- add skin directives to this table
+skin.directives = {}
+
 -- controls 
 skin.controls = {}
 
@@ -88,6 +91,7 @@ skin.controls.tooltip_body_color                    = {255, 255, 255, 255}
 skin.controls.textinput_body_color                  = {250, 250, 250, 255}
 skin.controls.textinput_indicator_color             = {0, 0, 0, 255}
 skin.controls.textinput_text_normal_color           = {0, 0, 0, 255}
+skin.controls.textinput_text_placeholder_color      = {127, 127, 127, 255}
 skin.controls.textinput_text_selected_color         = {255, 255, 255, 255}
 skin.controls.textinput_highlight_bar_color         = {51, 204, 255, 255}
 
@@ -907,6 +911,7 @@ function skin.DrawTextInput(object)
 	local text = object:GetText()
 	local multiline = object:GetMultiLine()
 	local lines = object:GetLines()
+	local placeholder = object:GetPlaceholderText()
 	local offsetx = object:GetOffsetX()
 	local offsety = object:GetOffsetY()
 	local indicatorx = object:GetIndicatorX()
@@ -915,9 +920,11 @@ function skin.DrawTextInput(object)
 	local hbar = object:HasHorizontalScrollBar()
 	local linenumbers = object:GetLineNumbersEnabled()
 	local itemwidth = object:GetItemWidth()
+	local masked = object:GetMasked()
 	local theight = font:getHeight("a")
 	local bodycolor = skin.controls.textinput_body_color
 	local textnormalcolor = skin.controls.textinput_text_normal_color
+	local textplaceholdercolor = skin.controls.textinput_text_placeholder_color
 	local textselectedcolor = skin.controls.textinput_text_selected_color
 	local highlightbarcolor = skin.controls.textinput_highlight_bar_color
 	local indicatorcolor = skin.controls.textinput_indicator_color
@@ -929,7 +936,11 @@ function skin.DrawTextInput(object)
 		local bary = 0
 		if multiline then
 			for i=1, #lines do
-				local twidth = font:getWidth(lines[i])
+				local str = lines[i]
+				if masked then
+					str = str:gsub(".", "*")
+				end
+				local twidth = font:getWidth(str)
 				if twidth == 0 then
 					twidth = 5
 				end
@@ -938,7 +949,13 @@ function skin.DrawTextInput(object)
 				bary = bary + theight
 			end
 		else
-			local twidth = font:getWidth(text)
+			local twidth = 0
+			if masked then
+				local maskchar = object:GetMaskChar()
+				twidth = font:getWidth(text:gsub(".", maskchar))
+			else
+				twidth = font:getWidth(text)
+			end
 			love.graphics.setColor(highlightbarcolor)
 			love.graphics.rectangle("fill", textx, texty, twidth, theight)
 		end
@@ -1003,18 +1020,31 @@ function skin.DrawTextInput(object)
 	
 	if alltextselected then
 		love.graphics.setColor(textselectedcolor)
+	elseif #lines == 1 and lines[1] == "" then
+		love.graphics.setColor(textplaceholdercolor)
 	else
 		love.graphics.setColor(textnormalcolor)
 	end
 	
+	local str = ""
 	if multiline then
 		for i=1, #lines do
-			love.graphics.print(lines[i], textx, texty + theight * i - theight)
+			str = lines[i]
+			if masked then
+				local maskchar = object:GetMaskChar()
+				str = str:gsub(".", maskchar)
+			end
+			love.graphics.print(#str > 0 and str or (#lines == 1 and placeholder or ""), textx, texty + theight * i - theight)
 		end
 	else
-		love.graphics.print(lines[1], textx, texty)
+		str = lines[1]
+		if masked then
+			local maskchar = object:GetMaskChar()
+			str = str:gsub(".", maskchar)
+		end
+		love.graphics.print(#str > 0 and str or placeholder, textx, texty)
 	end
-		
+	
 end
 
 --[[---------------------------------------------------------

@@ -156,7 +156,7 @@ function newobject:mousepressed(x, y, button)
 				baseparent:MakeTop()
 			end
 			self.down = true
-			loveframes.hoverobject = self
+			loveframes.downobject = self
 		end
 	end
 	

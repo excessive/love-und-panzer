@@ -10,14 +10,12 @@ local newobject = loveframes.NewObject("tooltip", "loveframes_object_tooltip", t
 	- func: initialize()
 	- desc: initializes the object
 --]]---------------------------------------------------------
-function newobject:initialize(object, text, width)
-
-	local width = width or 0
+function newobject:initialize(object, text)
 	
 	self.type = "tooltip"
 	self.parent = loveframes.base
 	self.object = object or nil
-	self.width = width or 0
+	self.width = 0
 	self.height = 0
 	self.padding = 5
 	self.xoffset = 10
@@ -27,18 +25,18 @@ function newobject:initialize(object, text, width)
 	self.followcursor = true
 	self.followobject = false
 	self.alwaysupdate = true
+	self.internals = {}
 	
 	-- create the object's text
-	self.text = loveframes.Create("text")
-	self.text:Remove()
-	self.text.parent = self
-	self.text:SetText(text or "")
-	self.text:SetWidth(width or 0)
-	self.text:SetPos(0, 0)
+	local textobject = loveframes.Create("text")
+	textobject:Remove()
+	textobject.parent = self
+	textobject:SetText(text or "")
+	textobject:SetPos(0, 0)
+	table.insert(self.internals, textobject)
 	
 	-- apply template properties to the object
 	loveframes.templates.ApplyToObject(self)
-	
 	table.insert(loveframes.base.internals, self)
 	
 end
@@ -65,21 +63,21 @@ function newobject:update(dt)
 		end
 	end
 	
-	local text = self.text
+	local internals = self.internals
+	local textobject = internals[1]
+	local padding = self.padding
 	local object = self.object
 	local draworder = self.draworder
 	local update = self.Update
 	
-	self.width = text.width + self.padding * 2
-	self.height = text.height + self.padding * 2
+	self.width = textobject.width + padding * 2
+	self.height = textobject.height + padding * 2
 	
 	if object then
 		if object == loveframes.base then
 			self:Remove()
 			return
 		end
-		local hover = object.hover
-		local odraworder = object.draworder
 		local ovisible = object.visible
 		local ohover = object.hover
 		local ostate = object.state
@@ -94,30 +92,28 @@ function newobject:update(dt)
 			local top = self:IsTopInternal()
 			local followcursor = self.followcursor
 			local followobject = self.followobject
+			local xoffset = self.xoffset
+			local yoffset = self.yoffset
 			if followcursor then
-				local x, y = love.mouse.getPosition()
-				self.x = x + self.xoffset
-				self.y = y - self.height + self.yoffset
+				local height = self.height
+				local mx, my = love.mouse.getPosition()
+				self.x = mx + xoffset
+				self.y = my - height + yoffset
 			elseif followobject then
-				self.x = object.x + self.xoffset
-				self.y = object.y + self.yoffset
+				local ox = object.x
+				local oy = object.y
+				self.x = ox + xoffset
+				self.y = oy + yoffset
 			end
 			if not top then
 				self:MoveToTop()
 			end
-			text:SetPos(self.padding, self.padding)
-		end
-		local baseparent = object:GetBaseParent()
-		if baseparent then
-			if baseparent.removed and baseparent.removed then
-				self:Remove()
-			end
-		elseif object.removed then
-			self:Remove()
+			textobject:SetPos(padding, padding)
 		end
 	end
 	
-	text:update(dt)
+	textobject:SetState(selfstate)
+	textobject:update(dt)
 	
 	if update then
 		update(self, dt)
@@ -144,8 +140,9 @@ function newobject:draw()
 		return
 	end
 	
+	local internals = self.internals
+	local textobject = internals[1]
 	local show = self.show
-	local text = self.text
 	local skins = loveframes.skins.available
 	local skinindex = loveframes.config["ACTIVESKIN"]
 	local defaultskin = loveframes.config["DEFAULTSKIN"]
@@ -164,7 +161,7 @@ function newobject:draw()
 		else
 			drawfunc(self)
 		end
-		text:draw()
+		textobject:draw()
 	end
 	
 end
@@ -198,8 +195,24 @@ end
 --]]---------------------------------------------------------
 function newobject:SetText(text)
 
-	self.text:SetText(text)
-	self.text2 = text
+	local internals = self.internals
+	local textobject = internals[1]
+	
+	textobject:SetText(text)
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetText()
+	- desc: gets the tooltip's text
+--]]---------------------------------------------------------
+function newobject:GetText()
+
+	local internals = self.internals
+	local textobject = internals[1]
+	local text = textobject:GetText()
+	
+	return text
 	
 end
 
@@ -209,7 +222,30 @@ end
 --]]---------------------------------------------------------
 function newobject:SetTextMaxWidth(width)
 
-	self.text:SetMaxWidth(width)
+	local internals = self.internals
+	local textobject = internals[1]
+	
+	textobject:SetMaxWidth(width)
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetOffsetX(xoffset)
+	- desc: sets the tooltip's x offset
+--]]---------------------------------------------------------
+function newobject:SetOffsetX(xoffset)
+
+	self.xoffset = xoffset
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetOffsetY(yoffset)
+	- desc: sets the tooltip's y offset
+--]]---------------------------------------------------------
+function newobject:SetOffsetY(yoffset)
+
+	self.yoffset = yoffset
 	
 end
 
@@ -240,7 +276,10 @@ end
 --]]---------------------------------------------------------
 function newobject:SetFont(font)
 
-	self.text:SetFont(font)
+	local internals = self.internals
+	local textobject = internals[1]
+	
+	textobject:SetFont(font)
 	
 end
 

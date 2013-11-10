@@ -56,7 +56,7 @@ function newobject:update(dt)
 	local pvalue = self.parent.value
 	local hover = self.hover
 	local down = self.down
-	local hoverobject = loveframes.hoverobject
+	local downobject = loveframes.downobject
 	local parent = self.parent
 	local slidetype = parent.slidetype
 	local dragging = self.dragging
@@ -65,16 +65,16 @@ function newobject:update(dt)
 	
 	if not hover then
 		self.down = false
-		if hoverobject == self then
+		if downobject == self then
 			self.hover = true
 		end
 	else
-		if hoverobject == self then
+		if downobject == self then
 			self.down = true
 		end
 	end
 	
-	if not down and hoverobject == self then
+	if not down and downobject == self then
 		self.hover = true
 	end
 	
@@ -116,7 +116,7 @@ function newobject:update(dt)
 				self.parent.OnValueChanged(self.parent, self.parent.value)
 			end
 		end
-		loveframes.hoverobject = self
+		loveframes.downobject = self
 	end
 	
 	if slidetype == "horizontal" then
@@ -200,7 +200,7 @@ function newobject:mousepressed(x, y, button)
 		self.clickx = x
 		self.starty = self.staticy
 		self.clicky = y
-		loveframes.hoverobject = self
+		loveframes.downobject = self
 	end
 	
 end

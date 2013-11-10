@@ -13,8 +13,8 @@ function results:draw()
 	loveframes.draw()
 end
 
-function results:keypressed(key, unicode)
-	loveframes.keypressed(key, unicode)
+function results:keypressed(key, isrepeat)
+	loveframes.keypressed(key, isrepeat)
 end
 
 function results:keyreleased(key)
@@ -27,6 +27,10 @@ end
 
 function results:mousereleased(x, y, button)
 	loveframes.mousereleased(x, y, button)
+end
+
+function results:textinput(text)
+	loveframes.textinput(text)
 end
 
 return results

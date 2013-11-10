@@ -30,7 +30,6 @@ function loveframes.debug.draw()
 	local fps = love.timer.getFPS()
 	local deltatime = love.timer.getDelta()
 	local font = loveframes.basicfontsmall
-	local loveversion = love._version
 	
 	-- set the top most collision object
 	for k, v in ipairs(cols) do

@@ -15,6 +15,7 @@ function newobject:initialize()
 	self.type = "textinput"
 	self.keydown = "none"
 	self.tabreplacement = "        "
+	self.maskchar = "*"
 	self.font = loveframes.basicfont
 	self.width = 200
 	self.height = 25
@@ -47,6 +48,7 @@ function newobject:initialize()
 	self.usable = {}
 	self.unusable = {}
 	self.lines = {""}
+	self.placeholder = ""
 	self.internals = {}
 	self.showindicator = true
 	self.focus = false
@@ -59,10 +61,13 @@ function newobject:initialize()
 	self.editable = true
 	self.internal = false
 	self.autoscroll = false
+	self.masked = false
 	self.OnEnter = nil
 	self.OnTextChanged = nil
 	self.OnFocusGained = nil
 	self.OnFocusLost = nil
+	self.OnCopy = nil
+	self.OnPaste = nil
 	
 end
 
@@ -97,7 +102,8 @@ function newobject:update(dt)
 	local parent = self.parent
 	local base = loveframes.base
 	local update = self.Update
-	local theight = self.font:getHeight("a")
+	local font = self.font
+	local theight = font:getHeight()
 	local delay = self.delay
 	local lines = self.lines
 	local numlines = #lines
@@ -109,11 +115,17 @@ function newobject:update(dt)
 	local inputobject = loveframes.inputobject
 	local internals = self.internals
 	local repeatrate = self.repeatrate
+	local hover = self.hover
+	local version = love._version
 	
 	-- move to parent if there is a parent
 	if parent ~= base then
-		self.x = self.parent.x + self.staticx
-		self.y = self.parent.y + self.staticy
+		local parentx = parent.x
+		local parenty = parent.y
+		local staticx = self.staticx
+		local staticy = self.staticy
+		self.x = parentx + staticx
+		self.y = parenty + staticy
 	end
 	
 	if inputobject ~= self then
@@ -123,47 +135,61 @@ function newobject:update(dt)
 	
 	-- keydown check
 	if keydown ~= "none" then
+		local lctrl = love.keyboard.isDown("lctrl")
+		local rctrl = love.keyboard.isDown("rctrl")
 		if time > delay then
-			self:RunKey(keydown, unicode)
+			if (lctrl or rctrl) and keydown == "v" then
+				self:Paste()
+			else
+				self:RunKey(keydown, unicode)
+			end
 			self.delay = time + repeatrate
 		end
 	end
 	
-	-- position the object's text
 	self:PositionText()
-	
-	-- update the object's text insertion positon indicator
 	self:UpdateIndicator()
 	
 	-- calculations for multiline mode
 	if multiline then
 		local twidth = 0
 		local panel = self:GetLineNumbersPanel()
+		local textoffsetx = self.textoffsetx
+		local textoffsety = self.textoffsety
+		local linenumbers = self.linenumbers
+		local masked = self.masked
+		local maskchar = self.maskchar
 		-- get the longest line of text
 		for k, v in ipairs(lines) do
-			local linewidth = self.font:getWidth(v)
+			local linewidth = 0
+			if masked then
+				linewidth = font:getWidth(v:gsub(".", maskchar))
+			else
+				linewidth = font:getWidth(v)
+			end
 			if linewidth > twidth then
 				twidth = linewidth
 			end
 		end
 		-- item width calculation
 		if vbar then
-			self.itemwidth = twidth + 16 + self.textoffsetx * 2
+			self.itemwidth = twidth + 16 + textoffsetx * 2
 		else
 			self.itemwidth = twidth
 		end
 		if panel then
-			self.itemwidth = self.itemwidth + panel.width + self.textoffsetx + 5
+			local panelwidth = panel.width
+			self.itemwidth = self.itemwidth + panelwidth + textoffsetx + 5
 		end
 		-- item height calculation
 		if hbar then
-			self.itemheight = theight * numlines + 16 + self.textoffsety * 2
+			self.itemheight = theight * numlines + 16 + textoffsety * 2
 		else
 			self.itemheight = theight * numlines
 		end
 		-- extra width and height calculations
-		self.extrawidth = self.itemwidth - self.width
-		self.extraheight = self.itemheight - self.height
+		self.extrawidth = self.itemwidth - width
+		self.extraheight = self.itemheight - height
 		local itemwidth = self.itemwidth
 		local itemheight = self.itemheight
 		if itemheight > height then
@@ -174,9 +200,11 @@ function newobject:update(dt)
 				self.vbar = true
 				if hbar then
 					local vbody = self:GetVerticalScrollBody()
+					local vbodyheight = vbody:GetHeight() - 15
 					local hbody = self:GetHorizontalScrollBody()
-					vbody:SetHeight(vbody:GetHeight() - 15)
-					hbody:SetWidth(hbody:GetWidth() - 15)
+					local hbodywidth = hbody:GetWidth() - 15
+					vbody:SetHeight(vbodyheight)
+					hbody:SetWidth(hbodywidth)
 				end
 			end
 		else
@@ -186,7 +214,8 @@ function newobject:update(dt)
 				self.offsety = 0
 				if self.hbar then
 					local hbody = self:GetHorizontalScrollBody()
-					hbody:SetWidth(hbody:GetWidth() + 15)
+					local hbodywidth = hbody:GetWidth() - 15
+					hbody:SetWidth(hbodywidth)
 				end
 			end
 		end
@@ -217,15 +246,15 @@ function newobject:update(dt)
 				end
 			end
 		end
-		if self.linenumbers then
+		if linenumbers then
 			if not self.linenumberspanel then
 				local linenumberspanel = loveframes.objects["linenumberspanel"]:new(self)
-				table.insert(self.internals, linenumberspanel)
+				table.insert(internals, linenumberspanel)
 				self.linenumberspanel = true
 			end
 		else
 			if self.linenumberspanel then
-				table.remove(self.internals, 1)
+				table.remove(internals, 1)
 				self.linenumberspanel = false
 			end
 		end
@@ -255,7 +284,6 @@ function newobject:draw()
 	end
 	
 	local visible = self.visible
-	
 	if not visible then
 		return
 	end
@@ -325,7 +353,6 @@ function newobject:mousepressed(x, y, button)
 	end
 	
 	local visible = self.visible
-	
 	if not visible then
 		return
 	end
@@ -336,6 +363,7 @@ function newobject:mousepressed(x, y, button)
 	local hbar = self.hbar
 	local scrollamount = self.mousewheelscrollamount
 	local focus = self.focus
+	local alltextselected = self.alltextselected
 	local onfocusgained = self.OnFocusGained
 	local onfocuslost = self.OnFocusLost
 	local time = love.timer.getTime()
@@ -346,8 +374,9 @@ function newobject:mousepressed(x, y, button)
 			if inputobject ~= self then
 				loveframes.inputobject = self
 			end
-			if not self.alltextselected then
-				if time > self.lastclicktime and time < (self.lastclicktime + 0.25) then
+			if not alltextselected then
+				local lastclicktime = self.lastclicktime
+				if (time > lastclicktime) and time < (lastclicktime + 0.25) then
 					self.alltextselected = true
 				end
 			else
@@ -360,7 +389,6 @@ function newobject:mousepressed(x, y, button)
 				onfocusgained(self)
 			end
 			local baseparent = self:GetBaseParent()
-
 			if baseparent and baseparent.type == "frame" then
 				baseparent:MakeTop()
 			end
@@ -416,13 +444,11 @@ function newobject:mousereleased(x, y, button)
 	end
 	
 	local visible = self.visible
-	
 	if not visible then
 		return
 	end
 	
 	local internals = self.internals
-	
 	for k, v in ipairs(internals) do
 		v:mousereleased(x, y, button)
 	end
@@ -453,6 +479,9 @@ function newobject:keypressed(key, unicode)
 	local rctrl = love.keyboard.isDown("rctrl")
 	local focus = self.focus
 	local repeatdelay = self.repeatdelay
+	local alltextselected = self.alltextselected
+	local editable = self.editable
+	local version = love._version
 	
 	self.delay = time + repeatdelay
 	self.keydown = key
@@ -460,10 +489,24 @@ function newobject:keypressed(key, unicode)
 	if (lctrl or rctrl) and focus then
 		if key == "a" then
 			self.alltextselected = true
+		elseif key == "c" and alltextselected and version == "0.9.0" then
+			local text = self:GetText()
+			local oncopy = self.OnCopy
+			love.system.setClipboardText(text)
+			if oncopy then
+				oncopy(self, text)
+			end
+		elseif key == "v" and version == "0.9.0" and editable then
+			self:Paste()
+		end
+	else
+		local version = love._version
+		if version == "0.8.0" then
+			self:RunKey(key, unicode, true)
+		else
+			self:RunKey(key, unicode, false)
 		end
 	end
-	
-	self:RunKey(key, unicode)
 	
 end
 
@@ -472,7 +515,7 @@ end
 	- desc: called when the player releases a key
 --]]---------------------------------------------------------
 function newobject:keyreleased(key)
-
+	
 	local state = loveframes.state
 	local selfstate = self.state
 	
@@ -481,7 +524,6 @@ function newobject:keyreleased(key)
 	end
 	
 	local visible = self.visible
-	
 	if not visible then
 		return
 	end
@@ -491,10 +533,30 @@ function newobject:keyreleased(key)
 end
 
 --[[---------------------------------------------------------
+	- func: textinput(text)
+	- desc: called when the inputs text
+--]]---------------------------------------------------------
+function newobject:textinput(text)
+
+	local unicode = unicode
+	if text:find("kp.") then
+		text = text:gsub("kp", "")
+	end
+	if text:len() == 1 then
+		unicode = string.byte(text)
+	else
+		unicode = 0
+	end
+		
+	self:RunKey(text, unicode, true)
+	
+end
+
+--[[---------------------------------------------------------
 	- func: RunKey(key, unicode)
 	- desc: runs a key event on the object
 --]]---------------------------------------------------------
-function newobject:RunKey(key, unicode)
+function newobject:RunKey(key, unicode, is_text)
 	
 	local visible = self.visible
 	local focus = self.focus
@@ -507,6 +569,8 @@ function newobject:RunKey(key, unicode)
 		return
 	end
 	
+	local x = self.x
+	local offsetx = self.offsetx
 	local lines = self.lines
 	local line = self.line
 	local numlines = #lines
@@ -524,17 +588,15 @@ function newobject:RunKey(key, unicode)
 	local ontextchanged = self.OnTextChanged
 	local onenter = self.OnEnter
 	
-	self.unicode = unicode
-	
 	if key == "left" then
 		local indicatorx = self.indicatorx
 		indicatornum = self.indicatornum
 		if not multiline then
 			self:MoveIndicator(-1)
-			if indicatorx <= self.x and indicatornum ~= 0 then
-				local width = self.font:getWidth(text:sub(indicatornum, indicatornum + 1))
-				self.offsetx = self.offsetx - width
-			elseif indicatornum == 0 and self.offsetx ~= 0 then
+			if indicatorx <= x and indicatornum ~= 0 then
+				local width = font:getWidth(text:sub(indicatornum, indicatornum + 1))
+				self.offsetx = offsetx - width
+			elseif indicatornum == 0 and offsetx ~= 0 then
 				self.offsetx = 0
 			end
 		else
@@ -553,10 +615,10 @@ function newobject:RunKey(key, unicode)
 		indicatornum = self.indicatornum
 		if not multiline then
 			self:MoveIndicator(1)
-			if indicatorx >= (self.x + swidth) and indicatornum ~= #text then
-				local width = self.font:getWidth(text:sub(indicatornum, indicatornum))
-				self.offsetx = self.offsetx + width
-			elseif indicatornum == #text and self.offsetx ~= ((font:getWidth(text)) - swidth + 10) and font:getWidth(text) + self.textoffsetx > self.width then
+			if indicatorx >= (x + swidth) and indicatornum ~= #text then
+				local width = font:getWidth(text:sub(indicatornum, indicatornum))
+				self.offsetx = offsetx + width
+			elseif indicatornum == #text and offsetx ~= ((font:getWidth(text)) - swidth + 10) and font:getWidth(text) + textoffsetx > swidth then
 				self.offsetx = ((font:getWidth(text)) - swidth + 10)
 			end
 		else
@@ -592,7 +654,7 @@ function newobject:RunKey(key, unicode)
 	if not editable then
 		return
 	end
-			
+	
 	-- key input checking system
 	if key == "backspace" then
 		ckey = key
@@ -621,7 +683,14 @@ function newobject:RunKey(key, unicode)
 					end
 				end
 			end
-			local cwidth = font:getWidth(text:sub(#text))
+			local masked = self.masked
+			local cwidth = 0
+			if masked then
+				local maskchar = self.maskchar
+				cwidth = font:getWidth(text:sub(#text):gsub(".", maskchar))
+			else
+				cwidth = font:getWidth(text:sub(#text))
+			end
 			if self.offsetx > 0 then
 				self.offsetx = self.offsetx - cwidth
 			elseif self.offsetx < 0 then
@@ -689,10 +758,10 @@ function newobject:RunKey(key, unicode)
 			self:MoveIndicator(1)
 		end
 	else
-		local loveversion = love._version
-		if loveversion == "0.9.0" then
-			unicode = string.byte(unicode)
+		if not is_text then
+			return
 		end
+		self.unicode = unicode
 		if unicode > 31 and unicode < 127 then
 			-- do not continue if the text limit has been reached or exceeded
 			if #text >= self.limit and self.limit ~= 0 then
@@ -750,8 +819,17 @@ function newobject:RunKey(key, unicode)
 			curline = lines[line]
 			text = curline
 			if not multiline then
-				local twidth = font:getWidth(text)
-				local cwidth = font:getWidth(ckey)
+				local masked = self.masked
+				local twidth = 0
+				local cwidth = 0
+				if masked then
+					local maskchar = self.maskchar
+					twidth = font:getWidth(text:gsub(".", maskchar))
+					cwidth = font:getWidth(ckey:gsub(".", maskchar))
+				else
+					twidth = font:getWidth(text)
+					cwidth = font:getWidth(ckey)
+				end
 				-- swidth - 1 is for the "-" character
 				if (twidth + textoffsetx) >= (swidth - 1) then
 					self.offsetx = self.offsetx + cwidth
@@ -761,7 +839,6 @@ function newobject:RunKey(key, unicode)
 	end
 	
 	local curtext = self:GetText()
-	
 	if ontextchanged and initialtext ~= curtext then
 		ontextchanged(self, ckey)
 	end
@@ -793,7 +870,6 @@ function newobject:MoveIndicator(num, exact)
 	end
 	
 	self.showindicator = true
-	
 	self:UpdateIndicator()
 	
 end
@@ -812,12 +888,18 @@ function newobject:UpdateIndicator()
 	local line = self.line
 	local curline = lines[line]
 	local text = curline
-	local theight = self.font:getHeight("a")
+	local font = self.font
+	local theight = font:getHeight()
 	local offsetx = self.offsetx
 	local multiline = self.multiline
+	local showindicator = self.showindicator
+	local alltextselected = self.alltextselected
+	local textx = self.textx
+	local texty = self.texty
+	local masked = self.masked
 	
 	if indincatortime < time then
-		if self.showindicator then
+		if showindicator then
 			self.showindicator = false
 		else
 			self.showindicator = true
@@ -825,29 +907,35 @@ function newobject:UpdateIndicator()
 		self.indincatortime = time + 0.50
 	end
 	
-	if self.alltextselected then
+	if alltextselected then
 		self.showindicator = false
 	end
 	
 	local width = 0
 	
 	for i=1, indicatornum do
-		width = width + self.font:getWidth(text:sub(i, i))
+		if masked then
+			local char = self.maskchar
+			width = width + font:getWidth(char)
+		else
+			local char = text:sub(i, i)
+			width = width + font:getWidth(char)
+		end
 	end
 	
 	if multiline then
-		self.indicatorx = self.textx + width
-		self.indicatory	= self.texty + theight * line - theight
+		self.indicatorx = textx + width
+		self.indicatory	= texty + theight * line - theight
 	else
-		self.indicatorx = self.textx + width
-		self.indicatory	= self.texty
+		self.indicatorx = textx + width
+		self.indicatory	= texty
 	end
 	
 end
 
 --[[---------------------------------------------------------
 	- func: AddIntoText(t, p)
-	- desc: adds text into the object's text a given 
+	- desc: adds text into the object's text at a given 
 			position
 --]]---------------------------------------------------------
 function newobject:AddIntoText(t, p)
@@ -899,33 +987,46 @@ function newobject:GetTextCollisions(x, y)
 	local vbar = self.vbar
 	local hbar = self.hbar
 	local multiline = self.multiline
-	
+	local selfx = self.x
+	local selfy = self.y
+	local selfwidth = self.width
+	local masked = self.masked
+			
 	if multiline then
-		local theight = self.font:getHeight("a")
+		local theight = font:getHeight()
 		local liney = 0
 		local selfcol
 		if vbar and not hbar then
-			selfcol = loveframes.util.BoundingBox(self.x, x, self.y, y, self.width - 16, 1, self.height, 1)
+			selfcol = loveframes.util.BoundingBox(selfx, x, selfy, y, selfwidth - 16, 1, self.height, 1)
 		elseif hbar and not vbar then
-			selfcol = loveframes.util.BoundingBox(self.x, x, self.y, y, self.width, 1, self.height - 16, 1)
+			selfcol = loveframes.util.BoundingBox(selfx, x, selfy, y, selfwidth, 1, self.height - 16, 1)
 		elseif not vbar and not hbar then
-			selfcol = loveframes.util.BoundingBox(self.x, x, self.y, y, self.width, 1, self.height, 1)
+			selfcol = loveframes.util.BoundingBox(selfx, x, selfy, y, selfwidth, 1, self.height, 1)
 		elseif vbar and hbar then
-			selfcol = loveframes.util.BoundingBox(self.x, x, self.y, y, self.width - 16, 1, self.height - 16, 1)
+			selfcol = loveframes.util.BoundingBox(selfx, x, selfy, y, selfwidth - 16, 1, self.height - 16, 1)
 		end
 		if selfcol then
+			local offsety = self.offsety
+			local textoffsety = self.textoffsety
 			for i=1, numlines do
-				local linecol = loveframes.util.BoundingBox(self.x, x, (self.y - self.offsety) + self.textoffsety + (theight * i) - theight, y, self.width, 1, theight, 1)
+				local linecol = loveframes.util.BoundingBox(selfx, x, (selfy - offsety) + textoffsety + (theight * i) - theight, y, self.width, 1, theight, 1)
 				if linecol then
-					liney = (self.y - self.offsety) + self.textoffsety + (theight * i) - theight
+					liney = (selfy - offsety) + textoffsety + (theight * i) - theight
 					self.line = i
 				end
 			end
 			local line = self.line
 			local curline = lines[line]
 			for i=1, #curline do
-				local width = font:getWidth(curline:sub(i, i))
-				local height = font:getHeight(curline:sub(i, i))
+				local char = text:sub(i, i)
+				local width = 0
+				if masked then
+					local maskchar = self.maskchar
+					width = font:getWidth(maskchar)
+				else
+					width = font:getWidth(char)
+				end
+				local height = font:getHeight()
 				local tx = self.textx + xpos
 				local ty = self.texty
 				local col = loveframes.util.BoundingBox(tx, x, liney, y, width, 1, height, 1)
@@ -954,8 +1055,15 @@ function newobject:GetTextCollisions(x, y)
 		end
 	else
 		for i=1, #text do
-			local width = font:getWidth(text:sub(i, i))
-			local height = font:getHeight(text:sub(i, i))
+			local char = text:sub(i, i)
+			local width = 0
+			if masked then
+				local maskchar = self.maskchar
+				width = font:getWidth(maskchar)
+			else
+				width = font:getWidth(char)
+			end
+			local height = font:getHeight()
 			local tx = self.textx + xpos
 			local ty = self.texty
 			local col = loveframes.util.BoundingBox(tx, x, ty, y, width, 1, height, 1)
@@ -1171,13 +1279,8 @@ function newobject:SetText(text)
 	local tabreplacement = self.tabreplacement
 	local multiline = self.multiline
 	
-	-- make sure the text is a string
 	text = tostring(text)
-	
-	-- replace any tabs character with spaces
 	text = text:gsub(string.char(9), tabreplacement)
-	
-	-- remove any carriage returns
 	text = text:gsub(string.char(13), "")
 	
 	if multiline then
@@ -1209,7 +1312,10 @@ function newobject:GetText()
 	
 	if multiline then
 		for k, v in ipairs(lines) do
-			text = text .. v .. "\n"
+			text = text .. v
+			if k ~= #lines then
+				text = text .. "\n"
+			end
 		end
 	else
 		text = lines[1]
@@ -1655,5 +1761,214 @@ function newobject:SetVisible(bool)
 	if not bool then
 		self.keydown = "none"
 	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: Copy()
+	- desc: copies the object's text to the user's clipboard
+--]]---------------------------------------------------------
+function newobject:Copy()
+
+	local version = love._version
+	
+	if version == "0.9.0" then
+		local text = self:GetText()
+		love.system.setClipboardText(text)
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: Paste()
+	- desc: pastes the current contents of the clipboard 
+			into the object's text
+--]]---------------------------------------------------------
+function newobject:Paste()
+	
+	local text = love.system.getClipboardText()
+	local usable = self.usable
+	local unusable = self.unusable
+	local limit = self.limit
+	local onpaste = self.OnPaste
+	local ontextchanged = self.OnTextChanged
+	if limit > 0 then
+		local curtext = self:GetText()
+		local curlength = curtext:len()
+		if curlength == limit then
+			return
+		else
+			local inputlimit = limit - curlength
+			if text:len() > inputlimit then
+				text = text:sub(1, inputlimit)
+			end
+		end
+	end
+	local charcheck = function(a)
+		if #usable > 0 then
+			if not loveframes.util.TableHasValue(usable, a) then
+				return ""
+			end
+		elseif #unusable > 0 then
+			if loveframes.util.TableHasValue(unusable, a) then
+				return ""
+			end
+		end
+	end
+	if #usable > 0 or #unusable > 0 then
+		text = text:gsub(".", charcheck)
+	end
+	if alltextselected then
+		self:SetText(text)
+		if ontextchanged then
+			ontextchanged(self, text)
+		end
+	else
+		local tabreplacement = self.tabreplacement
+		local indicatornum = self.indicatornum
+		local lines = self.lines
+		local multiline = self.multiline
+		if multiline then
+			local parts = loveframes.util.SplitString(text, string.char(10))
+			local numparts = #parts
+			local oldlinedata = {}
+			local line = self.line
+			local first = lines[line]:sub(0, indicatornum)
+			local last = lines[line]:sub(indicatornum + 1)
+			if numparts > 1 then
+				for i=1, numparts do
+					local part = parts[i]:gsub(string.char(13),  "")
+					part = part:gsub(string.char(9), "    ")
+					if i ~= 1 then
+						table.insert(oldlinedata, lines[line])
+						lines[line] = part
+						if i == numparts then
+							self.indicatornum = part:len()
+							lines[line] = lines[line] .. last
+							self.line = line
+						end
+					else
+						lines[line] = first .. part
+					end
+					line = line + 1
+				end
+				for i=1, #oldlinedata do
+					lines[line] = oldlinedata[i]
+					line = line + 1
+				end
+				if ontextchanged then
+					ontextchanged(self, text)
+				end
+			elseif numparts == 1 then
+				text = text:gsub(string.char(10), " ")
+				text = text:gsub(string.char(13), " ")
+				text = text:gsub(string.char(9), tabreplacement)
+				local length = text:len()
+				local new = first .. text .. last
+				lines[line] = new
+				self.indicatornum = indicatornum + length
+				if ontextchanged then
+					ontextchanged(self, text)
+				end
+			end
+		else
+			text = text:gsub(string.char(10), " ")
+			text = text:gsub(string.char(13), " ")
+			text = text:gsub(string.char(9), tabreplacement)
+			local length = text:len()
+			local linetext = lines[1]
+			local part1 = linetext:sub(1, indicatornum)
+			local part2 = linetext:sub(indicatornum + 1)
+			local new = part1 .. text .. part2
+			lines[1] = new
+			self.indicatornum = indicatornum + length
+			if ontextchanged then
+				ontextchanged(self, text)
+			end
+		end
+	end
+	if onpaste then
+		onpaste(self, text)
+	end
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SelectAll()
+	- desc: selects all of the object's text
+--]]---------------------------------------------------------
+function newobject:SelectAll()
+
+	self.alltextselected = true
+	
+end
+
+--[[---------------------------------------------------------
+	- func: DeselectAll()
+	- desc: deselects all of the object's text
+--]]---------------------------------------------------------
+function newobject:DeselectAll()
+
+	self.alltextselected = false
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetMasked(masked)
+	- desc: sets whether or not the object is masked
+--]]---------------------------------------------------------
+function newobject:SetMasked(masked)
+
+	self.masked = masked
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetMasked()
+	- desc: gets whether or not the object is masked
+--]]---------------------------------------------------------
+function newobject:GetMasked()
+
+	return self.masked
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetMaskChar(char)
+	- desc: sets the object's mask character
+--]]---------------------------------------------------------
+function newobject:SetMaskChar(char)
+
+	self.maskchar = char
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetMaskChar()
+	- desc: gets the object's mask character
+--]]---------------------------------------------------------
+function newobject:GetMaskChar()
+
+	return self.maskchar
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetPlaceholderText(text)
+	- desc: sets the object's placeholder text
+--]]---------------------------------------------------------
+function newobject:SetPlaceholderText(text)
+
+	self.placeholder = text
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetPlaceholderText()
+	- desc: gets the object's placeholder text
+--]]---------------------------------------------------------
+function newobject:GetPlaceholderText()
+
+	return self.placeholder
 	
 end

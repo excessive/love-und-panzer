@@ -56,11 +56,11 @@ function newobject:initialize()
 	-- create the close button for the frame
 	local close = loveframes.objects["closebutton"]:new()
 	close.parent = self
-	close.OnClick = function()
-		local onclose = self.OnClose
-		self:Remove()
+	close.OnClick = function(x, y, object)
+		local onclose = object.parent.OnClose
+		object.parent:Remove()
 		if onclose then
-			onclose(self)
+			onclose(object.parent)
 		end
 	end
 	

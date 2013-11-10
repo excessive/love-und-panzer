@@ -513,8 +513,10 @@ function newobject:SelectRow(row, ctrl)
 					onrowselected(self, row, row:GetColumnData())
 				end
 			end
-		elseif v ~= row and not multiselect and not ctrl then
-			v.selected = false
+		elseif v ~= row then
+			if (not multiselect and ctrl) or (not multiselect and not ctrl)  or (multiselect and not ctrl) then
+				v.selected = false
+			end
 		end
 	end
 	

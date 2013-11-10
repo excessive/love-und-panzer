@@ -32,7 +32,7 @@ function newobject:initialize(parent, text, tabnumber, tip, image, onopened, onc
 		self.tooltip = loveframes.objects["tooltip"]:new(self, tip)
 		self.tooltip:SetFollowCursor(false)
 		self.tooltip:SetFollowObject(true)
-		self.tooltip:SetOffsets(0, -(self.tooltip.text:GetHeight() + 12))
+		self.tooltip:SetOffsets(0, -(self.tooltip.internals[1]:GetHeight() + 12))
 	end
 	
 	if image then
@@ -133,7 +133,7 @@ function newobject:mousepressed(x, y, button)
 			baseparent:MakeTop()
 		end
 		self.down = true
-		loveframes.hoverobject = self
+		loveframes.downobject = self
 	end
 	
 end

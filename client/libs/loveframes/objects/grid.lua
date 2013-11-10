@@ -54,6 +54,7 @@ function newobject:update(dt)
 	
 	local parent = self.parent
 	local children = self.children
+	local base = loveframes.base
 	
 	-- move to parent if there is a parent
 	if parent ~= base then
