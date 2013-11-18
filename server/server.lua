@@ -53,7 +53,7 @@ end
 	Start Server
 ]]--
 function Server:start(port)
-	self.connection = lube.tcpServer()
+	self.connection = lube.enetServer()
 	self.connection.handshake = "loveTanks"
 	self.connection:setPing(true, 6, "lePing\n")
 	

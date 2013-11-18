@@ -22,7 +22,7 @@ end
 	port			= Server port
 ]]--
 function Client:connect(host, port)
-	self.connection = lube.tcpClient()
+	self.connection = lube.enetClient()
 	self.connection.handshake = "loveTanks"
 	self.connection:setPing(true, 2, "lePing\n")
 	
