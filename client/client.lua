@@ -12,6 +12,12 @@ function Client:init()
 	self.removePlayers	= {}
 	self.options		= {}
 	self.map			= {}
+	
+	self.moveSpeed		= 64
+	self.turnSpeed		= 72
+	self.turretSpeed	= 54
+	self.reloadSpeed	= 5
+	
 	self.split			= "۞"
 end
 
@@ -66,13 +72,82 @@ end
 ]]--
 function Client:update(dt)
 	self.connection:update(dt)
+	
+	for id, player in pairs(self.players) do
+		-- Move Forward
+		if player.move == "f" then
+			local newX = player.x + self.moveSpeed * dt * math.cos(math.rad(player.r))
+			local newY = player.y + self.moveSpeed * dt * math.sin(math.rad(player.r))
+			
+			-- do collision detection here!
+			
+			player.x = newX -- if no collision
+			player.y = newY -- if no collision
+			
+			self.players[id].x = player.x
+			self.players[id].y = player.y
+		end
+		
+		-- Move Backward
+		if player.move == "b" then
+			local newX = player.x - self.moveSpeed * dt * math.cos(math.rad(player.r))
+			local newY = player.y - self.moveSpeed * dt * math.sin(math.rad(player.r))
+			
+			-- do collision detection here!
+			
+			player.x = newX -- if no collision
+			player.y = newY -- if no collision
+			
+			self.players[id].x = player.x
+			self.players[id].y = player.y
+		end
+		
+		-- Turn Left
+		if player.turn == "l" then
+			player.r = player.r - self.turnSpeed * dt
+			if player.r > 360 then player.r = player.r - 360 end
+			
+			self.players[id].r = player.r
+		end
+		
+		-- Turn Right
+		if player.turn == "r" then
+			player.r = player.r + self.turnSpeed * dt
+			if player.r < 0 then player.r = player.r + 360 end
+			
+			self.players[id].r = player.r
+		end
+		
+		-- Turn Turret Left
+		if player.turret == "l" then
+			player.tr = player.tr - self.turretSpeed * dt
+			if player.tr > 360 then player.tr = player.tr - 360 end
+			
+			self.players[id].tr = player.tr
+		end
+		
+		-- Turn Turret Right
+		if player.turret == "r" then
+			player.tr = player.tr + self.turretSpeed * dt
+			if player.tr < 0 then player.tr = player.tr + 360 end
+			
+			self.players[id].tr = player.tr
+		end
+		
+		-- Reload Cooldown
+		if player.cd > 0 then
+			player.cd = player.cd - dt
+			
+			self.players[id].cd = player.cd
+		end
+	end
 end
 
 --[[
 	Send Data to Server
 ]]--
 function Client:send(data)
-	self.connection:send(data)
+	self.connection:send(data .. self.split)
 end
 
 --[[

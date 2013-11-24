@@ -29,7 +29,7 @@ function lobby:init()
 			local data = json.encode({
 				cmd		= "START_GAME",
 			})
-			client.connection:send(data .. client.split)
+			client:send(data)
 		end
 	else
 		self.options.buttonReady:SetText("Ready")
@@ -42,7 +42,7 @@ function lobby:init()
 				data = json.encode({cmd = "READY", ready = true})
 			end
 			
-			client.connection:send(data .. client.split)
+			client:send(data)
 		end
 	end
 end

@@ -58,7 +58,7 @@ function title:init()
 				name	= settings.name,
 			})
 			
-			client:send(data .. client.split)
+			client:send(data)
 		end
 	end
 	

@@ -69,10 +69,6 @@ function Tank:update(dt)
 	self.hp	= client.players[self.id].hp
 	self.cd	= client.players[self.id].cd
 	
-	if self.cd > 0 then
-		self.cd = self.cd - dt
-	end
-	
 	self.sprites[self.facing].image:update(dt)
 	self.bullet:update(dt)
 end
@@ -117,80 +113,6 @@ function Tank:newSprite(name, img, w, h, sx, sy, ex, ey, ft)
 	self.sprites[name].image	= a
 	self.sprites[name].w		= w
 	self.sprites[name].h		= h
-end
-
---[[
-	Turn Tank
-	
-	turn	- Direction to turn
-]]--
-function Tank:turn(turn)
-	if turn > 0 then
-		self.facing = "turnLeft"
-	elseif turn < 0 then
-		self.facing = "turnRight"
-	else
-		self.facing = "idle"
-	end
-	
-	self.r = self.r + self.turnSpeed * turn
-	
-	if self.r > 360 then self.r = self.r - 360 end
-	if self.r < 0 then self.r = self.r + 360 end
-end
-
---[[
-	Move Tank
-	
-	move	- Direction to move
-]]--
-function Tank:move(move)
-	if move > 0 then
-		self.facing = "forward"
-	elseif move < 0 then
-		self.facing = "backward"
-	else
-		self.facing = "idle"
-	end
-	
-	local newX	= self.x + self.speed * self.map.tileWidth * move * math.cos(math.rad(self.r))
-	local newY	= self.y + self.speed * self.map.tileHeight * move * math.sin(math.rad(self.r))
-	
-	local tileX, tileY = 0, 0
-	
-	if newX < 0 then
-		tileX = math.ceil(newX / self.map.tileWidth)
-	else
-		tileX = math.floor(newX / self.map.tileWidth)
-	end
-	
-	if newY < 0 then
-		tileY = math.ceil(newY / self.map.tileHeight)
-	else
-		tileY = math.floor(newY / self.map.tileHeight)
-	end
-	
-	local function getTile(layer_name)
-		return self.map.layers[layer_name](tileX, tileY)
-	end
-	
-	if getTile("Ground") == nil then return end
-	if self.collision[tileY][tileX] == 1 then return end
-	
-	self.x		= newX
-	self.y		= newY
-end
-
---[[
-	Rotate Turret
-	
-	turret		- Direction to rotate
-]]--
-function Tank:rotateTurret(turret)
-	self.tr = self.tr + self.turnSpeed * turret
-	
-	if self.tr > 360 then self.tr = self.tr - 360 end
-	if self.tr < 0 then self.tr = self.tr + 360 end
 end
 
 --[[

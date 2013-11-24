@@ -24,6 +24,9 @@ function Server:init()
 				tr,		-- Turret Rotation
 				hp,		-- Hit Points
 				cd,		-- Cool Down
+				move,	-- Move Direction (forward, back, or still)
+				turn,	-- Turn Direction (left, right, or still)
+				turret,	-- Turret Turn Direction (left, right, or still)
 			},
 		]]--
 	}
@@ -42,9 +45,10 @@ function Server:init()
 		]]--
 	}
 	
-	self.t			= 0
-	self.lt			= 0
-	self.tick		= 1/40
+	self.moveSpeed		= 64
+	self.turnSpeed		= 72
+	self.turretSpeed	= 54
+	self.reloadSpeed	= 5
 	
 	self.split		= "۞"
 end
@@ -77,7 +81,7 @@ end
 ]]--
 function Server:disconnect(clientId)
 	print('Client disconnected: ' .. tostring(clientId))
-	self.recvcommands.DISCONNECT(self, nil, clientId)
+	self.recvcommands.DISCONNECT(self, cmd, nil, clientId, tostring(clientId))
 end
 
 --[[
@@ -97,7 +101,7 @@ function Server:recv(data, clientId)
 					local cmd	= params.cmd
 					params.cmd	= nil
 					
-					self.recvcommands[cmd](self, params, clientId)
+					self.recvcommands[cmd](self, cmd, params, clientId, tostring(clientId))
 				else
 					print("Unrecognised command: ", params.cmd)
 				end
@@ -112,10 +116,84 @@ end
 function Server:update(dt)
 	self.connection:update(dt)
 	
-	self.t = self.t + dt
-	if self.t - self.lt >= self.tick then
+	for id, player in pairs(self.players) do
+		-- Move Forward
+		if player.move == "f" then
+			local newX = player.x + self.moveSpeed * dt * math.cos(math.rad(player.r))
+			local newY = player.y + self.moveSpeed * dt * math.sin(math.rad(player.r))
+			
+			-- do collision detection here!
+			
+			player.x = newX -- if no collision
+			player.y = newY -- if no collision
+			
+			self.players[id].x = player.x
+			self.players[id].y = player.y
+		end
 		
-		self.lt = self.t
+		-- Move Backward
+		if player.move == "b" then
+			local newX = player.x - self.moveSpeed * dt * math.cos(math.rad(player.r))
+			local newY = player.y - self.moveSpeed * dt * math.sin(math.rad(player.r))
+			
+			-- do collision detection here!
+			
+			player.x = newX -- if no collision
+			player.y = newY -- if no collision
+			
+			self.players[id].x = player.x
+			self.players[id].y = player.y
+		end
+		
+		-- Turn Left
+		if player.turn == "l" then
+			player.r = player.r - self.turnSpeed * dt
+			if player.r > 360 then player.r = player.r - 360 end
+			
+			self.players[id].r = player.r
+		end
+		
+		-- Turn Right
+		if player.turn == "r" then
+			player.r = player.r + self.turnSpeed * dt
+			if player.r < 0 then player.r = player.r + 360 end
+			
+			self.players[id].r = player.r
+		end
+		
+		-- Turn Turret Left
+		if player.turret == "l" then
+			player.tr = player.tr - self.turretSpeed * dt
+			if player.tr > 360 then player.tr = player.tr - 360 end
+			
+			self.players[id].tr = player.tr
+		end
+		
+		-- Turn Turret Right
+		if player.turret == "r" then
+			player.tr = player.tr + self.turretSpeed * dt
+			if player.tr < 0 then player.tr = player.tr + 360 end
+			
+			self.players[id].tr = player.tr
+		end
+		
+		-- Reload Cooldown
+		if player.cd > 0 then
+			player.cd = player.cd - dt
+			
+			self.players[id].cd = player.cd
+		end
+	end
+end
+
+--[[
+	Send Data to Client
+]]--
+function Server:send(data, clientId)
+	if clientId then
+		self.connection:send(data .. self.split, clientId)
+	else
+		self.connection:send(data .. self.split)
 	end
 end
 
@@ -124,65 +202,57 @@ end
 ]]--
 Server.recvcommands = {
 	-- Initialize Player
-	CONNECT = function(self, client, clientId)
-		self.recvcommands.WHO_AM_I(self, nil, clientId)
-		self.recvcommands.SEND_PLAYERS(self, nil, clientId)
+	CONNECT = function(self, cmd, client, clientId, id)
+		self.recvcommands.WHO_AM_I(self, "WHO_AM_I", nil, clientId, id)
+		self.recvcommands.SEND_PLAYERS(self, "SEND_PLAYERS", nil, clientId, id)
 		
-		local id		= tostring(clientId)
 		local player	= {
 			id		= id,
 			name	= client.name,
 		}
 		
-		self.recvcommands.CREATE_PLAYER(self, player, clientId)
+		self.recvcommands.CREATE_PLAYER(self, "CREATE_PLAYER", player, clientId, id)
 		
 		local chat	= {
 			scope	= "GLOBAL",
 			msg		= "has connected.",
 		}
 		
-		self.recvcommands.CHAT(self, chat, clientId)
+		self.recvcommands.CHAT(self, "CHAT", chat, clientId, id)
 	end,
 	
 	-- Destroy Player
-	DISCONNECT = function(self, params, clientId)
+	DISCONNECT = function(self, cmd, params, clientId, id)
 		local chat	= {
 			scope	= "GLOBAL",
 			msg		= "has disconnected.",
 		}
 		
-		self.recvcommands.CHAT(self, chat, clientId)
-		self.recvcommands.REMOVE_PLAYER(self, nil, clientId)
+		self.recvcommands.CHAT(self, "CHAT", chat, clientId, id)
+		self.recvcommands.REMOVE_PLAYER(self, "REMOVE_PLAYER", nil, clientId, id)
 	end,
 	
 	-- Send Chat Message
-	CHAT = function(self, chat, clientId)
-		local cmd	= "CHAT"
-		local id	= tostring(clientId)
-		
+	CHAT = function(self, cmd, chat, clientId, id)
 		local data	= json.encode({
 			cmd		= cmd,
 			scope	= chat.scope,
 			msg		= self.players[id].name .. ": " .. chat.msg,
 		})
-		self.connection:send(data .. self.split)
+		self:send(data)
 	end,
 	
 	-- Confirm Ready to Play
-	READY = function(self, ready, clientId)
-		local cmd	= "READY"
-		local id	= tostring(clientId)
-		
+	READY = function(self, cmd, status, clientId, id)
 		local data	= json.encode({
 			cmd		= cmd,
 			id		= id,
-			ready	= ready.ready,
+			ready	= status.ready,
 		})
-		self.connection:send(data .. self.split)
+		self:send(data)
 	end,
 	
-	SEND_PLAYERS = function(self, params, clientId)
-		local cmd		= "SEND_PLAYERS"
+	SEND_PLAYERS = function(self, cmd, params, clientId, id)
 		local players	= {}
 		local empty		= true
 		
@@ -199,15 +269,13 @@ Server.recvcommands = {
 		
 		players.cmd = cmd
 		local data	= json.encode(players)
-		self.connection:send(data .. self.split, clientId)
+		self:send(data, clientId)
 	end,
 	
-	CREATE_PLAYER = function(self, player, clientId)
-		local cmd		= "CREATE_PLAYER"
-		local id		= tostring(clientId)
-		
+	CREATE_PLAYER = function(self, cmd, player, clientId, id)
 		-- If first player, player becomes host
 		local count = 0
+		
 		for k, _ in pairs(self.players) do
 			count = count + 1
 		end
@@ -229,6 +297,9 @@ Server.recvcommands = {
 		player.tr		= 45
 		player.hp		= 100
 		player.cd		= 0
+		player.move		= "s"
+		player.turn		= "s"
+		player.turret	= "s"
 		
 		self.players[id] = {}
 		for k,v in pairs(player) do
@@ -237,55 +308,46 @@ Server.recvcommands = {
 		
 		player.cmd	= cmd
 		local data	= json.encode(player)
-		self.connection:send(data .. self.split)
+		self:send(data)
 	end,
 	
 	-- Send Updated Player Data to Clients
-	UPDATE_PLAYER = function(self, player, clientId)
-		local cmd		= "UPDATE_PLAYER"
-		local id		= tostring(clientId)
-		
+	UPDATE_PLAYER = function(self, cmd, player, clientId, id)
 		for k,v in pairs(player) do
 			self.players[id][k] = v
 		end
 		
 		player.cmd	= cmd
 		local data	= json.encode(player)
-		self.connection:send(data .. self.split)
+		self:send(data)
 	end,
 	
-	REMOVE_PLAYER = function(self, params, clientId)
-		local cmd	= "REMOVE_PLAYER"
-		local id	= tostring(clientId)
-		
+	REMOVE_PLAYER = function(self, cmd, params, clientId, id)
 		self.players[id] = nil
 		
 		local data	= json.encode({
 			cmd	= cmd,
 			id	= id,
 		})
-		self.connection:send(data .. self.split)
-		
+		self:send(data)
 	end,
 	
 	-- Send Client ID to Client
-	WHO_AM_I = function(self, params, clientId)
-		local cmd	= "WHO_AM_I"
-		local id	= tostring(clientId)
-		
+	WHO_AM_I = function(self, cmd, params, clientId, id)
 		local data	= json.encode({
-			cmd		= cmd,
-			id		= id,
+			cmd	= cmd,
+			id	= id,
 		})
-		self.connection:send(data .. self.split, clientId)
+		self:send(data, clientId)
 	end,
 	
-	START_GAME = function(self, params, clientId)
-		local cmd	= "START_GAME"
+	START_GAME = function(self, cmd, params, clientId, id)
+		self.state = "gameplay"
+		
 		local data	= json.encode({
 			cmd	= cmd,
 		})
-		self.connection:send(data .. self.split)
+		self:send(data)
 	end,
 }
 

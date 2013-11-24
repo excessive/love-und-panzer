@@ -58,7 +58,7 @@ function chat:send()
 			scope	= string.upper(self.scope),
 			msg		= self.input:GetText(),
 		})
-		client:send(data .. client.split)
+		client:send(data)
 		
 		self.input:Clear()
 	end

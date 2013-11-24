@@ -62,83 +62,19 @@ function gameplay:enter(state, chat)
 end
 
 function gameplay:update(dt)
-	local move		= 0
-	local turn		= 0
-	local turret	= 0
-	local data		= ""
-	
-	-- Receive Data
 	client:update(dt)
 	
 	self.chat:update()
 	
-	-- Ticks
-	self.t = self.t + dt
-	if self.t - self.lt >= self.tick then
-		-- lazy mode
-		local function updateKeys(t)
-			for _, k in ipairs(t) do
-				self.keystate[k] = love.keyboard.isDown(k)
-			end
-		end
-		
-		if not self.chat.input:GetFocus() then
-			updateKeys { "up", "down", "left", "right", "lctrl", "lalt" }
-		end
-
-		if self.keystate.left then
-			turn = turn - 1
-		end
-		
-		if self.keystate.right then
-			turn = turn + 1
-		end
-		
-		if self.keystate.up then
-			move = move + 1
-		end
-		
-		if self.keystate.down then
-			move = move - 1
-		end
-		
-		if self.keystate.lctrl then
-			turret = turret - 1
-		end
-		
-		if self.keystate.lalt then
-			turret = turret + 1
-		end
-		
-		if turn ~= 0 or move ~= 0 then
-			local data = json.encode({
-				cmd	= "UPDATE_PLAYER",
-				id	= client.id,
-				x	= self.players[client.id].x,
-				y	= self.players[client.id].y,
-				r	= self.players[client.id].r,
-				tr	= self.players[client.id].tr,
-			})
-			client:send(data .. client.split)
-		end
+	-- Remove Disconnected Players
+	for id, _ in pairs(client.removePlayers) do
+		self.players[id] = nil
+		client.removePlayers[id] = nil
+	end
 	
-		-- Remove Disconnected Players
-		for id, _ in pairs(client.removePlayers) do
-			self.players[id] = nil
-			client.removePlayers[id] = nil
-		end
-		
-		-- Update Players
-		for id, _ in pairs(self.players) do
-			self.players[id]:update(dt)
-		end
-		
-		-- Locally update self
-		self.players[client.id]:turn(turn * dt)
-		self.players[client.id]:move(move * dt)
-		self.players[client.id]:rotateTurret(turret * dt)
-		
-		self.lt = self.t
+	-- Update Players
+	for id, _ in pairs(self.players) do
+		self.players[id]:update(dt)
 	end
 	
 	loveframes.update(dt)
@@ -161,12 +97,79 @@ end
 
 function gameplay:keypressed(key, isrepeat)
 	if not self.chat.input:GetFocus() then
+		local move		= false
+		local turn		= false
+		local turret	= false
+		
+		if key == "up" then
+			if love.keyboard.isDown("down") then
+				move = "s"
+			else
+				move = "f"
+			end
+		end
+		
+		if key == "down" then
+			if love.keyboard.isDown("up") then
+				move = "s"
+			else
+				move = "b"
+			end
+		end
+		
+		if key == "left" then
+			if love.keyboard.isDown("right") then
+				turn = "s"
+			else
+				turn = "l"
+			end
+		end
+		
+		if key == "right" then
+			if love.keyboard.isDown("left") then
+				turn = "s"
+			else
+				turn = "r"
+			end
+		end
+		
+		if key == "lctrl" then
+			if love.keyboard.isDown("lalt") then
+				turret = "s"
+			else
+				turret = "l"
+			end
+		end
+		
+		if key == "lalt" then
+			if love.keyboard.isDown("lctrl") then
+				turret = "s"
+			else
+				turret = "r"
+			end
+		end
+		
 		if key == " " then
 			self.players[client.id]:shoot()
 		end
 		
 		if key == "return" then
 			self.chat.input:SetFocus(true)
+		end
+		
+		if move or turn or turret then
+			if not move		then move	= nil end
+			if not turn		then turn	= nil end
+			if not turret	then turret	= nil end
+			
+			local data = json.encode({
+				cmd		= "UPDATE_PLAYER",
+				id		= client.id,
+				move	= move,
+				turn	= turn,
+				turret	= turret,
+			})
+			client:send(data)
 		end
 	else
 		if key == "return" then
@@ -182,6 +185,75 @@ function gameplay:keypressed(key, isrepeat)
 end
 
 function gameplay:keyreleased(key)
+	if not self.chat.input:GetFocus() then
+		local move		= false
+		local turn		= false
+		local turret	= false
+		
+		if key == "up" then
+			if love.keyboard.isDown("down") then
+				move = "b"
+			else
+				move = "s"
+			end
+		end
+		
+		if key == "down" then
+			if love.keyboard.isDown("up") then
+				move = "f"
+			else
+				move = "s"
+			end
+		end
+		
+		if key == "left" then
+			if love.keyboard.isDown("right") then
+				turn = "r"
+			else
+				turn = "s"
+			end
+		end
+		
+		if key == "right" then
+			if love.keyboard.isDown("left") then
+				turn = "l"
+			else
+				turn = "s"
+			end
+		end
+		
+		if key == "lctrl" then
+			if love.keyboard.isDown("lalt") then
+				turret = "r"
+			else
+				turret = "s"
+			end
+		end
+		
+		if key == "lalt" then
+			if love.keyboard.isDown("lctrl") then
+				turret = "l"
+			else
+				turret = "s"
+			end
+		end
+		
+		if move or turn or turret then
+			if not move		then move	= nil end
+			if not turn		then turn	= nil end
+			if not turret	then turret	= nil end
+		
+			local data = json.encode({
+				cmd		= "UPDATE_PLAYER",
+				id		= client.id,
+				move	= move,
+				turn	= turn,
+				turret	= turret,
+			})
+			client:send(data)
+		end
+	end
+	
 	loveframes.keyreleased(key)
 end
 
