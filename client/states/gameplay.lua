@@ -25,13 +25,6 @@ function gameplay:enter(state, chat)
 	
 	self.chat = chat
 	self.chat.panel:SetState("gameplay")
-	
-	self.keystate = {}
-
-	-- Tick
-	self.t = 0
-	self.lt = 0
-	self.tick = 1/60
 
 	-- Initialize Tiled Map
 	local loader = require "libs.ATL.Loader"

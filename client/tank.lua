@@ -119,9 +119,8 @@ end
 	Shoot Cannon
 ]]--
 function Tank:shoot()
-	if self.ammo > 0 and self.reload <= 0 then
+	if self.cd <= 0 then
 		self.bullet:load(self.x, self.y, self.tr)
-		self.reload = self.reloadSpeed
-		self.ammo = self.ammo - 1
+		self.cd = self.reloadSpeed
 	end
 end
