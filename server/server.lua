@@ -277,17 +277,24 @@ Server.recvcommands = {
 	CREATE_PLAYER = function(self, cmd, player, clientId, id)
 		-- If first player, player becomes host
 		local count = 0
+		local host = false
 		
-		for k, _ in pairs(self.players) do
-			count = count + 1
+		for id, player in pairs(self.players) do
+			for k, v in pairs(player) do
+				print(k,v)
+				if k == "host" and v == true then
+					host = true
+					break
+				end
+			end
 		end
 		
-		if count == 0 then
-			player.host		= true
-			player.ready	= true
-		else
+		if host then
 			player.host		= false
 			player.ready	= false
+		else
+			player.host		= true
+			player.ready	= true
 		end
 		
 		player.team		= 1
