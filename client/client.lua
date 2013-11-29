@@ -166,17 +166,14 @@ Client.recvcommands = {
 		end
 	end,
 	
-	-- Confirm Ready to Play
-	READY = function(self, player)
-		client.players[player.id].ready = player.ready
-		self.recvcommands.UPDATE_PLAYER(self, player)
-	end,
-	
 	-- Retrieve Current Players
-	SEND_PLAYERS = function(self, players)
+	SYNC_PLAYERS = function(self, players)
 		for id, player in pairs(players) do
+			if not self.players[id] then
+				self.createPlayers[id] = true
+			end
+			
 			self.players[id] = player
-			self.createPlayers[id] = true
 		end
 	end,
 	

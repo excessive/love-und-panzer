@@ -34,13 +34,11 @@ function lobby:init()
 	else
 		self.options.buttonReady:SetText("Ready")
 		self.options.buttonReady.OnClick = function()
-			local data = nil
-			
-			if client.players[client.id].ready then
-				data = json.encode({cmd = "READY", ready = false})
-			else
-				data = json.encode({cmd = "READY", ready = true})
-			end
+			local data = json.encode({
+				cmd		= "UPDATE_PLAYER",
+				id		= client.id,
+				ready	= not client.players[client.id].ready,
+			})
 			
 			client:send(data)
 		end

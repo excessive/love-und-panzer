@@ -45,6 +45,11 @@ function Server:init()
 		]]--
 	}
 	
+	-- Tick
+	self.t = 0
+	self.lt = 0
+	self.tick = 1
+	
 	self.moveSpeed		= 64
 	self.turnSpeed		= 72
 	self.turretSpeed	= 54
@@ -184,6 +189,13 @@ function Server:update(dt)
 			self.players[id].cd = player.cd
 		end
 	end
+	
+	-- Sync all players every second
+	self.t = self.t + dt
+	if self.t - self.lt >= self.tick then
+		self.recvcommands.SYNC_PLAYERS(self, "SYNC_PLAYERS", nil, clientId, id)
+		self.lt = self.t
+	end
 end
 
 --[[
@@ -204,7 +216,7 @@ Server.recvcommands = {
 	-- Initialize Player
 	CONNECT = function(self, cmd, client, clientId, id)
 		self.recvcommands.WHO_AM_I(self, "WHO_AM_I", nil, clientId, id)
-		self.recvcommands.SEND_PLAYERS(self, "SEND_PLAYERS", nil, clientId, id)
+		self.recvcommands.SYNC_PLAYERS(self, "SYNC_PLAYERS", nil, clientId, id)
 		
 		local player	= {
 			id		= id,
@@ -242,17 +254,7 @@ Server.recvcommands = {
 		self:send(data)
 	end,
 	
-	-- Confirm Ready to Play
-	READY = function(self, cmd, status, clientId, id)
-		local data	= json.encode({
-			cmd		= cmd,
-			id		= id,
-			ready	= status.ready,
-		})
-		self:send(data)
-	end,
-	
-	SEND_PLAYERS = function(self, cmd, params, clientId, id)
+	SYNC_PLAYERS = function(self, cmd, params, clientId, id)
 		local players	= {}
 		local empty		= true
 		
@@ -269,7 +271,7 @@ Server.recvcommands = {
 		
 		players.cmd = cmd
 		local data	= json.encode(players)
-		self:send(data, clientId)
+		self:send(data)
 	end,
 	
 	CREATE_PLAYER = function(self, cmd, player, clientId, id)
