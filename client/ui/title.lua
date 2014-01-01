@@ -1,5 +1,9 @@
 local title = {}
 
+function title:resize()
+	self.panelMenu:CenterX()
+end
+
 function title:init()
 	-- UI Element Properties
 	self.panelMenu = loveframes.Create("panel")

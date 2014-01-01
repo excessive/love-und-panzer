@@ -3,7 +3,7 @@
 	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
--- slider class
+-- slider object
 local newobject = loveframes.NewObject("slider", "loveframes_object_slider", true)
 
 --[[---------------------------------------------------------

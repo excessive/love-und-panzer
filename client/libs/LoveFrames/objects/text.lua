@@ -8,7 +8,7 @@
 			 experimental and not final
 --]]------------------------------------------------
 
--- text class
+-- text object
 local newobject = loveframes.NewObject("text", "loveframes_object_text", true)
 
 --[[---------------------------------------------------------
@@ -36,9 +36,14 @@ function newobject:initialize()
 	self.shadow = false
 	self.internal = false
 	self.linksenabled = false
+	self.detectlinks = false
 	self.OnClickLink = nil
 	
 	local skin = loveframes.util.GetActiveSkin()
+	if not skin then
+		skin = loveframes.config["DEFAULTSKIN"]
+	end
+	
 	local directives = skin.directives
 	if directives then
 		local text_default_color = directives.text_default_color
@@ -115,7 +120,6 @@ function newobject:update(dt)
 						self.linkcursorset = true
 					end
 					linkcol = true
-					break
 				end
 			end
 		end
@@ -207,8 +211,8 @@ function newobject:mousepressed(x, y, button)
 		local linksenabled = self.linksenabled
 		if linksenabled then
 			local formattedtext = self.formattedtext
-			local x = self.x
-			local y = self.y
+			local objx = self.x
+			local objy = self.y
 			for k, v in ipairs(formattedtext) do
 				local link = v.link
 				if link then
@@ -218,7 +222,7 @@ function newobject:mousepressed(x, y, button)
 					local text = v.text
 					local twidth = font:getWidth(text)
 					local theight = font:getHeight()
-					local col = loveframes.util.BoundingBox(x + linkx, x, y + linky, y, twidth, 1, theight, 1)
+					local col = loveframes.util.BoundingBox(objx + linkx, x, objy + linky, y, twidth, 1, theight, 1)
 					if col then
 						local onclicklink = self.OnClickLink
 						if onclicklink then
@@ -243,8 +247,12 @@ function newobject:SetText(t)
 	local font = self.font
 	local defaultcolor = self.defaultcolor
 	local inserts = {}
+	local prevcolor = defaultcolor
+	local prevlinkcolor = self.linkcolor
+	local prevlinkhovercolor = self.linkhovercolor
 	local prevfont = font
-	local tdata, prevcolor
+	local link = false
+	local tdata
 	
 	self.text = ""
 	self.formattedtext = {}
@@ -264,15 +272,24 @@ function newobject:SetText(t)
 	
 	for k, v in ipairs(tdata) do
 		dtype = type(v)
-		if k == 1 and dtype ~= "table" then
-			prevcolor = defaultcolor
-		end
 		if dtype == "table" then
-			prevcolor = v
-		elseif dtype == "userdata" then
-			prevfont = v
+			if v.color then
+				prevcolor = v.color
+			end
+			if v.linkcolor then
+				prevlinkcolor = v.linkcolor
+			end
+			if v.linkhovercolor then
+				prevlinkhovercolor = v.linkhovercolor
+			end
+			if v.font then
+				prevfont = v.font
+			end
+			if v.link then
+				link = true
+			end
 		elseif dtype == "number" then
-			table.insert(self.formattedtext, {font = prevfont, color = prevcolor, text = tostring(v)})
+			table.insert(self.formattedtext, {font = prevfont, color = prevcolor, linkcolor = prevlinkcolor, linkhovercolor = prevlinkhovercolor, link = link, text = tostring(v)})
 		elseif dtype == "string" then
 			if self.ignorenewlines then
 				v = v:gsub(" \n ", " ")
@@ -281,7 +298,7 @@ function newobject:SetText(t)
 			v = v:gsub(string.char(9), "    ")
 			local parts = loveframes.util.SplitString(v, " ")
 			for i, j in ipairs(parts) do
-				table.insert(self.formattedtext, {font = prevfont, color = prevcolor, text = j})
+				table.insert(self.formattedtext, {font = prevfont, color = prevcolor, linkcolor = prevlinkcolor, linkhovercolor = prevlinkhovercolor, link = link, text = j})
 			end
 		end
 	end
@@ -300,7 +317,7 @@ function newobject:SetText(t)
 					local itemw = v.font:getWidth(item)
 					if n ~= #data then
 						if (curw + itemw) > maxw then
-							table.insert(inserts, {key = key, font = v.font, color = v.color, text = new})
+							table.insert(inserts, {key = key, font = v.font, color = v.color, linkcolor = prevlinkcolor, linkhovercolor = v.linkhovercolor, link = v.link, text = new})
 							new = item
 							curw = 0 + itemw
 							key = key + 1
@@ -310,7 +327,7 @@ function newobject:SetText(t)
 						end
 					else
 						new = new .. item
-						table.insert(inserts, {key = key, font = v.font, color = v.color, text = new})
+						table.insert(inserts, {key = key, font = v.font, color = v.color, linkcolor = prevlinkcolor, linkhovercolor = v.linkhovercolor, link = v.link, text = new})
 					end
 				end
 			end
@@ -318,7 +335,7 @@ function newobject:SetText(t)
 	end
 	
 	for k, v in ipairs(inserts) do
-		table.insert(self.formattedtext, v.key, {font = v.font, color = v.color, text = v.text})
+		table.insert(self.formattedtext, v.key, {font = v.font, color = v.color, linkcolor = prevlinkcolor, linkhovercolor = v.linkhovercolor, link = v.link, text = v.text})
 	end
 	
 	local textdata = self.formattedtext
@@ -339,13 +356,13 @@ function newobject:SetText(t)
 	local largestwidth = 0
 	local largestheight = 0
 	local initialwidth = 0
-	local linksenabled = self.linksenabled
+	local detectlinks = self.detectlinks
 	
 	for k, v in ipairs(textdata) do
 		local text = v.text
 		local color = v.color
-		if linksenabled then
-			if #text > 7 and text:sub(1, 7) == "http://" then
+		if detectlinks then
+			if #text > 7 and (text:sub(1, 7) == "http://" or text:sub(1, 8) == "https://") then
 				v.link = true
 			end
 		end
@@ -485,8 +502,8 @@ function newobject:DrawText()
 					love.graphics.print(text, x + textx + shadowxoffset, y + texty + shadowyoffset)
 				end
 				if link then
-					local linkcolor = self.linkcolor
-					local linkhovercolor = self.linkhovercolor
+					local linkcolor = v.linkcolor
+					local linkhovercolor = v.linkhovercolor
 					local hover = v.hover
 					if hover then
 						love.graphics.setColor(linkhovercolor)
@@ -504,7 +521,18 @@ function newobject:DrawText()
 				love.graphics.setColor(unpack(shadowcolor))
 				love.graphics.print(text, x + textx + shadowxoffset, y + texty + shadowyoffset)
 			end
-			love.graphics.setColor(unpack(color))
+			if link then
+				local linkcolor = v.linkcolor
+				local linkhovercolor = v.linkhovercolor
+				local hover = v.hover
+				if hover then
+					love.graphics.setColor(linkhovercolor)
+				else
+					love.graphics.setColor(linkcolor)
+				end
+			else
+				love.graphics.setColor(unpack(color))
+			end
 			love.graphics.print(text, x + textx, y + texty)
 		end
 	end
@@ -724,5 +752,27 @@ end
 function newobject:GetLinksEnabled()
 
 	return self.linksenabled
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetDetectLinks(detect)
+	- desc: sets whether or not the object should detect
+			links when processing new text
+--]]---------------------------------------------------------
+function newobject:SetDetectLinks(detect)
+
+	self.detectlinks = detect
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetDetectLinks()
+	- desc: gets whether or not the object should detect
+			links when processing new text
+--]]---------------------------------------------------------
+function newobject:GetDetectLinks()
+
+	return self.detectlinks
 	
 end

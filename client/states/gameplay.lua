@@ -89,6 +89,10 @@ function gameplay:draw()
 end
 
 function gameplay:keypressed(key, isrepeat)
+	if key == "return" then
+		Signal.emit("ChatFocus")
+	end
+	
 	if not self.chat.input:GetFocus() then
 		local move		= false
 		local turn		= false
@@ -146,10 +150,6 @@ function gameplay:keypressed(key, isrepeat)
 			self.players[client.id]:shoot()
 		end
 		
-		if key == "return" then
-			self.chat.input:SetFocus(true)
-		end
-		
 		if move or turn or turret then
 			if not move		then move	= nil end
 			if not turn		then turn	= nil end
@@ -163,14 +163,6 @@ function gameplay:keypressed(key, isrepeat)
 				turret	= turret,
 			})
 			client:send(data)
-		end
-	else
-		if key == "return" then
-			if self.chat.input:GetText() then
-				self.chat:send()
-			end
-			
-			self.chat.input:SetFocus(false)
 		end
 	end
 	

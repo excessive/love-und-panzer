@@ -33,6 +33,10 @@ function title:draw()
 	loveframes.draw()
 end
 
+function title:resize()
+	self.ui:resize()
+end
+
 function title:keypressed(key, isrepeat)
 	loveframes.keypressed(key, isrepeat)
 end

@@ -1,4 +1,4 @@
-Class = require "libs.hump.class"
+local Class = require "libs.hump.class"
 json = require "libs.dkjson"
 require "libs.LUBE"
 

@@ -20,9 +20,9 @@ function loveframes.debug.draw()
 	
 	local infox = 5
 	local infoy = 40
-	local cols = loveframes.util.GetCollisions()
-	local topcol = {type = none, children = {}, x = 0, y = 0, width = 0, height = 0}
-	local objects = loveframes.util.GetAllObjects()
+	local topcol = {type = "None", children = {}, x = 0, y = 0, width = 0, height = 0}
+	local hoverobject = loveframes.hoverobject
+	--local objects = loveframes.util.GetAllObjects()
 	local version = loveframes.version
 	local stage = loveframes.stage
 	local basedir = loveframes.config["DIRECTORY"]
@@ -31,12 +31,8 @@ function loveframes.debug.draw()
 	local deltatime = love.timer.getDelta()
 	local font = loveframes.basicfontsmall
 	
-	-- set the top most collision object
-	for k, v in ipairs(cols) do
-		if v:IsTopCollision() then
-			topcol = v
-			break
-		end
+	if hoverobject then
+		topcol = hoverobject
 	end
 	
 	-- show frame docking zones
@@ -65,10 +61,10 @@ function loveframes.debug.draw()
 	love.graphics.print("LOVE Version: " ..loveversion, infox + 10, infoy + 20)
 	love.graphics.print("FPS: " ..fps, infox + 10, infoy + 30)
 	love.graphics.print("Delta Time: " ..deltatime, infox + 10, infoy + 40)
-	love.graphics.print("Total Objects: " ..#objects, infox + 10, infoy + 50)
+	love.graphics.print("Total Objects: " ..loveframes.objectcount, infox + 10, infoy + 50)
 	
 	-- draw object information if needed
-	if #cols > 0 and topcol.type ~= "base" then
+	if topcol.type ~= "base" then
 		love.graphics.setColor(0, 0, 0, 200)
 		love.graphics.rectangle("fill", infox, infoy + 75, 200, 100)
 		love.graphics.setColor(255, 0, 0, 255)

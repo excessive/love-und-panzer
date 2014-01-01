@@ -28,18 +28,8 @@ function lobby:draw()
 end
 
 function lobby:keypressed(key, isrepeat)
-	if not self.chat.input:GetFocus() then
-		if key == "return" then
-			self.chat.input:SetFocus(true)
-		end
-	else
-		if key == "return" then
-			if self.chat.input:GetText() then
-				self.chat:send()
-			end
-			
-			self.chat.input:SetFocus(false)
-		end
+	if key == "return" then
+		Signal.emit("ChatFocus")
 	end
 	
 	loveframes.keypressed(key, isrepeat)

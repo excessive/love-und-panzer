@@ -3,7 +3,7 @@
 	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
--- list class
+-- list object
 local newobject = loveframes.NewObject("list", "loveframes_object_list", true)
 
 --[[---------------------------------------------------------
@@ -249,7 +249,8 @@ end
 --]]---------------------------------------------------------
 function newobject:AddItem(object)
 	
-	if object.type == "frame" then
+	local objtype = object.type
+	if objtype == "frame" then
 		return
 	end
 

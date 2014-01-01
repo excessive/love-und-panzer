@@ -118,7 +118,7 @@ function newobject:mousepressed(x, y, button)
 		end
 		local parent1 = self:GetParent()
 		local parent2 = parent1:GetParent()
-		local ctrldown = love.keyboard.isDown("lctrl")
+		local ctrldown = loveframes.util.IsCtrlDown()
 		parent2:SelectRow(self, ctrldown)
 	end
 

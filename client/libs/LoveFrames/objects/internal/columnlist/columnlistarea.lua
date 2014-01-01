@@ -340,9 +340,9 @@ function newobject:Sort(column, desc)
 	
 	table.sort(children, function(a, b)
 		if desc then
-            return (tonumber(a.columndata[column]) or a.columndata[column]) < (tonumber(b.columndata[column]) or b.columndata[column])
+            return (tostring(a.columndata[column]) or a.columndata[column]) < (tostring(b.columndata[column]) or b.columndata[column])
         else
-			return (tonumber(a.columndata[column]) or a.columndata[column]) > (tonumber(b.columndata[column]) or b.columndata[column])
+			return (tostring(a.columndata[column]) or a.columndata[column]) > (tostring(b.columndata[column]) or b.columndata[column])
 		end
 	end)
 	

@@ -3,7 +3,7 @@
 	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
--- button class
+-- grid object
 local newobject = loveframes.NewObject("grid", "loveframes_object_grid", true)
 
 --[[---------------------------------------------------------

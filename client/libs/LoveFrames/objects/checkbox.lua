@@ -3,7 +3,7 @@
 	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
--- checkbox class
+-- checkbox object
 local newobject = loveframes.NewObject("checkbox", "loveframes_object_checkbox", true)
 
 --[[---------------------------------------------------------

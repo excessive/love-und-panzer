@@ -3,7 +3,7 @@
 	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
--- imagebutton class
+-- imagebutton object
 local newobject = loveframes.NewObject("imagebutton", "loveframes_object_imagebutton", true)
 
 --[[---------------------------------------------------------

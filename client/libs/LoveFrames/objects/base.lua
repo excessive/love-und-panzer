@@ -704,40 +704,6 @@ function newobject:InClickBounds()
 end
 
 --[[---------------------------------------------------------
-	- func: IsTopCollision()
-	- desc: checks if the object the top most object in a
-			collision table
---]]---------------------------------------------------------
-function newobject:IsTopCollision()
-
-	local cols = loveframes.util.GetCollisions()
-	local draworder = self.draworder
-	local found = false
-	local top = true
-	
-	
-	for k, v in ipairs(cols) do
-		if v == self then
-			found = true
-		end
-	end
-	
-	if not found then
-		return false
-	end
-	
-	-- loop through the object's parent's children
-	for k, v in ipairs(cols) do
-		if v.draworder > draworder then
-			top = false
-		end	
-	end
-	
-	return top
-		
-end
-
---[[---------------------------------------------------------
 	- func: GetBaseParent(object, t)
 	- desc: finds the object's base parent
 --]]---------------------------------------------------------
@@ -763,75 +729,72 @@ end
 --]]---------------------------------------------------------
 function newobject:CheckHover()
 	
-	local x, y = love.mouse.getPosition()
-	local selfcol = loveframes.util.BoundingBox(x, self.x, y, self.y, 1, self.width, 1, self.height)
-	local downobject = loveframes.downobject
-	local modalobject = loveframes.modalobject
+	local x = self.x
+	local y = self.y
+	local width = self.width
+	local height = self.height
+	local mx, my = love.mouse.getPosition()
+	local selfcol = loveframes.util.BoundingBox(mx, x, my, y, 1, width, 1, height)
 	local collisioncount = loveframes.collisioncount
-	local clickbounds = self.clickbounds
+	local curstate = loveframes.state
+	local state = self.state
+	local visible = self.visible
+	local type = self.type
+	local hoverobject = loveframes.hoverobject
 	
-	-- is the mouse inside the object?
-	if selfcol then
-		loveframes.collisioncount = collisioncount + 1
-		local top = self:IsTopCollision()
-		if top then
-			if not downobject then
-				self.hover = true
-			else
-				if downobject == self then
-					self.hover = true
-				else
-					self.hover = false
+	-- check if the mouse is colliding with the object
+	if state == curstate and visible then
+		local collide = self.collide
+		if selfcol and collide then
+			loveframes.collisioncount = collisioncount + 1
+			local clickbounds = self.clickbounds
+			if clickbounds then
+				local cx = clickbounds.x
+				local cy = clickbounds.y
+				local cwidth = clickbounds.width
+				local cheight = clickbounds.height
+				local clickcol = loveframes.util.BoundingBox(mx, cx, my, cy, 1, cwidth, 1, cheight)
+				if clickcol then
+					table.insert(loveframes.collisions, self)
 				end
-			end
-		else
-			self.hover = false
-		end
-		if clickbounds then
-			if not self:InClickBounds() then
-				self.hover = false
+			else
+				table.insert(loveframes.collisions, self)
 			end
 		end
+	end
+	
+	-- check if the object is being hovered
+	if hoverobject == self and type ~= "base" then
+		self.hover = true
 	else
 		self.hover = false
 	end
 	
-	if modalobject then
-		if modalobject ~= self then
-			local baseparent = self:GetBaseParent()
-			if baseparent ~= modalobject and self.type ~= "multichoicerow" then
-				self.hover = false
-				if self.focus then
-					self.focus = false
-				end
-			end
-		end
-	end
+	local hover = self.hover
 	
-	-- this chunk of code handles mouse enter and exit
-	if self.hover then
+	-- check for mouse enter and exit events
+	if hover then
+		local calledmousefunc = self.calledmousefunc
 		loveframes.hover = true
-		if not self.calledmousefunc then
-			if self.OnMouseEnter then
-				self.OnMouseEnter(self)
+		if not calledmousefunc then
+			local on_mouse_enter = self.OnMouseEnter
+			if on_mouse_enter then
+				on_mouse_enter(self)
 				self.calledmousefunc = true
 			else
 				self.calledmousefunc = true
 			end
 		end
 	else
-		if self.calledmousefunc then
-			if self.OnMouseExit then
-				self.OnMouseExit(self)
+		if calledmousefunc then
+			local on_mouse_exit = self.OnMouseExit
+			if on_mouse_exit then
+				on_mouse_exit(self)
 				self.calledmousefunc = false
 			else
 				self.calledmousefunc = false
 			end
 		end
-	end
-	
-	if self.hover and self.type ~= "base" then
-		loveframes.hoverobject = self
 	end
 	
 end

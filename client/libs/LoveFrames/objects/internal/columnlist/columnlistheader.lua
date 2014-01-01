@@ -82,10 +82,6 @@ function newobject:update(dt)
 		end
 	end
 	
-	if self.down and loveframes.downobject == self then
-		self.hover = true
-	end
-	
 	-- move to parent if there is a parent
 	if parent ~= base then
 		self.x = parent.x + self.staticx

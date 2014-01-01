@@ -3,7 +3,7 @@
 	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
--- progressbar class
+-- progressbar object
 local newobject = loveframes.NewObject("progressbar", "loveframes_object_progressbar", true)
 
 --[[---------------------------------------------------------
@@ -13,6 +13,7 @@ local newobject = loveframes.NewObject("progressbar", "loveframes_object_progres
 function newobject:initialize()
 
 	self.type = "progressbar"
+	self.text = ""
 	self.width = 100
 	self.height = 25
 	self.min = 0
@@ -315,5 +316,25 @@ end
 function newobject:GetBarWidth()
 	
 	return self.barwidth
+	
+end
+
+--[[---------------------------------------------------------
+	- func: SetText(text)
+	- desc: sets the object's text
+--]]---------------------------------------------------------
+function newobject:SetText(text)
+
+	self.text = text
+	
+end
+
+--[[---------------------------------------------------------
+	- func: GetText()
+	- desc: gets the object's text
+--]]---------------------------------------------------------
+function newobject:GetText()
+
+	return self.text
 	
 end

@@ -52,6 +52,8 @@ function newobject:update(dt)
 	local base = loveframes.base
 	local basechildren = base.children
 	
+	self:CheckHover()
+	
 	if #basechildren > 1 then
 		if basechildren[#basechildren - 1] ~= self then
 			self:Remove()

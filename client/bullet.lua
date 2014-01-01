@@ -1,4 +1,4 @@
-Class = require "libs.hump.class"
+local Class = require "libs.hump.class"
 
 Bullet = Class {}
 
@@ -7,7 +7,7 @@ Bullet = Class {}
 	
 	map			- A reference of the map
 	collision	- Collision map
-	image		- Spritemap
+	image		- Sprite map
 	w			- Width on map
 	h			- Height on map
 	speed		- Tiles per second

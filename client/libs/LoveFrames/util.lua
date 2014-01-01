@@ -361,3 +361,16 @@ function loveframes.util.GetHoverObject()
 	return loveframes.hoverobject
 	
 end
+
+--[[---------------------------------------------------------
+	- func: loveframes.util.IsCtrlDown()
+	- desc: checks for ctrl, for use with multiselect, copy,
+			paste, and such. On OS X it actually looks for cmd.
+--]]---------------------------------------------------------
+function loveframes.util.IsCtrlDown()
+	if love._os == "OS X" then
+		return love.keyboard.isDown("lmeta") or love.keyboard.isDown("rmeta") or
+			love.keyboard.isDown("lgui") or love.keyboard.isDown("rgui")
+	end
+	return love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")
+end

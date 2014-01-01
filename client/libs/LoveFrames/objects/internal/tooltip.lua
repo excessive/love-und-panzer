@@ -112,6 +112,7 @@ function newobject:update(dt)
 		end
 	end
 	
+	textobject:SetVisible(self.show)
 	textobject:SetState(selfstate)
 	textobject:update(dt)
 	

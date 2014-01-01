@@ -3,7 +3,7 @@
 	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
--- frame class
+-- frame object
 local newobject = loveframes.NewObject("frame", "loveframes_object_frame", true)
 
 --[[---------------------------------------------------------
@@ -385,9 +385,8 @@ function newobject:mousepressed(x, y, button)
 	local base = loveframes.base
 	
 	if selfcol then
-		local top = self:IsTopCollision()
 		-- initiate dragging if not currently dragging
-		if not dragging and top and button == "l" then
+		if not dragging and self.hover and button == "l" then
 			if y < self.y + 25 and self.draggable then
 				if parent == base then
 					self.clickx = x - self.x
@@ -399,7 +398,7 @@ function newobject:mousepressed(x, y, button)
 				self.dragging = true
 			end
 		end
-		if top and button == "l" then
+		if self.hover and button == "l" then
 			self:MakeTop()
 		end
 	end
@@ -454,7 +453,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: SetName(name)
-	- desc: sets the frame's name
+	- desc: sets the object's name
 --]]---------------------------------------------------------
 function newobject:SetName(name)
 
@@ -464,7 +463,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: GetName()
-	- desc: gets the frame's name
+	- desc: gets the object's name
 --]]---------------------------------------------------------
 function newobject:GetName()
 
@@ -474,7 +473,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: SetDraggable(true/false)
-	- desc: sets whether the frame can be dragged or not
+	- desc: sets whether the object can be dragged or not
 --]]---------------------------------------------------------
 function newobject:SetDraggable(bool)
 
@@ -484,7 +483,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: GetDraggable()
-	- desc: gets whether the frame can be dragged ot not
+	- desc: gets whether the object can be dragged ot not
 --]]---------------------------------------------------------
 function newobject:GetDraggable()
 
@@ -495,7 +494,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: SetScreenLocked(bool)
-	- desc: sets whether the frame can be moved passed the
+	- desc: sets whether the object can be moved passed the
 			boundaries of the window or not
 --]]---------------------------------------------------------
 function newobject:SetScreenLocked(bool)
@@ -506,7 +505,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: GetScreenLocked()
-	- desc: gets whether the frame can be moved passed the
+	- desc: gets whether the object can be moved passed the
 			boundaries of window or not
 --]]---------------------------------------------------------
 function newobject:GetScreenLocked()
@@ -517,7 +516,8 @@ end
 
 --[[---------------------------------------------------------
 	- func: ShowCloseButton(bool)
-	- desc: sets whether the close button should be drawn
+	- desc: sets whether the object's close button should 
+			be drawn
 --]]---------------------------------------------------------
 function newobject:ShowCloseButton(bool)
 
@@ -575,8 +575,8 @@ end
 
 --[[---------------------------------------------------------
 	- func: SetModal(bool)
-	- desc: makes the object the top object in the drawing
-			order
+	- desc: sets whether or not the object is in a modal
+			state
 --]]---------------------------------------------------------
 function newobject:SetModal(bool)
 
@@ -648,7 +648,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: SetParentLocked(bool)
-	- desc: sets whether the frame can be moved passed the
+	- desc: sets whether the object can be moved passed the
 			boundaries of its parent or not
 --]]---------------------------------------------------------
 function newobject:SetParentLocked(bool)
@@ -659,7 +659,7 @@ end
 
 --[[---------------------------------------------------------
 	- func: GetParentLocked(bool)
-	- desc: gets whether the frame can be moved passed the
+	- desc: gets whether the object can be moved passed the
 			boundaries of its parent or not
 --]]---------------------------------------------------------
 function newobject:GetParentLocked()
@@ -701,7 +701,8 @@ end
 --[[---------------------------------------------------------
 	- func: SetDockable(dockable)
 	- desc: sets whether or not the object can dock onto
-			another from or be docked by another frame
+			another object of its type or be docked 
+			by another object of its type
 --]]---------------------------------------------------------
 function newobject:SetDockable(dockable)
 
@@ -712,7 +713,8 @@ end
 --[[---------------------------------------------------------
 	- func: GetDockable()
 	- desc: gets whether or not the object can dock onto
-			another from or be docked by another frame
+			another object of its type or be docked 
+			by another object of its type
 --]]---------------------------------------------------------
 function newobject:GetDockable()
 

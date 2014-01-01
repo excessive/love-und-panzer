@@ -3,7 +3,7 @@
 	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
--- collapsiblecategory class
+-- collapsiblecategory object
 local newobject = loveframes.NewObject("collapsiblecategory", "loveframes_object_collapsiblecategory", true)
 
 --[[---------------------------------------------------------

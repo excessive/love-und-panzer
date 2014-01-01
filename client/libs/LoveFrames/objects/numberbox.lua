@@ -3,7 +3,7 @@
 	-- Copyright (c) 2013 Kenny Shields --
 --]]------------------------------------------------
 
--- numberbox class
+-- numberbox object
 local newobject = loveframes.NewObject("numberbox", "loveframes_object_numberbox", true)
 
 --[[---------------------------------------------------------

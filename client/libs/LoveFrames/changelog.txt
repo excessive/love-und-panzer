@@ -1,10 +1,19 @@
 ================================================
-Version 0.9.6.4 - Alpha (Release Date TBD)
+Version 0.9.7 - Alpha (Release Date TBD)
 ================================================
 [ADDED] a new base method: textinput(text)
-[ADDED] a new tooltip method: SetOffsetX(xoffset)
-[ADDED] a new tooltip method: SetOffsetY(yoffset)
-[ADDED] a new tooltip method: GetText()
+[ADDED] a new progressbar method: SetText(text)
+[ADDED] a new progressbar method: GetText()
+[ADDED] a new tabs method: SetButtonAreaX(x)
+[ADDED] a new tabs method: GetButtonAreaX()
+[ADDED] a new tabs method: SetButtonAreaWidth(width)
+[ADDED] a new tabs method: GetButtonAreaWidth()
+[ADDED] a new tabs method: SetAutoButtonAreaWidth(bool)
+[ADDED] a new tabs method: GetAutoButtonAreaWidth()
+[ADDED] a new text method: SetLinksEnabled(enabled)
+[ADDED] a new text method: GetLinksEnabled()
+[ADDED] a new text method: SetDetectLinks(detect)
+[ADDED] a new text method: GetDetectLinks()
 [ADDED] a new textinput method: Copy()
 [ADDED] a new textinput method: Paste()
 [ADDED] a new textinput method: SelectAll()
@@ -15,27 +24,39 @@ Version 0.9.6.4 - Alpha (Release Date TBD)
 [ADDED] a new textinput method: GetMaskChar()
 [ADDED] a new textinput method: SetPlaceholderText(text)
 [ADDED] a new textinput method: GetPlaceholderText()
-[ADDED] a new text method: SetLinksEnabled(enabled)
-[ADDED] a new text method: GetLinksEnabled()
+[ADDED] a new tooltip method: SetOffsetX(xoffset)
+[ADDED] a new tooltip method: SetOffsetY(yoffset)
+[ADDED] a new tooltip method: GetText()
 [ADDED] a new text event callback: OnClickLink(object, text)
 [ADDED] a new util library function: TableHasValue(table, value)
 [ADDED] a new util library function: GetHoverObject()
 [ADDED] a new callback: textinput(text)
+[ADDED] a new object: form
+[ADDED] a new skin drawing function: DrawOverTabPanel(object)
 [ADDED] basic clipboard support for the textinput object (0.9.0 only)
 [ADDED] custom cursor support for the textinput object
 [ADDED] support for love.filesystem changes to loveframes.util.GetDirectoryContents (0.9.0 only)
 [ADDED] support for text object link processing
 [ADDED] loveframes.downobject
+[ADDED] skin directives for the text object
 
 [FIXED] error when pressing a function key while a textinput was focused
 [FIXED] the tooltip object not setting the state of its text object
 [FIXED] the text object not being set to the correct width in certain situations
 [FIXED] textinput:GetText appending an extra newline to then end of the text string
 [FIXED] text processing issues with the textinput object (0.9.0 only)
+[FIXED] text positioning issues when moving the textinput's indicator with the left and right arrow keys
 
 [CHANGED] cleaned up the tooltip object
 [CHANGED] upgraded to middleclass 3.0
 [CHANGED] loveframes.hoverobject is now used to store the currently hovered object
+[CHANGED] textinput:SetText now repositions the object's indicator
+[CHANGED] reworked the collision detection system for MAJOR performance improvements
+[CHANGED] text object formatting options are now specified in a single table rathar than as individual arguments
+[CHANGED] text can now be specified as a link via text formatting options
+[CHANGED] text formatting options now support link colors
+
+[REMOVED] base:IsTopCollision
 
 ================================================
 Version 0.9.6.3 - Alpha (August 15 - 2013)

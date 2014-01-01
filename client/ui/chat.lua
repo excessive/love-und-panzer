@@ -38,6 +38,8 @@ function chat:init()
 	self.buttonSend.OnClick = function(this)
 		self:send()
 	end
+	
+	Signal.register("ChatFocus", function() self:focus() end)
 end
 
 function chat:update()
@@ -74,6 +76,18 @@ function chat:receive(scope)
 		self.listTeam:AddItem(text)
 	else
 		self.listGlobal:AddItem(text)
+	end
+end
+
+function chat:focus()
+	if not self.input:GetFocus() then
+		self.input:SetFocus(true)
+	else
+		if self.input:GetText() then
+			self:send()
+		end
+		
+		self.input:SetFocus(false)
 	end
 end
 
