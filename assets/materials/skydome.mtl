@@ -1,0 +1,9 @@
+newmtl Sky
+Ns 0.000000
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.250000 0.250000 0.250000
+Ni 1.000000
+d 1.000000
+illum 0
+map_Kd assets/textures/CGSkies_0297_free.jpg

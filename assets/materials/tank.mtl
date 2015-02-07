@@ -1,0 +1,40 @@
+# Blender MTL File: 'tank-lup.blend'
+# Material Count: 4
+
+newmtl Black
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.012217 0.012217 0.012217
+Ks 0.125000 0.125000 0.125000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Camo
+Ns 145.098039
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.258974 0.258974 0.258974
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd assets/textures/Tank_Camo.png
+
+newmtl Camo_Tank_Diffuse
+Ns 145.098039
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.258974 0.258974 0.258974
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd assets/textures/Tank_Diffuse.png
+
+newmtl Material.001
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.000000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 0
