@@ -176,7 +176,10 @@ end
 
 function vector:angle_to(other)
 	if other then
-		return atan2(self.y, self.x) - atan2(other.y, other.x)
+		local angle = atan2(self.y, self.x) - atan2(other.y, other.x)
+		if angle > math.pi then angle = angle - math.pi * 2 end
+		if angle < -math.pi then angle = angle + math.pi * 2 end
+		return angle
 	end
 	return atan2(self.y, self.x)
 end

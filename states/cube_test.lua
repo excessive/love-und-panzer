@@ -1,8 +1,8 @@
 local Camera = require "libs.camera3d"
-local cpml = require "libs.cpml"
-local ffi = require "ffi"
-local lume = require "libs.lume"
-local Load = require "libs.map_loader"
+local cpml   = require "libs.cpml"
+local ffi    = require "ffi"
+local lume   = require "libs.lume"
+local map    = require "map_loader"
 
 local CubeTest = {}
 
@@ -14,10 +14,10 @@ function CubeTest:enter(from)
 	self.camera = Camera()
 	self.camera.position = cpml.vec3(0, -16, 0)
 
-	self.map = Load.new("assets/maps/test_cube_map.lua")
+	self.map = map.new("assets/maps/test_cube_map.lua")
 	self.map:set_camera(self.camera)
 
-	local s = love.filesystem.read("assets/shaders/shader.glsl")
+	local s     = love.filesystem.read("assets/shaders/shader.glsl")
 	self.shader = love.graphics.newShader(s, s)
 end
 
@@ -26,12 +26,12 @@ function CubeTest:update(dt)
 
 	local isDown = love.keyboard.isDown
 	local holding = {
-		left	= isDown "left"		or isDown "a",
-		right	= isDown "right"	or isDown "d",
-		up		= isDown "up"		or isDown "w",
-		down	= isDown "down"		or isDown "s",
-		jump	= isDown "kp0"		or isDown " ",
-		crouch	= isDown "rshift"	or isDown "lshift",
+		left   = isDown "left"   or isDown "a",
+		right  = isDown "right"  or isDown "d",
+		up     = isDown "up"     or isDown "w",
+		down   = isDown "down"   or isDown "s",
+		jump   = isDown "kp0"    or isDown " ",
+		crouch = isDown "rshift" or isDown "lshift",
 	}
 
 	local speed = 5
@@ -80,7 +80,7 @@ function CubeTest:draw()
 
 	self.camera:send(self.shader)
 	love.graphics.setShader(self.shader)
-	local text_thingies = self.map:draw()
+	self.map:draw()
 	love.graphics.setShader()
 
 	gl.Disable(GL.CULL_FACE)
@@ -88,14 +88,14 @@ function CubeTest:draw()
 	gl.Enable(GL.BLEND)
 
 
-	for i, v in ipairs(text_thingies) do
-		if v.position.z < 0 then
-			love.graphics.setColor(127, 127, 127, 127)
-		else
-			love.graphics.setColor(255, 255, 255, 255)
-		end
-		love.graphics.print(v.text, v.position.x, h - v.position.y)
-	end
+	--for i, v in ipairs(text_thingies) do
+	--	if v.position.z < 0 then
+	--		love.graphics.setColor(127, 127, 127, 127)
+	--	else
+	--		love.graphics.setColor(255, 255, 255, 255)
+	--	end
+	--	love.graphics.print(v.text, v.position.x, h - v.position.y)
+	--end
 	love.graphics.setColor(255, 255, 255, 255)
 end
 

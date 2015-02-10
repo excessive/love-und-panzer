@@ -29,10 +29,10 @@ function Manager:update(dt)
 
 	for _, player in pairs(self.players) do
 		player.position      = player.position      + player.velocity * dt
-		player.orientation.x = player.orientation.x + math.rad(player.rot_velocity.x  * dt)
-		player.orientation.y = player.orientation.y + math.rad(player.rot_velocity.y  * dt)
-		player.orientation.z = player.orientation.z + math.rad(player.rot_velocity.z  * dt)
-		player.turret        = player.turret        + math.rad(player.turret_velocity * dt)
+		player.orientation.x = player.orientation.x + player.rot_velocity.x  * dt
+		player.orientation.y = player.orientation.y + player.rot_velocity.y  * dt
+		player.orientation.z = player.orientation.z + player.rot_velocity.z  * dt
+		player.turret        = player.turret        + player.turret_velocity * dt
 
 		if player.id ~= self.id then
 			local adjust = 0.1
@@ -40,6 +40,8 @@ function Manager:update(dt)
 			player.orientation = player.orientation:lerp(player.real_orientation, adjust)
 			player.turret      = player.turret + adjust * (player.real_turret - player.turret)
 		end
+
+		player.direction = player.orientation:orientation_to_direction()
 	end
 
 	self.dt_c = self.dt_c + dt
@@ -98,6 +100,7 @@ function Manager:update(dt)
 end
 
 function Manager:destroy()
+	self.id      = nil
 	self.map     = nil
 	self.players = nil
 	self.tick_c  = nil
@@ -135,12 +138,16 @@ function Manager:player_name(id, name)
 end
 
 function Manager:player_create(id, player)
-	local player = Player(player)
+	local player     = Player(player)
+	self.players[id] = player
 	self.map:add_object(player)
-	self.players[id]                  = player
-	self.players[id].real_position    = player.position
-	self.players[id].real_orientation = player.orientation
-	self.players[id].real_turret      = player.turret
+
+	player.real_position    = player.position
+	player.real_orientation = player.orientation
+	player.real_turret      = player.turret
+	player.direction        = player.orientation:orientation_to_direction()
+	player.up               = cpml.vec3(0, 0, 1)
+
 end
 
 function Manager:player_action(id, action)
@@ -162,6 +169,15 @@ end
 
 function Manager:player_update_f(id, update)
 	if id ~= self.id then
+		local peer   = self.client.connection.peer
+		local ping   = peer:round_trip_time() / 1000 / 2
+
+		update.position      = update.position      + update.velocity * ping
+		update.orientation.x = update.orientation.x + math.rad(update.rot_velocity.x  * ping)
+		update.orientation.y = update.orientation.y + math.rad(update.rot_velocity.y  * ping)
+		update.orientation.z = update.orientation.z + math.rad(update.rot_velocity.z  * ping)
+		update.turret        = update.turret        + math.rad(update.turret_velocity * ping)
+
 		self.players[id]                  = self.players[id]       or {}
 		self.players[id].real_turret      = update.turret          or self.players[id].real_turret
 		self.players[id].real_position    = update.position        or self.players[id].real_position

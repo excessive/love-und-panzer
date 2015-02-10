@@ -165,12 +165,18 @@ function generator:generate_buffer()
 		table.insert(current, v.y)
 		table.insert(current, v.z)
 
+		table.insert(current, data.t[k][1] or 0)
+		table.insert(current, data.t[k][2] or 0)
+
+		-- dummy color
+		table.insert(current, 255)
+		table.insert(current, 255)
+		table.insert(current, 255)
+		table.insert(current, 255)
+
 		table.insert(current, data.n[k].x or 0)
 		table.insert(current, data.n[k].y or 0)
 		table.insert(current, data.n[k].z or 0)
-
-		table.insert(current, data.t[k][1] or 0)
-		table.insert(current, data.t[k][2] or 0)
 
 		table.insert(vb_data, current)
 	end
@@ -186,8 +192,9 @@ function generator:generate_buffer()
 
 	local layout = {
 		"float", 3,
+		"float", 2,
+		"byte", 4,
 		"float", 3,
-		"float", 2
 	}
 	local buffer = love.graphics.newVertexBuffer(layout, vb_data, "static")
 
@@ -197,8 +204,10 @@ function generator:generate_buffer()
 
 	-- Use VertexPosition for LOVE.
 	m:setVertexAttribute("VertexPosition", buffer, 1)
-	m:setVertexAttribute("v_normal", buffer, 2)
-	m:setVertexAttribute("v_coord", buffer, 3)
+	m:setVertexAttribute("VertexTexCoord", buffer, 2)
+	m:setVertexAttribute("VertexColor",    buffer, 3)
+	m:setVertexAttribute("v_normal",       buffer, 4)
+
 	m:setVertexMap(tris)
 
 	self.faces[self.count] = tris

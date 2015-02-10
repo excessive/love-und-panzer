@@ -49,6 +49,7 @@ function Player:init(player)
 	self.costumes        = {}
 	self.flags           = {}
 	self.radius          = 5.92 / 2
+	self.outline_shader  = love.graphics.newShader("assets/shaders/shader-shell.glsl")
 	self.model:load_shader(tanks[tank].shader)
 	self.model:load_material(tanks[tank].material)
 end

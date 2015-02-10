@@ -1,16 +1,19 @@
 #ifdef VERTEX
 	//attribute vec4 v_position;
 	#define v_position vertex_position
+	// attribute vec4 VertexTexCoord;
+	// attribute vec4 VertexColor;
 	attribute vec3 v_normal;
-	attribute vec2 v_coord;
 
 	attribute vec4 v_bone;
 	attribute vec4 v_weight;
 #endif
 
 varying vec3 f_position;
-varying vec3 f_normal;
+varying vec4 f_color;
 varying vec2 f_uv;
+varying vec3 f_normal;
+
 varying vec2 f_uv_reflect;
 
 #ifdef VERTEX
@@ -25,9 +28,9 @@ varying vec2 f_uv_reflect;
 	mat4 getDeformMatrix() {
 		if (u_skinning != 0) {
 			return u_bone_matrices[int(v_bone.x)] * v_weight.x +
-				   u_bone_matrices[int(v_bone.y)] * v_weight.y +
-				   u_bone_matrices[int(v_bone.z)] * v_weight.z +
-				   u_bone_matrices[int(v_bone.w)] * v_weight.w;
+					u_bone_matrices[int(v_bone.y)] * v_weight.y +
+					u_bone_matrices[int(v_bone.z)] * v_weight.z +
+					u_bone_matrices[int(v_bone.w)] * v_weight.w;
 		} else {
 			return mat4(1.0);
 		}
@@ -41,16 +44,15 @@ varying vec2 f_uv_reflect;
 		mat4 deform_matrix = getDeformMatrix();
 		vec4 f_position4 = u_view * u_model * deform_matrix * v_position;
 		f_normal = getNormalMatrix(deform_matrix) * normalize(v_normal);
-
+		f_color = VertexColor;
+		f_uv = VertexTexCoord.xy;
 		f_position = vec3(f_position4) / f_position4.w;
-
-		f_uv = v_coord;
 
 		// This is confirmed fucked up on AMD 7970 - not sure what's up.
 		vec3 e = normalize(f_position);
 		vec3 n = normalize(getNormalMatrix(deform_matrix * u_view) * v_normal);
 		vec3 r = reflect(e, n);
-		float m = 2.0 * sqrt( 
+		float m = 2.0 * sqrt(
 			pow(r.x, 2.0) +
 			pow(r.y, 2.0) +
 			pow(r.z + 1.0, 2.0)
@@ -128,10 +130,10 @@ varying vec2 f_uv_reflect;
 
 		if (u_shading != 2) {
 			// Diffuse map + reflection
-			if (u_shading == 0) return vec4(Kd + texture2D(u_map_Kr, f_uv_reflect).rgb * (u_Kr + fresnel), 1.0);
+			if (u_shading == 0) return vec4(Kd + texture2D(u_map_Kr, f_uv_reflect).rgb * (u_Kr + fresnel), 1.0) * color;
 
 			// Diffuse map + ambient
-			if (u_shading == 1) return vec4(Kd + u_Ka, 1.0);
+			if (u_shading == 1) return vec4(Kd + u_Ka, 1.0) * color;
 
 			// Matcap passthrough. Don't bother correcting gamma on these things, it just looks weird.
 			if (u_shading == 3) return vec4(texture2D(u_map_Kr, f_uv_reflect).rgb, 1.0);
@@ -152,7 +154,7 @@ varying vec2 f_uv_reflect;
 
 		out_color = mix(out_color, sky_color, scaled);
 
-		return vec4(out_color, 1.0);
+		return vec4(out_color, 1.0) * color;
 	}
 
 	vec4 correct_gamma(in vec4 color) {

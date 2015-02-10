@@ -5,21 +5,22 @@ local Camera = Class {}
 
 -- Camera assumes Y-forward, Z-up
 function Camera:init(position, direction)
-	self.fov = 45
+	self.fov  = 45
 	self.near = 0.0001
-	self.far = 10.0
+	self.far  = 10.0
 
-	self.view = cpml.mat4()
+	self.view       = cpml.mat4()
 	self.projection = cpml.mat4()
 
-	self.position = position or cpml.vec3(0, 0, 0)
-	self.direction = direction or cpml.vec3(0, 1, 0)
-	self.offset = cpml.vec3(0, 0, 0)
-	self.up = cpml.vec3(0, 0, 1)
+	self.position   = position  or cpml.vec3(0, 0, 0)
+	self.direction  = direction or cpml.vec3(0, 1, 0)
+	self.pre_offset = cpml.vec3(0, 0, 0)
+	self.offset     = cpml.vec3(0, 0, 0)
+	self.up         = cpml.vec3(0, 0, 1)
 
 	-- up/down limit (radians)
-	self.pitch_limit = math.pi / 2.1
-	self.current_pitch = 0
+	self.pitch_limit       = math.pi / 2.1
+	self.current_pitch     = 0
 	self.mouse_sensitivity = 15 -- higher = slower
 
 	self:update()
@@ -32,7 +33,7 @@ function Camera:grab(grabbing)
 end
 
 function Camera:move(vector, speed)
-	local side = self.direction:cross(self.up)
+	local side    = self.direction:cross(self.up)
 	self.position = self.position + vector.x * side:normalize() * speed
 	self.position = self.position + vector.y * self.direction:normalize() * speed
 	self.position = self.position + vector.z * self.up:normalize() * speed
@@ -47,10 +48,10 @@ end
 function Camera:rotateXY(mx, my)
 	local function rotate_camera(view, angle, axis)
 		local temp = cpml.quat(
-			math.cos(angle/2),
 			axis.x * math.sin(angle/2),
 			axis.y * math.sin(angle/2),
-			axis.z * math.sin(angle/2)
+			axis.z * math.sin(angle/2),
+			math.cos(angle/2)
 		)
 
 		local quat_view = cpml.quat(
@@ -78,10 +79,10 @@ function Camera:rotateXY(mx, my)
 	-- don't rotate up/down more than self.pitch_limit
 	if self.current_pitch > self.pitch_limit then
 		self.current_pitch = self.pitch_limit
-		mouse_direction.y = 0
+		mouse_direction.y  = 0
 	elseif self.current_pitch < -self.pitch_limit then
 		self.current_pitch = -self.pitch_limit
-		mouse_direction.y = 0
+		mouse_direction.y  = 0
 	end
 
 	-- get the axis to rotate around the x-axis.
@@ -99,6 +100,7 @@ function Camera:update()
 
 	if not self.forced_transforms then
 		self.view = cpml.mat4()
+			:translate(self.pre_offset)
 			:look_at(self.position, self.position + self.direction, self.up)
 			:translate(self.offset)
 	end
@@ -122,7 +124,7 @@ end
 
 function Camera:set_range(near, far)
 	self.near = near
-	self.far = far
+	self.far  = far
 end
 
 function Camera:add_fov(fov)

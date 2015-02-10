@@ -1,6 +1,4 @@
 local ffi = require "ffi" -- gotta get SDL_GL_GetProcAddress
-local Player = require "player"
-local Item = require "item"
 local lume = require "libs.lume"
 console = require "libs.console"
 Gamestate = require "libs.hump.gamestate"
@@ -176,6 +174,8 @@ function love.threaderror(thread, errorstr)
 end
 
 function love.keypressed(k, r)
+	if not love.window.hasFocus() then return end
+
 	local isDown = love.keyboard.isDown
 	if k == "f11" or (k == "return" and (isDown "lalt" or isDown "ralt")) then
 		love.window.setFullscreen(not (love.window.getFullscreen()), "desktop")
@@ -237,6 +237,8 @@ function love.keypressed(k, r)
 end
 
 function love.mousepressed(x, y, b)
+	if not love.window.hasMouseFocus() then return end
+
 	-- block for console events
 	if console.mousepressed(x, y, b) then
 		return
@@ -245,6 +247,8 @@ function love.mousepressed(x, y, b)
 end
 
 function love.gamepadpressed(joystick, button)
+	if not love.window.hasFocus() then return end
+
 	-- console.i("Pressed: %s, %s", joystick:getID(), button)
 	Signal.emit("pressed-"..button, joystick)
 end
@@ -255,6 +259,8 @@ function love.gamepadreleased(joystick, button)
 end
 
 function love.textinput(t)
+	if not love.window.hasFocus() then return end
+
 	if console.textinput(t) then
 		return
 	end

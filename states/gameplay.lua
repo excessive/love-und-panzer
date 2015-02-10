@@ -50,9 +50,9 @@ function Gameplay:enter(from, name, resources, terrain, connection, chat, contro
 	self.original_x, self.original_y = false, false
 	self.prevx, self.prevy           = love.mouse.getPosition()
 
-	self.grabbed     = false
-	self.first_press = true
 	self.focused     = love.window.hasFocus()
+	self.grabbed     = self.focused
+	self.first_press = true
 
 	self.camera:grab(self.grabbed)
 	self.map:set_camera(self.camera)
@@ -76,17 +76,13 @@ function Gameplay:update(dt)
 		self.chat:update(dt)
 	end
 
-	local move, turn, turret = self:check_controls()
-	Signal.emit("moved-axisleft", nil, turn, move)
-	Signal.emit("moved-axisright", nil, turret)
-
 	local w, h = love.graphics.getDimensions()
 	local mx, my = love.mouse.getPosition()
 	local dx, dy = self.prevx - mx, self.prevy - my
 	self.prevx, self.prevy = mx, my
 
-	if console.visible or not self.focused then
-		if love.mouse.isDown("l") or self.grabbed then
+	if not console.visible or not self.focused then
+		if self.grabbed then
 			dx, dy = love.mouse.getPosition()
 			dx, dy = w/2 - dx, h/2 - dy
 			if self.first_press then
@@ -100,7 +96,7 @@ function Gameplay:update(dt)
 			end
 		end
 
-		if love.mouse.isDown("l") or self.grabbed then
+		if self.grabbed then
 			if not self.first_press then
 				self.camera:rotateXY(dx, dy)
 			else
@@ -108,6 +104,11 @@ function Gameplay:update(dt)
 			end
 		end
 	end
+
+	local move, turn = self:check_controls()
+	local mouse = cpml.vec2(-dx, -dy):normalize()
+	Signal.emit("moved-axisleft", nil, turn, move)
+	Signal.emit("moved-axisright", nil, mouse.x, mouse.y)
 
 	for _, player in pairs(self.players) do
 		self.map.draw_data[player.id]        = {}
@@ -188,30 +189,6 @@ function Gameplay:update(dt)
 		end
 	end
 
-	if self.manager.id then
-		local player     = self.players[self.manager.id]
-		player.direction = player.orientation:orientation_to_direction()
-
-
-		if self.sniper then
-			local forward = player.direction:rotate(player.turret, player.up)
-			local side    = forward:cross(player.up)
-			local offset  = cpml.vec3(0, -1.97, 1.37)
-
-			self.camera.forced_transforms = true
-			self.camera.position          = player.position + offset
-			self.camera.direction         = forward
-			self.camera.view              = cpml.mat4()
-				:translate(offset)
-				:look_at(player.position, player.position + forward, player.up)
-		else
-			self.camera.forced_transforms = false
-			self.camera.position          = player.position - player.direction * 13
-			self.camera.position.z        = self.camera.position.z + 5
-			self.camera.direction         = (player.position + cpml.vec3(0, 0, 3.5) - self.camera.position):normalize()
-		end
-	end
-
 	self.map:update(dt)
 	self.ui:update(dt)
 end
@@ -235,6 +212,9 @@ function Gameplay:draw()
 end
 
 function Gameplay:keypressed(key, isrepeat)
+	local move, turn = self:check_controls(key, isrepeat)
+	Signal.emit("moved-axisleft", nil, turn, move)
+
 	if key == "escape" then
 		Signal.emit("pressed-back")
 	end
@@ -245,37 +225,23 @@ function Gameplay:keypressed(key, isrepeat)
 
 	if key == "g" then
 		self.grabbed = not self.grabbed
+
 		if not self.grabbed then
 			self.first_press = true
 			self.camera:grab(self.grabbed)
-		elseif not love.mouse.isDown("l") then
-			self.camera:grab(self.grabbed)
 		end
 	end
-
-	local move, turn, turret = self:check_controls(key, isrepeat)
-	Signal.emit("moved-axisleft", nil, turn, move)
-	Signal.emit("moved-axisright", nil, turret)
 end
 
 function Gameplay:keyreleased(key)
-	local move, turn, turret = self:check_controls(key)
+	local move, turn = self:check_controls(key)
 	Signal.emit("moved-axisleft", nil, turn, move)
-	Signal.emit("moved-axisright", nil, turret)
 end
 
 function Gameplay:mousepressed(x, y, button)
 	if button == "l" then
-		self.camera:grab(true)
 		self.first_press = true
-
 		Signal.emit("pressed-a")
-	end
-end
-
-function Gameplay:mousereleased(x, y, button)
-	if button == "l" and not self.grabbed then
-		self.camera:grab(false)
 	end
 end
 
@@ -295,16 +261,24 @@ function Gameplay:focus(f)
 end
 
 function Gameplay:leave()
-	--self.wireframe = nil
-	--self.gamma     = nil
-	--self.post      = nil
-	--self.resources = nil
-	--self.controls  = nil
-	--self.camera    = nil
-	--self.flat      = nil
-	--self.players   = nil
-	--self.prevx     = nil
-	--self.prevy     = nil
+	self.wireframe   = nil
+	self.gamma       = nil
+	self.post        = nil
+	self.resources   = nil
+	self.players     = nil
+	self.map         = nil
+	self.controls    = nil
+	self.camera      = nil
+	self.flat        = nil
+	self.sniper      = nil
+	self.original_x  = nil
+	self.original_y  = nil
+	self.prevx       = nil
+	self.prevy       = nil
+	self.grabbed     = nil
+	self.first_press = nil
+	self.focused     = nil
+	self.ui          = nil
 
 	self.manager:destroy()
 
@@ -318,26 +292,21 @@ function Gameplay:leave()
 end
 
 function Gameplay:check_controls(key, isrepeat)
-	local move    = 0
-	local turn    = 0
-	local turret  = 0
+	local move = 0
+	local turn = 0
 	local holding = {
-		forward      = self.controls:check("move_forward", key) and not isrepeat,
-		back         = self.controls:check("move_back",    key) and not isrepeat,
-		left         = self.controls:check("turn_left",    key) and not isrepeat,
-		right        = self.controls:check("turn_right",   key) and not isrepeat,
-		turret_left  = self.controls:check("turret_left",  key) and not isrepeat,
-		turret_right = self.controls:check("turret_right", key) and not isrepeat,
+		forward = self.controls:check("move_forward", key) and not isrepeat,
+		back    = self.controls:check("move_back",    key) and not isrepeat,
+		left    = self.controls:check("turn_left",    key) and not isrepeat,
+		right   = self.controls:check("turn_right",   key) and not isrepeat,
 	}
 
-	if holding.forward      then move   = move   - 1 end
-	if holding.back         then move   = move   + 1 end
-	if holding.left         then turn   = turn   - 1 end
-	if holding.right        then turn   = turn   + 1 end
-	if holding.turret_left  then turret = turret - 1 end
-	if holding.turret_right then turret = turret + 1 end
+	if holding.forward then move = move - 1 end
+	if holding.back    then move = move + 1 end
+	if holding.left    then turn = turn - 1 end
+	if holding.right   then turn = turn + 1 end
 
-	return move, turn, turret
+	return move, turn
 end
 
 -- Gamepad Signals
@@ -358,46 +327,36 @@ end
 function Gameplay:moved_axisleft(joystick, x, y)
 	if not self.manager.id then return end
 
-	local dt         = love.timer.getDelta()
-	local turn       = x
-	local move       = -y
-	local move_speed = 420/6/6
-	local turn_speed = 35
-	local id         = self.manager.id
-	local player     = self.players[id]
-	local collision  = false
+	local dt           = love.timer.getDelta()
+	local turn         = -x
+	local move         = -y
+	local move_speed   = 420/6/6
+	local turn_speed   = math.rad(35)
+	local turret_speed = math.rad(44)
+	local player       = self.players[self.manager.id]
 
-	if move >= 0 then
-		turn = -turn
+	-- Normalize movement velocity so it never exceeds max speed
+	player.velocity = player.velocity + player.direction * move * move_speed
+	if player.velocity:len() > move_speed then
+		player.velocity = player.velocity:normalize() * move_speed
 	end
 
-	-- velocity is additive so that conflicting inputs (i.e. two controllers)
-	-- will not cause jitter or double integration.
-	local velocity = player.velocity + cpml.vec3(0, move * move_speed, 0):rotate(player.orientation.z, cpml.vec3(0, 0, 1))
-	if velocity:len() > move_speed then
-		velocity = velocity:normalize() * move_speed
-	end
-	local new_pos = player.position + velocity * dt
-
+	-- Check to see if you are going to collide if you move
+	local new_pos = player.position + player.velocity * dt
 	for i, p in pairs(self.players) do
-		if i ~= id then
+		if i ~= self.manager.id then
 			local c1 = { point=new_pos,    radius=player.radius }
 			local c2 = { point=p.position, radius=p.radius }
+
+			-- If collision, stop tank
 			if cpml.intersect.circle_circle(c1, c2) then
-				collision = true
+				player.velocity = cpml.vec3(0, 0, 0)
 				break
 			end
 		end
 	end
 
-	if not collision then
-		player.velocity = velocity
-	else
-		player.velocity = cpml.vec3(0, 0, 0)
-	end
-
-	-- rotational velocity is additive so that conflicting inputs (i.e. two controllers)
-	-- will not cause jitter or double integration.
+	-- Normalize rotational velocity so it never exceeds max speed
 	player.rot_velocity = player.rot_velocity + cpml.vec3(0, 0, turn * turn_speed)
 	if player.rot_velocity:len() > turn_speed then
 		player.rot_velocity = player.rot_velocity:normalize() * turn_speed
@@ -407,17 +366,62 @@ end
 function Gameplay:moved_axisright(joystick, x, y)
 	if not self.manager.id then return end
 
-	local dt           = love.timer.getDelta()
-	local turret       = -x
-	local turret_speed = 44
-	local id           = self.manager.id
-	local player       = self.players[id]
+	local turret_speed = math.rad(44)
+	local stick        = cpml.vec2(-x, -y)
+	local player       = self.players[self.manager.id]
 
-	-- turret velocity is additive so that conflicting inputs (i.e. two controllers)
-	-- will not cause jitter or double integration.
-	player.turret_velocity = player.turret_velocity + turret * turret_speed
-	if player.turret_velocity > turret_speed then
-		player.turret_velocity = turret_speed
+	if self.sniper then
+		-- Normalize turret rotational velocity so it never exceeds max speed
+		player.turret_velocity = player.turret_velocity + stick.x * turret_speed
+		if player.turret_velocity > turret_speed then
+			player.turret_velocity = turret_speed
+		end
+		if player.turret_velocity < -turret_speed then
+			player.turret_velocity = -turret_speed
+		end
+
+		player.direction = player.orientation:orientation_to_direction()
+		local forward    = player.direction:rotate(player.turret, player.up)
+		local offset     = cpml.vec3(0, -1.97, 1.37)
+
+		-- Camera snaps to turret
+		self.camera.forced_transforms = true
+		self.camera:move_to(player.position + offset)
+		self.camera.direction         = forward
+		self.camera.view              = cpml.mat4()
+			:translate(offset)
+			:look_at(player.position, player.position + forward, player.up)
+	else
+		self.camera.forced_transforms = false
+		self.camera.pre_offset = cpml.vec3(0, 0, -11)
+		self.camera:move_to(player.position + cpml.vec3(0, 0, 4))
+		self.camera:rotateXY(stick.x * 18, stick.y * 9)
+
+		-- Get angle between Camera Forward and Turret Forward
+		local fwd   = cpml.vec2(0, 1):rotate(player.orientation.z + player.turret)
+		local cam   = cpml.vec2(1, 0):rotate(math.atan2(self.camera.direction.y, self.camera.direction.x))
+		local angle = fwd:angle_to(cam)
+
+		-- If the turret is not true, adjust it
+		if math.abs(angle) > 0 then
+			local function new_angle(direction)
+				local dt       = love.timer.getDelta()
+				local velocity = direction * turret_speed * dt
+				return cpml.vec2(0, 1):rotate(player.orientation.z + player.turret + velocity):angle_to(cam)
+			end
+
+			-- Rotate turret into the correct direction
+			if new_angle(1) < 0 then
+				player.turret_velocity = turret_speed
+			elseif new_angle(-1) > 0 then
+				player.turret_velocity = -turret_speed
+			else
+				-- If rotating the turret a full frame will overshoot, set turret to camera position
+				-- atan2 starts from the left and we need to also add half a rotation. subtract player orientation to convert to local space.
+				player.turret          = math.atan2(self.camera.direction.y, self.camera.direction.x) + (math.pi * 1.5) - player.orientation.z
+				player.turret_velocity = 0
+			end
+		end
 	end
 
 	local direction         = cpml.mat4():rotate(player.turret, { 0, 0, 1 }) * cpml.mat4():rotate(player.orientation.z, { 0, 0, 1 })

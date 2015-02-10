@@ -47,21 +47,21 @@ local function string_split(s, d)
 	local i = 0
 	local f
 	local match = '(.-)' .. d .. '()'
-	
+
 	if string.find(s, d) == nil then
 		return {s}
 	end
-	
+
 	for sub, j in string.gmatch(s, match) do
 		i = i + 1
 		t[i] = sub
 		f = j
 	end
-	
+
 	if i ~= 0 then
 		t[i+1] = string.sub(s, f)
 	end
-	
+
 	return t
 end
 
@@ -645,8 +645,9 @@ function IQE:buffer()
 		for _, mesh in ipairs(material) do
 			local layout = {
 				"float", 3,
+				"float", 2,
+				"byte", 4,
 				"float", 3,
-				"float", 2
 			}
 
 			if self.rigged then
@@ -661,20 +662,26 @@ function IQE:buffer()
 			for i=1, #mesh.vp do
 				-- all meshes should have these things...
 				local vp = mesh.vp[i]
-				local vn = mesh.vn[i]
-				local vt = mesh.vt[i]
+				local vn = mesh.vn and mesh.vn[i] or {}
+				local vc = mesh.vc and mesh.vc[i] or {}
+				local vt = mesh.vt and mesh.vt[i] or {}
 
 				local current = {}
 				table.insert(current, vp[1])
 				table.insert(current, vp[2])
 				table.insert(current, vp[3])
 
-				table.insert(current, vn[1] or 0)
-				table.insert(current, vn[2] or 0)
-				table.insert(current, vn[3] or 0)
-
 				table.insert(current, vt[1] or 0)
 				table.insert(current, vt[2] or 0)
+
+				table.insert(current, vc[1] * 255 or 255)
+				table.insert(current, vc[2] * 255 or 255)
+				table.insert(current, vc[3] * 255 or 255)
+				table.insert(current, vc[4] * 255 or 255)
+
+				table.insert(current, vn[1] or 0)
+				table.insert(current, vn[2] or 1)
+				table.insert(current, vn[3] or 0)
 
 				bounds.min.x = bounds.min.x and math.min(bounds.min.x, vp[1]) or vp[1]
 				bounds.max.x = bounds.max.x and math.max(bounds.max.x, vp[1]) or vp[1]
@@ -730,11 +737,12 @@ function IQE:buffer()
 
 			-- NOTE: We *HAVE* to use VertexPosition for LOVE to play ball here. Annoying.
 			m:setVertexAttribute("VertexPosition", buffer, 1)
-			m:setVertexAttribute("v_normal",       buffer, 2)
-			m:setVertexAttribute("v_coord",        buffer, 3)
+			m:setVertexAttribute("VertexTexCoord", buffer, 2)
+			m:setVertexAttribute("VertexColor",    buffer, 3)
+			m:setVertexAttribute("v_normal",       buffer, 4)
 			if self.rigged then
-				m:setVertexAttribute("v_bone",     buffer, 4)
-				m:setVertexAttribute("v_weight",   buffer, 5)
+				m:setVertexAttribute("v_bone",     buffer, 5)
+				m:setVertexAttribute("v_weight",   buffer, 6)
 			end
 			m:setVertexMap(tris)
 		end

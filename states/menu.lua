@@ -38,16 +38,6 @@ function menu:enter()
 				Gamestate.switch(require "states.name_entry", self.name or nil, self.resources, self.host, tonumber(self.port), self.controls)
 			end
 		}, {
-			label = "Test",
-			action = function(self)
-				Gamestate.switch(require "states.test2")
-			end
-		}, {
-			label = "Cube",
-			action = function(self)
-				Gamestate.switch(require "states.cube_test")
-			end
-		}, {
 			label = "Server",
 			action = function(self)
 				Gamestate.switch(require "states.server")

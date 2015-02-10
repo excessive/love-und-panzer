@@ -14,7 +14,9 @@ function ui:draw()
 
 	for _, nametag in ipairs(self.nametags) do
 		if nametag.viewable then
-			love.graphics.setColor(255, 255, 255, 255)
+			love.graphics.setColor(0, 0, 0, 100)
+			love.graphics.printf(nametag.text, nametag.position.x, h - nametag.position.y + 1, 0, "center")
+			love.graphics.setColor(255, 255, 255, 200)
 			love.graphics.printf(nametag.text, nametag.position.x, h - nametag.position.y, 0, "center")
 		end
 	end

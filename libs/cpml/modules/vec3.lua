@@ -209,14 +209,17 @@ end
 function vector:angle_to(other)
 	-- Only makes sense in 2D.
 	if other then
-		return atan2(self.y, self.x) - atan2(other.y, other.x)
+		local angle = atan2(self.y, self.x) - atan2(other.y, other.x)
+		if angle > math.pi then angle = angle - math.pi * 2 end
+		if angle < -math.pi then angle = angle + math.pi * 2 end
+		return angle
 	end
 	return atan2(self.y, self.x)
 end
 
 function vector:angle_between(other)
 	if other then
-		return acos(self*other / (self:len() * other:len()))
+		return acos(self:dot(other) / (self:len() * other:len()))
 	end
 	return 0
 end

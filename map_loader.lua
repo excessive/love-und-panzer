@@ -51,7 +51,7 @@ end
 function Map:init()
 	local t = love.timer.getTime()
 
-	self.text_offset      = cpml.vec3(0, 0, 0)
+	self.text_offset      = cpml.vec3(0, 0, 3.25)
 	self.loaded_objects   = {}
 	self.static_objects   = {}
 	self.animated_objects = {}
@@ -208,8 +208,12 @@ function Map:get_nametags()
 
 	for _, object in ipairs(self.loaded_objects) do
 		if object.name and object.type == "player" then
+			local side = object.direction:cross(object.up)
 			local position = cpml.mat4.project(
-				object.position + self.text_offset,
+				object.position +
+					object.up * self.text_offset.z +
+					object.direction * self.text_offset.y +
+					side * self.text_offset.x,
 				self.camera.view,
 				self.camera.projection,
 				viewport
