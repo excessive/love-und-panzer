@@ -31,7 +31,7 @@ local cpml     = require "libs.cpml"
 local loader   = {
 	_LICENSE     = "Lua IQE Loader is distributed under the terms of the MIT license. See LICENSE.md.",
 	_URL         = "https://github.com/karai17/Lua-IQE-Loader",
-	_VERSION     = "0.2.5",
+	_VERSION     = "0.2.6",
 	_DESCRIPTION = "Load an IQE 3D model (and optional MTL material) into Lua.",
 }
 local IQE      = {}

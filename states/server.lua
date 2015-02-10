@@ -116,8 +116,9 @@ function Server:player_connect(id, client_id)
 		hp              = 100,
 		turret          = 0,
 		cannon          = cpml.vec2(0, 0),
-		position        = cpml.vec3(10, 10, 10),
-		orientation     = cpml.vec3(0, 0, 0),
+		-- FIXME: Use the ACTUAL MAP DATA
+		position        = cpml.vec3(math.random(236)+10, math.random(236)+10, 10),
+		orientation     = cpml.vec3(0, 0, math.random(math.pi*2)),
 		velocity        = cpml.vec3(0, 0, 0),
 		rot_velocity    = cpml.vec3(0, 0, 0),
 		turret_velocity = 0,
@@ -164,7 +165,18 @@ function Server:player_name(id, name)
 end
 
 function Server:player_action(id, action)
+	local player = self.players[id] or {}
 
+	if action == actions.shoot then
+		local data = {
+			type   = packets["player_action"],
+			id     = id,
+			action = action,
+		}
+		local struct  = cdata:set_struct("player_action", data)
+		local encoded = cdata:encode(struct)
+		self.server:send(encoded)
+	end
 end
 
 function Server:player_update_c(id, update)

@@ -19,7 +19,8 @@ function Camera:init(position, direction)
 	self.up         = cpml.vec3(0, 0, 1)
 
 	-- up/down limit (radians)
-	self.pitch_limit       = math.pi / 2.1
+	self.pitch_limit_up    = math.pi / 14
+	self.pitch_limit_down  = math.pi / 3
 	self.current_pitch     = 0
 	self.mouse_sensitivity = 15 -- higher = slower
 
@@ -77,11 +78,11 @@ function Camera:rotateXY(mx, my)
 	self.current_pitch = self.current_pitch + mouse_direction.y
 
 	-- don't rotate up/down more than self.pitch_limit
-	if self.current_pitch > self.pitch_limit then
-		self.current_pitch = self.pitch_limit
+	if self.current_pitch > self.pitch_limit_up then
+		self.current_pitch = self.pitch_limit_up
 		mouse_direction.y  = 0
-	elseif self.current_pitch < -self.pitch_limit then
-		self.current_pitch = -self.pitch_limit
+	elseif self.current_pitch < -self.pitch_limit_down then
+		self.current_pitch = -self.pitch_limit_down
 		mouse_direction.y  = 0
 	end
 

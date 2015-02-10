@@ -22,6 +22,8 @@ function Manager:init(connection, name, map, players)
 	Signal.register("player-action",   function(...) self:player_action(...)   end)
 	Signal.register("player-update_c", function(...) self:player_update_c(...) end)
 	Signal.register("player-update_f", function(...) self:player_update_f(...) end)
+
+	Signal.register("send-shoot", function(...) self:send_shoot(...) end)
 end
 
 function Manager:update(dt)
@@ -187,6 +189,18 @@ function Manager:player_update_f(id, update)
 		self.players[id].turret_velocity  = update.turret_velocity or self.players[id].turret_velocity
 		self.players[id].acceleration     = update.acceleration    or self.players[id].acceleration
 	end
+end
+
+function Manager:send_shoot()
+	local data   = {
+		type     = packets["player_action"],
+		id       = self.id,
+		action   = actions.shoot,
+	}
+
+	local struct  = cdata:set_struct("player_action", data)
+	local encoded = cdata:encode(struct)
+	self.client:send(encoded)
 end
 
 return Manager

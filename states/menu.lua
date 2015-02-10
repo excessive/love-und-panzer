@@ -21,12 +21,14 @@ function menu:enter()
 		self.name = love.filesystem.read("name")
 	end
 
-	self.host = "50.132.59.168"
-	self.port = 2808
-
-	if love.filesystem.isFile("force_local") then
-		self.host = "localhost"
+	if love.filesystem.exists("host") then
+		-- trim extra newlines or whatever
+		self.host = love.filesystem.read("host"):gsub("^%s*(.-)%s*$", "%1")
+	else
+		self.host = "50.132.59.168"
 	end
+
+	self.port = 2808
 
 	self.logo         = love.graphics.newImage("assets/title.png")
 	self.controls     = Controls()

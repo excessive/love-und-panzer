@@ -11,8 +11,6 @@ function Controls:init()
 		turn_left		= "a",
 		turn_right		= "d",
 
-		turret_left		= "q",
-		turret_right	= "e",
 		turret_fire		= " ",
 
 		start			= "return",
@@ -32,8 +30,6 @@ function Controls:init()
 		"turn_left",
 		"turn_right",
 
-		"turret_left",
-		"turret_right",
 		"turret_fire",
 
 		"start",

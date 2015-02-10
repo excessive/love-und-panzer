@@ -49,22 +49,29 @@ function Gameplay:enter(from, name, resources, terrain, connection, chat, contro
 
 	self.original_x, self.original_y = false, false
 	self.prevx, self.prevy           = love.mouse.getPosition()
+	self.original_direction          = 0
 
 	self.focused     = love.window.hasFocus()
-	self.grabbed     = self.focused
+	self.grabbed     = true
 	self.first_press = true
 
-	self.camera:grab(self.grabbed)
+	self.camera:grab(self.focused)
 	self.map:set_camera(self.camera)
 
 	self.ui = require "ui.gameplay"
 	self.ui:init()
 
-	Signal.register("pressed-a",       function(...) self:pressed_a(...)       end)
-	Signal.register("pressed-y",       function(...) self:pressed_y(...)       end)
-	Signal.register("pressed-back",    function(...) self:pressed_back(...)    end)
-	Signal.register("moved-axisleft",  function(...) self:moved_axisleft(...)  end)
-	Signal.register("moved-axisright", function(...) self:moved_axisright(...) end)
+	Signal.register("pressed-a",          function(...) self:pressed_a(...)       end)
+	Signal.register("pressed-y",          function(...) self:pressed_y(...)       end)
+	Signal.register("pressed-back",       function(...) self:pressed_back(...)    end)
+	Signal.register("pressed-start",      function(...) self:pressed_start(...)   end)
+	Signal.register("moved-axisleft",     function(...) self:moved_axisleft(...)  end)
+	Signal.register("moved-axisright",    function(...) self:moved_axisright(...) end)
+	Signal.register("moved-triggerright", function(...) self:moved_triggerright(...) end)
+
+	self.pew_pew  = {}
+	self.cooldown = 0
+	self.released = true
 end
 
 function Gameplay:update(dt)
@@ -76,12 +83,17 @@ function Gameplay:update(dt)
 		self.chat:update(dt)
 	end
 
+	self.cooldown = self.cooldown - dt
+	if self.cooldown < 0 then
+		self.cooldown = 0
+	end
+
 	local w, h = love.graphics.getDimensions()
 	local mx, my = love.mouse.getPosition()
 	local dx, dy = self.prevx - mx, self.prevy - my
 	self.prevx, self.prevy = mx, my
 
-	if not console.visible or not self.focused then
+	if not console.visible and self.focused then
 		if self.grabbed then
 			dx, dy = love.mouse.getPosition()
 			dx, dy = w/2 - dx, h/2 - dy
@@ -202,6 +214,19 @@ function Gameplay:draw()
 
 	self.post:bind()
 	self.map:draw()
+
+	love.graphics.setShader(self.flat)
+	self.camera:send(self.flat)
+	self.flat:send("u_color", { 1, 0, 1, 1 })
+	self.flat:send("u_model", cpml.mat4():to_vec4s())
+
+	gl.Enable(GL.DEPTH_TEST)
+	for _, pew in ipairs(self.pew_pew) do
+		self.flat:send("u_color", { 0, 1, 1, 1 })
+		love.graphics.draw(pew)
+	end
+	gl.Disable(GL.DEPTH_TEST)
+
 	self.post:unbind()
 	self.post:draw()
 
@@ -224,12 +249,7 @@ function Gameplay:keypressed(key, isrepeat)
 	end
 
 	if key == "g" then
-		self.grabbed = not self.grabbed
-
-		if not self.grabbed then
-			self.first_press = true
-			self.camera:grab(self.grabbed)
-		end
+		Signal.emit("pressed-start")
 	end
 end
 
@@ -241,7 +261,14 @@ end
 function Gameplay:mousepressed(x, y, button)
 	if button == "l" then
 		self.first_press = true
-		Signal.emit("pressed-a")
+		Signal.emit("moved-triggerright", nil, 1)
+	end
+end
+
+function Gameplay:mousereleased(x, y, button)
+	if button == "l" then
+		self.first_press = true
+		Signal.emit("moved-triggerright", nil, 0)
 	end
 end
 
@@ -279,6 +306,7 @@ function Gameplay:leave()
 	self.first_press = nil
 	self.focused     = nil
 	self.ui          = nil
+	self.original_direction = nil
 
 	self.manager:destroy()
 
@@ -317,15 +345,43 @@ end
 function Gameplay:pressed_y(joystick)
 	if not self.manager.id then return end
 
+	if not self.grabbed or not self.focused then
+		return
+	end
+
 	self.sniper = not self.sniper
+
+	if self.sniper then
+		self.original_direction = self.camera.direction
+		self.camera.direction = 0
+	else
+		self.camera.direction = self.original_direction
+		self.original_direction = 0
+	end
+end
+
+function Gameplay:pressed_start(joystick)
+	self.grabbed = not self.grabbed
+
+	if not self.grabbed then
+		self.first_press = true
+	end
+
+	self.camera:grab(self.grabbed)
 end
 
 function Gameplay:pressed_back(joystick)
+	self.camera:grab(false)
 	Gamestate.switch(require "states.menu")
 end
 
 function Gameplay:moved_axisleft(joystick, x, y)
 	if not self.manager.id then return end
+
+	if not self.grabbed or not self.focused then
+		x = 0
+		y = 0
+	end
 
 	local dt           = love.timer.getDelta()
 	local turn         = -x
@@ -343,6 +399,18 @@ function Gameplay:moved_axisleft(joystick, x, y)
 
 	-- Check to see if you are going to collide if you move
 	local new_pos = player.position + player.velocity * dt
+
+	-- Don't let players clip half way over the map edge
+	local terrain = self.map:get("Terrain_01")
+	local bounds = terrain:get_bounding_box()
+	bounds.min = bounds.min + cpml.vec2(player.radius, player.radius)
+	bounds.max = bounds.max - cpml.vec2(player.radius, player.radius)
+	if new_pos.x < bounds.min.x or new_pos.y < bounds.min.y or
+	   new_pos.x > bounds.max.x or new_pos.y > bounds.max.y then
+			player.velocity = cpml.vec3(0, 0, 0)
+	end
+
+	-- Don't let players hit each other.
 	for i, p in pairs(self.players) do
 		if i ~= self.manager.id then
 			local c1 = { point=new_pos,    radius=player.radius }
@@ -365,6 +433,12 @@ end
 
 function Gameplay:moved_axisright(joystick, x, y)
 	if not self.manager.id then return end
+
+	-- kill the input if mouse isn't being captured.
+	if not self.grabbed or not self.focused then
+		x = 0
+		y = 0
+	end
 
 	local turret_speed = math.rad(44)
 	local stick        = cpml.vec2(-x, -y)
@@ -428,8 +502,31 @@ function Gameplay:moved_axisright(joystick, x, y)
 	player.turret_direction = cpml.vec3(direction * { 0, 1, 0, 1 })
 end
 
-function Gameplay:action_shoot(id)
+function Gameplay:moved_triggerright(joystick, axis)
+	if not self.manager.id then return end
 
+	if axis >= 0.8 and self.cooldown == 0 and self.released then
+		self.released = false
+		self.cooldown = 5
+		Signal.emit("send-shoot")
+	end
+
+	if axis <= 0.5 then
+		self.released = true
+	end
+end
+
+function Gameplay:action_shoot(id)
+	local player = self.players[id]
+	local ray    = {
+		point     = player.position + player.up * 2.5,
+		direction = player.direction:rotate(player.turret, player.up),
+	}
+	table.insert(self.pew_pew, geometry.new_ray(ray, 50, 0.1))
+
+	if #self.pew_pew > 100 then
+		table.remove(self.pew_pew, 1)
+	end
 end
 
 function Gameplay:action_disconnect(id)

@@ -12,6 +12,8 @@ end
 function ui:draw()
 	local w, h = love.graphics.getDimensions()
 
+	love.graphics.setShader()
+
 	for _, nametag in ipairs(self.nametags) do
 		if nametag.viewable then
 			love.graphics.setColor(0, 0, 0, 100)
@@ -37,6 +39,8 @@ function ui:draw()
 	boxer.new_line(c, "Hotkeys", bright)
 	boxer.new_line(c, "WASD: Move", dim)
 	boxer.new_line(c, "Space: Sniper", dim)
+	boxer.new_line(c, "G: (Un)grab mouse", dim)
+	boxer.new_line(c, "Mouse: Aim", dim)
 
 	boxer.draw(boxes)
 

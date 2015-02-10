@@ -99,6 +99,15 @@ function terrain:get_offset(chunk_x, chunk_y, size)
 	)
 end
 
+-- Our map is currently always square.
+function terrain:get_bounding_box()
+	local data = self.model.data
+	return {
+		min = cpml.vec2(0, 0),
+		max = cpml.vec2(data.chunks_x*(data.size-1), data.chunks_y*(data.size-1))
+	}
+end
+
 function terrain:set_tile(vertex, chunk, chunk_x, chunk_y, size, n, v)
 	local tile = {}
 	tile.vertices = {}
