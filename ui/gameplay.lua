@@ -1,5 +1,6 @@
 local boxer = require "libs.boxer"
-local ui = {}
+local cpml  = require "libs.cpml"
+local ui    = {}
 
 function ui:init(manager)
 	self.manager  = manager
@@ -53,13 +54,16 @@ function ui:draw()
 	local w, h = love.graphics.getDimensions()
 	local x, y = w-210, 10
 	local size = 200
+	local prev = love.graphics.getLineWidth()
+	love.graphics.setLineWidth(3)
 	love.graphics.setColor(50, 50, 50, 200)
 	love.graphics.rectangle("fill", x, y, size, size)
 
 	for _, player in pairs(self.manager.players) do
 		love.graphics.setColor(255, 127, 225, 255)
-		local px = math.floor(player.position.x / 256 * size)
-		local py = math.floor(player.position.y / 256 * size)
+		local px  = math.floor(player.position.x / 256 * size)
+		local py  = math.floor(player.position.y / 256 * size)
+		local fwd = cpml.vec2(0, 1):rotate(player.orientation.z + player.turret) * 7
 
 		if px <= size and py <= size and px >= 0 and py >= 0 then
 			if self.manager.id then
@@ -67,10 +71,12 @@ function ui:draw()
 					love.graphics.setColor(127, 225, 255, 255)
 				end
 			end
-			love.graphics.circle("fill", x+px, y+py, 3)
+			love.graphics.circle("fill", x+px, y+py, 4)
+			love.graphics.line(x+px, y+py, x+px+fwd.x, y+py+fwd.y)
 			love.graphics.setColor(bright)
 		end
 	end
+	love.graphics.setLineWidth(prev)
 end
 
 function ui:set_nametags(nametags)
