@@ -4,9 +4,10 @@
 
 ### Next
 
-* Reimplement the things we killed when rewriting the networking
-* Separate spawn points for players
+* Preferences system (just some json, really)
 * Make server terrain-aware
+* Make server authoritative
+* Cannon keyhole
 
 
 ### Later
@@ -14,25 +15,24 @@
 * Culling (skip drawing for chunks and objects that are not visible)
 * Improve IRC Chat
 * Teams
-* in game hud
-* Mouse control
+* HUD
 * Fix terrain normals
 * Fix shading
 * Add light objects
 * Shadows
 * Single Player Mode (if server not available)
-* Minimap
-* Preferences system (just some json, really)
 * Controller keyboards
 	* T9
 	* qwerty
 	* flower
 * Improve assets
+* Accel / Decel
+* Bounding Box Collision
+	* Ray-Triangle (the first triangle is just 3 rays!)
 
 
 ### Eventually
 
-* Accel / Decel
 * Physically Based Rendering
 * IQM support (now that we can read structs nicely!)
 * Physics
@@ -46,9 +46,8 @@
 		* Fuck yeah, wild animal NPCs!
 	* Floura
 * NPCs
+	* AI
 * Improve map loader
-* Bounding Box Collision
-	* Ray-Triangle (the first triangle is just 3 rays!)
 * Quadtrees
 * Octrees
 * Terrain LOD
@@ -81,3 +80,7 @@
 	1. map out packets
 	1. implement a way to send/receive them
 	1. actually make the game use that shit
+1. Separate spawn points for players
+1. Re-implement the things we killed when rewriting the networking
+1. Mouse control
+1. Minimap

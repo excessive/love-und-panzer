@@ -1,7 +1,8 @@
 local boxer = require "libs.boxer"
 local ui = {}
 
-function ui:init()
+function ui:init(manager)
+	self.manager  = manager
 	self.nametags = {}
 end
 
@@ -46,6 +47,29 @@ function ui:draw()
 
 	if self.display_lut then
 		love.graphics.draw(self.use_color_correction and self.lut_primary or self.lut_secondary)
+	end
+
+	-- Minimap!
+	local w, h = love.graphics.getDimensions()
+	local x, y = w-210, 10
+	local size = 200
+	love.graphics.setColor(50, 50, 50, 200)
+	love.graphics.rectangle("fill", x, y, size, size)
+
+	for _, player in pairs(self.manager.players) do
+		love.graphics.setColor(255, 127, 225, 255)
+		local px = math.floor(player.position.x / 256 * size)
+		local py = math.floor(player.position.y / 256 * size)
+
+		if px <= size and py <= size and px >= 0 and py >= 0 then
+			if self.manager.id then
+				if player.id == self.manager.id then
+					love.graphics.setColor(127, 225, 255, 255)
+				end
+			end
+			love.graphics.circle("fill", x+px, y+py, 3)
+			love.graphics.setColor(bright)
+		end
 	end
 end
 

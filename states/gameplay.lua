@@ -59,7 +59,7 @@ function Gameplay:enter(from, name, resources, terrain, connection, chat, contro
 	self.map:set_camera(self.camera)
 
 	self.ui = require "ui.gameplay"
-	self.ui:init()
+	self.ui:init(self.manager)
 
 	Signal.register("pressed-a",          function(...) self:pressed_a(...)       end)
 	Signal.register("pressed-y",          function(...) self:pressed_y(...)       end)
