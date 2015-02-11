@@ -2,20 +2,23 @@
 
 ## VENI ☆ VIDI ☆ VICI
 
+### Always
+* Improve assets
+* Add maps
+
 ### Next
 
 * Preferences system (just some json, really)
 * Make server terrain-aware
-* Make server authoritative
 * Cannon keyhole
-
-
-### Later
-
-* Culling (skip drawing for chunks and objects that are not visible)
 * Improve IRC Chat
 * Teams
 * HUD
+
+### Later
+
+* Make server authoritative
+* Culling (skip drawing for chunks and objects that are not visible)
 * Fix terrain normals
 * Fix shading
 * Add light objects
@@ -25,16 +28,15 @@
 	* T9
 	* qwerty
 	* flower
-* Improve assets
 * Accel / Decel
 * Bounding Box Collision
 	* Ray-Triangle (the first triangle is just 3 rays!)
-
+* Improve map loader
+* IQM support (now that we can read structs nicely!)
 
 ### Eventually
 
 * Physically Based Rendering
-* IQM support (now that we can read structs nicely!)
 * Physics
 	* Maybe we should look into Bullet
 * PSO2 chat
@@ -47,7 +49,6 @@
 	* Floura
 * NPCs
 	* AI
-* Improve map loader
 * Quadtrees
 * Octrees
 * Terrain LOD
